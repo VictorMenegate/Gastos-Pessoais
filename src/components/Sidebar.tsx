@@ -5,7 +5,7 @@ import { usePathname } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import {
   LayoutDashboard, TrendingDown, RefreshCw,
-  CreditCard, TrendingUp, Settings, LogOut
+  CreditCard, TrendingUp, Settings, LogOut, Landmark
 } from 'lucide-react'
 
 const navItems = [
@@ -14,6 +14,7 @@ const navItems = [
   { href: '/contas', icon: RefreshCw, label: 'Contas' },
   { href: '/parcelados', icon: CreditCard, label: 'Parcelados' },
   { href: '/entradas', icon: TrendingUp, label: 'Entradas' },
+  { href: '/banco', icon: Landmark, label: 'Banco' },
   { href: '/configuracoes', icon: Settings, label: 'Configurações' },
 ]
 

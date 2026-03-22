@@ -71,7 +71,16 @@ export default function ConfiguracoesPage() {
     setSaving(true)
     try {
       for (const profile of profiles) {
-        await upsertProfile({ ...profile, user_id: userId })
+        if (!profile.name.trim()) continue
+        await upsertProfile({
+          ...profile,
+          user_id: userId,
+          salary_schedule: profile.salary_schedule.map(e => ({
+            label: e.label,
+            amount: Number(e.amount),
+            day: Number(e.day),
+          })),
+        })
       }
       setSaved(true)
       setTimeout(() => setSaved(false), 2000)

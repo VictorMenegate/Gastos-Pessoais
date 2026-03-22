@@ -21,9 +21,20 @@ export async function getProfiles(): Promise<Profile[]> {
 
 export async function upsertProfile(profile: Partial<Profile>) {
   const supabase = createClient()
+  const payload = {
+    ...profile,
+    salary_schedule: typeof profile.salary_schedule === 'string'
+      ? JSON.parse(profile.salary_schedule)
+      : profile.salary_schedule,
+    updated_at: new Date().toISOString(),
+  }
+  // Remove campos vazios que causam erro de tipo
+  if (!payload.id) delete payload.id
+  if (!payload.created_at) delete payload.created_at
+
   const { data, error } = await supabase
     .from('profiles')
-    .upsert(profile)
+    .upsert(payload)
     .select()
     .single()
   if (error) throw error

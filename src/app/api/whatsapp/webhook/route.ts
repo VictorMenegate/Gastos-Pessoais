@@ -6,43 +6,40 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 )
 
-const WHATSAPP_TOKEN = process.env.WHATSAPP_API_TOKEN
-const WHATSAPP_VERIFY_TOKEN = process.env.WHATSAPP_VERIFY_TOKEN
-const WHATSAPP_PHONE_ID = process.env.WHATSAPP_PHONE_NUMBER_ID
+const EVOLUTION_API_URL = process.env.EVOLUTION_API_URL // ex: http://evolution:8080
+const EVOLUTION_API_KEY = process.env.EVOLUTION_API_KEY
+const EVOLUTION_INSTANCE = process.env.EVOLUTION_INSTANCE || 'gastos'
 
-// Verificação do webhook (Meta)
-export async function GET(request: Request) {
-  const url = new URL(request.url)
-  const mode = url.searchParams.get('hub.mode')
-  const token = url.searchParams.get('hub.verify_token')
-  const challenge = url.searchParams.get('hub.challenge')
-
-  if (mode === 'subscribe' && token === WHATSAPP_VERIFY_TOKEN) {
-    return new Response(challenge, { status: 200 })
-  }
-  return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
-}
-
-// Recebe mensagens do WhatsApp
+// Evolution API envia POST quando recebe mensagem
 export async function POST(request: Request) {
   const body = await request.json()
 
-  const entry = body.entry?.[0]
-  const change = entry?.changes?.[0]
-  const message = change?.value?.messages?.[0]
-
-  if (!message) {
-    return NextResponse.json({ status: 'no message' })
+  // Evolution API webhook format
+  const event = body.event
+  if (event !== 'messages.upsert') {
+    return NextResponse.json({ status: 'ignored', event })
   }
 
-  const phone = message.from
-  const text = message.text?.body?.trim() ?? ''
-  const buttonPayload = message.interactive?.button_reply?.id ?? ''
-  const listPayload = message.interactive?.list_reply?.id ?? ''
-  const interactivePayload = buttonPayload || listPayload
+  const msg = body.data
+  if (!msg || msg.key?.fromMe) {
+    return NextResponse.json({ status: 'ignored' })
+  }
+
+  // Extrai número e texto
+  const remoteJid = msg.key?.remoteJid ?? ''
+  const phone = remoteJid.replace('@s.whatsapp.net', '').replace('@g.us', '')
+  const text = msg.message?.conversation
+    ?? msg.message?.extendedTextMessage?.text
+    ?? msg.message?.buttonsResponseMessage?.selectedButtonId
+    ?? msg.message?.listResponseMessage?.singleSelectReply?.selectedRowId
+    ?? ''
+
+  if (!phone || !text.trim()) {
+    return NextResponse.json({ status: 'no content' })
+  }
 
   try {
-    // Encontra o perfil pelo telefone
+    // Encontra perfil pelo telefone
     const { data: profile } = await supabase
       .from('profiles')
       .select('*, accounts(*)')
@@ -50,7 +47,7 @@ export async function POST(request: Request) {
       .single()
 
     if (!profile) {
-      await sendWhatsAppMessage(phone, 'Seu número não está vinculado a nenhuma conta. Configure pelo site.')
+      await sendMessage(phone, 'Seu numero nao esta vinculado a nenhuma conta. Configure pelo site.')
       return NextResponse.json({ status: 'unlinked' })
     }
 
@@ -65,11 +62,13 @@ export async function POST(request: Request) {
       .single()
 
     if (!session || isSessionExpired(session.last_message_at)) {
-      // Nova sessão - interpreta mensagem como "nome valor"
-      const parsed = parseTransaction(text)
+      // Limpa sessões antigas
+      if (session) await completeSession(session.id)
+
+      const parsed = parseTransaction(text.trim())
       if (!parsed) {
-        await sendWhatsAppMessage(phone,
-          'Envie no formato: *nome valor*\nExemplo: _Mercado 120_\n\nOu envie *resumo* para ver o resumo do mês.')
+        await sendMessage(phone,
+          '📊 *Gastos Pessoais*\n\nEnvie no formato:\n*nome valor*\n\nExemplos:\n_Mercado 120_\n_Almoço 35.50_\n_Uber 18_\n\nComandos:\n*resumo* - ver resumo do mês')
         return NextResponse.json({ status: 'help' })
       }
 
@@ -77,7 +76,7 @@ export async function POST(request: Request) {
         return await handleResume(phone, profile)
       }
 
-      // Cria sessão com dados temporários
+      // Cria sessão
       const { data: newSession } = await supabase
         .from('whatsapp_sessions')
         .insert({
@@ -90,30 +89,31 @@ export async function POST(request: Request) {
         .single()
       session = newSession
 
-      await sendWhatsAppButtons(phone,
-        `*${parsed.description}* - R$ ${parsed.amount.toFixed(2)}\n\nÉ entrada ou saída?`,
+      await sendButtons(phone,
+        `💰 *${parsed.description}* - R$ ${parsed.amount.toFixed(2)}\n\nÉ entrada ou saída?`,
         [
-          { id: 'type_expense', title: 'Saída (Gasto)' },
-          { id: 'type_income', title: 'Entrada (Receita)' },
-          { id: 'cancel', title: 'Cancelar' },
+          { id: 'type_expense', text: '📤 Saída (Gasto)' },
+          { id: 'type_income', text: '📥 Entrada (Receita)' },
+          { id: 'cancel', text: '❌ Cancelar' },
         ]
       )
       return NextResponse.json({ status: 'awaiting_type' })
     }
 
     // Processa estado da sessão
+    const input = text.trim()
     switch (session.state) {
       case 'awaiting_type':
-        return await handleAwaitingType(phone, session, interactivePayload, profile)
+        return await handleAwaitingType(phone, session, input, profile)
       case 'awaiting_payment':
-        return await handleAwaitingPayment(phone, session, interactivePayload, profile)
+        return await handleAwaitingPayment(phone, session, input, profile)
       case 'awaiting_category':
-        return await handleAwaitingCategory(phone, session, interactivePayload, profile)
+        return await handleAwaitingCategory(phone, session, input, profile)
       case 'awaiting_confirm':
-        return await handleAwaitingConfirm(phone, session, interactivePayload, profile)
+        return await handleAwaitingConfirm(phone, session, input, profile)
       default:
         await completeSession(session.id)
-        await sendWhatsAppMessage(phone, 'Sessão reiniciada. Envie uma nova transação.')
+        await sendMessage(phone, 'Sessão reiniciada. Envie uma nova transação.')
         return NextResponse.json({ status: 'reset' })
     }
   } catch (error: any) {
@@ -122,16 +122,17 @@ export async function POST(request: Request) {
   }
 }
 
-// --- Handlers por estado ---
+// --- Handlers ---
 
-async function handleAwaitingType(phone: string, session: any, payload: string, profile: any) {
-  if (payload === 'cancel') {
+async function handleAwaitingType(phone: string, session: any, input: string, profile: any) {
+  if (input.includes('cancel') || input === '3' || input.toLowerCase() === 'cancelar') {
     await completeSession(session.id)
-    await sendWhatsAppMessage(phone, 'Cancelado.')
+    await sendMessage(phone, '❌ Cancelado.')
     return NextResponse.json({ status: 'cancelled' })
   }
 
-  const type = payload === 'type_income' ? 'income' : 'expense'
+  const isIncome = input.includes('income') || input.includes('entrada') || input === '2'
+  const type = isIncome ? 'income' : 'expense'
   await updateSession(session.id, 'awaiting_payment', { ...session.temp_data, type })
 
   // Busca métodos de pagamento
@@ -142,20 +143,46 @@ async function handleAwaitingType(phone: string, session: any, payload: string, 
     .eq('active', true)
     .limit(10)
 
-  const buttons = (methods ?? []).slice(0, 3).map(m => ({
-    id: `pm_${m.id}`,
-    title: `${m.icon} ${m.name}`.slice(0, 20),
-  }))
+  if (!methods?.length) {
+    // Sem métodos, pula para categoria
+    await updateSession(session.id, 'awaiting_category', { ...session.temp_data, type, payment_method_id: null })
+    return await sendCategoryOptions(phone, session.temp_data.type === 'income' ? 'income' : 'expense')
+  }
 
-  await sendWhatsAppButtons(phone, 'Qual método de pagamento?', buttons)
+  const list = methods.map((m, i) => `*${i + 1}.* ${m.icon} ${m.name}`).join('\n')
+  await sendMessage(phone, `💳 *Método de pagamento:*\n\n${list}\n\nResponda com o número`)
   return NextResponse.json({ status: 'awaiting_payment' })
 }
 
-async function handleAwaitingPayment(phone: string, session: any, payload: string, profile: any) {
-  const pmId = payload.replace('pm_', '')
-  await updateSession(session.id, 'awaiting_category', { ...session.temp_data, payment_method_id: pmId })
+async function handleAwaitingPayment(phone: string, session: any, input: string, profile: any) {
+  const { data: methods } = await supabase
+    .from('payment_methods')
+    .select('id, name')
+    .eq('account_id', profile.account_id)
+    .eq('active', true)
+    .limit(10)
 
-  // Busca categorias
+  const idx = parseInt(input) - 1
+  const method = methods?.[idx]
+  const pmId = method?.id || null
+
+  await updateSession(session.id, 'awaiting_category', { ...session.temp_data, payment_method_id: pmId })
+  return await sendCategoryOptions(phone, session.temp_data.type === 'income' ? 'income' : 'expense')
+}
+
+async function sendCategoryOptions(phone: string, type: string) {
+  const { data: categories } = await supabase
+    .from('categories')
+    .select('id, name, icon')
+    .in('type', [type, 'both'])
+    .limit(10)
+
+  const list = (categories ?? []).map((c, i) => `*${i + 1}.* ${c.icon} ${c.name}`).join('\n')
+  await sendMessage(phone, `📁 *Categoria:*\n\n${list}\n\nResponda com o número`)
+  return NextResponse.json({ status: 'awaiting_category' })
+}
+
+async function handleAwaitingCategory(phone: string, session: any, input: string, profile: any) {
   const categoryType = session.temp_data.type === 'income' ? 'income' : 'expense'
   const { data: categories } = await supabase
     .from('categories')
@@ -163,43 +190,37 @@ async function handleAwaitingPayment(phone: string, session: any, payload: strin
     .in('type', [categoryType, 'both'])
     .limit(10)
 
-  const rows = (categories ?? []).map(c => ({
-    id: `cat_${c.id}`,
-    title: `${c.icon} ${c.name}`.slice(0, 24),
-  }))
-
-  await sendWhatsAppList(phone, 'Selecione a categoria:', 'Categorias', rows)
-  return NextResponse.json({ status: 'awaiting_category' })
-}
-
-async function handleAwaitingCategory(phone: string, session: any, payload: string, profile: any) {
-  const catId = payload.replace('cat_', '')
-  const data = { ...session.temp_data, category_id: catId }
+  const idx = parseInt(input) - 1
+  const cat = categories?.[idx]
+  const data = { ...session.temp_data, category_id: cat?.id || null }
   await updateSession(session.id, 'awaiting_confirm', data)
 
-  // Busca nome da categoria
-  const { data: cat } = await supabase.from('categories').select('name, icon').eq('id', catId).single()
-
+  const typeEmoji = data.type === 'income' ? '📥' : '📤'
   const typeLabel = data.type === 'income' ? 'Entrada' : 'Saída'
   const summary = [
-    `*Confirmar transação:*`,
-    `${typeLabel}: *${data.description}*`,
-    `Valor: *R$ ${data.amount.toFixed(2)}*`,
-    `Categoria: ${cat?.icon ?? ''} ${cat?.name ?? 'Outros'}`,
+    `✅ *Confirmar transação:*\n`,
+    `${typeEmoji} ${typeLabel}`,
+    `📝 *${data.description}*`,
+    `💰 *R$ ${data.amount.toFixed(2)}*`,
+    `📁 ${cat?.icon ?? '📦'} ${cat?.name ?? 'Outros'}`,
+    `\nResponda *sim* para confirmar ou *não* para cancelar`,
   ].join('\n')
 
-  await sendWhatsAppButtons(phone, summary, [
-    { id: 'confirm_yes', title: 'Confirmar' },
-    { id: 'confirm_no', title: 'Cancelar' },
-  ])
+  await sendMessage(phone, summary)
   return NextResponse.json({ status: 'awaiting_confirm' })
 }
 
-async function handleAwaitingConfirm(phone: string, session: any, payload: string, profile: any) {
-  if (payload === 'confirm_no') {
+async function handleAwaitingConfirm(phone: string, session: any, input: string, profile: any) {
+  const lower = input.toLowerCase()
+  if (lower === 'nao' || lower === 'não' || lower === 'n' || lower === '2') {
     await completeSession(session.id)
-    await sendWhatsAppMessage(phone, 'Cancelado.')
+    await sendMessage(phone, '❌ Cancelado.')
     return NextResponse.json({ status: 'cancelled' })
+  }
+
+  if (lower !== 'sim' && lower !== 's' && lower !== '1' && lower !== 'ok') {
+    await sendMessage(phone, 'Responda *sim* ou *não*')
+    return NextResponse.json({ status: 'awaiting_confirm' })
   }
 
   const data = session.temp_data
@@ -220,8 +241,8 @@ async function handleAwaitingConfirm(phone: string, session: any, payload: strin
   })
 
   await completeSession(session.id)
-  await sendWhatsAppMessage(phone,
-    `Salvo! ${data.type === 'income' ? '📥' : '📤'} *${data.description}* - R$ ${data.amount.toFixed(2)}`)
+  const emoji = data.type === 'income' ? '📥' : '📤'
+  await sendMessage(phone, `${emoji} *Salvo!* ${data.description} - R$ ${data.amount.toFixed(2)}\n\nEnvie outra transação ou digite *resumo*`)
   return NextResponse.json({ status: 'saved' })
 }
 
@@ -235,25 +256,26 @@ async function handleResume(phone: string, profile: any) {
 
   const income = (transactions ?? []).filter(t => t.type === 'income').reduce((s, t) => s + Number(t.amount), 0)
   const expenses = (transactions ?? []).filter(t => t.type === 'expense').reduce((s, t) => s + Number(t.amount), 0)
+  const balance = income - expenses
 
   const msg = [
-    `*Resumo do mês:*`,
+    `📊 *Resumo do mês:*\n`,
     `📥 Entradas: R$ ${income.toFixed(2)}`,
     `📤 Saídas: R$ ${expenses.toFixed(2)}`,
-    `💰 Saldo: R$ ${(income - expenses).toFixed(2)}`,
-    `📊 ${(transactions ?? []).length} transações`,
+    `${balance >= 0 ? '💚' : '🔴'} Saldo: R$ ${balance.toFixed(2)}`,
+    `📋 ${(transactions ?? []).length} transações`,
   ].join('\n')
 
-  await sendWhatsAppMessage(phone, msg)
+  await sendMessage(phone, msg)
   return NextResponse.json({ status: 'resume' })
 }
 
 // --- Helpers ---
 
 function parseTransaction(text: string): { description: string; amount: number; command?: string } | null {
-  if (text.toLowerCase() === 'resumo') return { description: '', amount: 0, command: 'resumo' }
+  const lower = text.toLowerCase()
+  if (lower === 'resumo' || lower === 'saldo') return { description: '', amount: 0, command: 'resumo' }
 
-  // "Mercado 120" ou "Almoço 45.50"
   const match = text.match(/^(.+?)\s+([\d.,]+)$/)
   if (!match) return null
 
@@ -266,7 +288,7 @@ function parseTransaction(text: string): { description: string; amount: number; 
 
 function isSessionExpired(lastMessageAt: string): boolean {
   const diff = Date.now() - new Date(lastMessageAt).getTime()
-  return diff > 10 * 60 * 1000 // 10 minutos
+  return diff > 10 * 60 * 1000
 }
 
 async function updateSession(id: string, state: string, temp_data: any) {
@@ -283,74 +305,52 @@ async function completeSession(id: string) {
     .eq('id', id)
 }
 
-// --- WhatsApp Cloud API ---
+// --- Evolution API ---
 
-async function sendWhatsAppMessage(to: string, text: string) {
-  if (!WHATSAPP_TOKEN || !WHATSAPP_PHONE_ID) return
+async function sendMessage(to: string, text: string) {
+  if (!EVOLUTION_API_URL || !EVOLUTION_API_KEY) return
 
-  await fetch(`https://graph.facebook.com/v18.0/${WHATSAPP_PHONE_ID}/messages`, {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${WHATSAPP_TOKEN}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      messaging_product: 'whatsapp',
-      to,
-      type: 'text',
-      text: { body: text },
-    }),
-  })
+  try {
+    await fetch(`${EVOLUTION_API_URL}/message/sendText/${EVOLUTION_INSTANCE}`, {
+      method: 'POST',
+      headers: {
+        'apikey': EVOLUTION_API_KEY,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        number: to,
+        text,
+      }),
+    })
+  } catch (e) {
+    console.error('Evolution API send error:', e)
+  }
 }
 
-async function sendWhatsAppButtons(to: string, bodyText: string, buttons: { id: string; title: string }[]) {
-  if (!WHATSAPP_TOKEN || !WHATSAPP_PHONE_ID) return
+async function sendButtons(to: string, text: string, buttons: { id: string; text: string }[]) {
+  if (!EVOLUTION_API_URL || !EVOLUTION_API_KEY) return
 
-  await fetch(`https://graph.facebook.com/v18.0/${WHATSAPP_PHONE_ID}/messages`, {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${WHATSAPP_TOKEN}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      messaging_product: 'whatsapp',
-      to,
-      type: 'interactive',
-      interactive: {
-        type: 'button',
-        body: { text: bodyText },
-        action: {
-          buttons: buttons.map(b => ({
-            type: 'reply',
-            reply: { id: b.id, title: b.title },
-          })),
-        },
+  try {
+    await fetch(`${EVOLUTION_API_URL}/message/sendButtons/${EVOLUTION_INSTANCE}`, {
+      method: 'POST',
+      headers: {
+        'apikey': EVOLUTION_API_KEY,
+        'Content-Type': 'application/json',
       },
-    }),
-  })
-}
-
-async function sendWhatsAppList(to: string, bodyText: string, buttonTitle: string, rows: { id: string; title: string }[]) {
-  if (!WHATSAPP_TOKEN || !WHATSAPP_PHONE_ID) return
-
-  await fetch(`https://graph.facebook.com/v18.0/${WHATSAPP_PHONE_ID}/messages`, {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${WHATSAPP_TOKEN}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      messaging_product: 'whatsapp',
-      to,
-      type: 'interactive',
-      interactive: {
-        type: 'list',
-        body: { text: bodyText },
-        action: {
-          button: buttonTitle,
-          sections: [{ title: 'Opções', rows }],
-        },
-      },
-    }),
-  })
+      body: JSON.stringify({
+        number: to,
+        title: 'Gastos Pessoais',
+        description: text,
+        buttons: buttons.map(b => ({
+          type: 'reply',
+          buttonId: b.id,
+          buttonText: { displayText: b.text },
+        })),
+      }),
+    })
+  } catch (e) {
+    // Fallback: envia como texto normal se botões não suportados
+    const fallbackText = text + '\n\n' + buttons.map((b, i) => `*${i + 1}.* ${b.text}`).join('\n')
+    await sendMessage(to, fallbackText)
+  }
 }

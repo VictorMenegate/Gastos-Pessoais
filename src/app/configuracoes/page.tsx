@@ -286,28 +286,38 @@ export default function ConfiguracoesPage() {
                 <div className="space-y-4">
                   <div className="card space-y-4">
                     <h2 className="text-sm font-semibold text-white flex items-center gap-2">
-                      <MessageCircle size={16} className="text-green-400" /> Integração WhatsApp
+                      <MessageCircle size={16} className="text-green-400" /> Integração WhatsApp (Evolution API)
                     </h2>
                     <div className="bg-slate-900 rounded-lg p-4 space-y-3">
-                      <p className="text-sm text-slate-300">Como funciona:</p>
+                      <p className="text-sm text-slate-300">Como configurar:</p>
                       <ol className="text-sm text-slate-400 space-y-2 list-decimal list-inside">
-                        <li>Configure seu número de WhatsApp no perfil</li>
-                        <li>Configure o webhook no <strong>Meta Business</strong></li>
-                        <li>Envie mensagens no formato: <code className="text-green-400">Mercado 120</code></li>
-                        <li>O bot pergunta tipo, pagamento e categoria</li>
-                        <li>Confirme e a transação é salva automaticamente</li>
+                        <li>Instale a <strong>Evolution API</strong> no EasyPanel (Docker)</li>
+                        <li>Crie uma instância e escaneie o <strong>QR Code</strong></li>
+                        <li>Configure o webhook da instância para apontar para este app</li>
+                        <li>Vincule seu número na aba Perfis</li>
+                        <li>Envie mensagens: <code className="text-green-400">Mercado 120</code></li>
                       </ol>
                     </div>
                     <div className="bg-slate-900 rounded-lg p-4">
-                      <p className="text-sm text-slate-300 mb-2">Webhook URL:</p>
+                      <p className="text-sm text-slate-300 mb-2">Webhook URL (configurar na Evolution API):</p>
                       <code className="text-xs text-green-400 bg-slate-800 px-3 py-2 rounded block break-all">
                         {typeof window !== 'undefined' ? `${window.location.origin}/api/whatsapp/webhook` : '/api/whatsapp/webhook'}
                       </code>
+                      <p className="text-xs text-slate-500 mt-2">Evento: <code>messages.upsert</code></p>
+                    </div>
+                    <div className="bg-slate-900 rounded-lg p-4">
+                      <p className="text-sm text-slate-300 mb-2">Variáveis de ambiente necessárias:</p>
+                      <div className="space-y-1 text-xs text-slate-400 font-mono">
+                        <p><span className="text-amber-400">EVOLUTION_API_URL</span>=http://evolution:8080</p>
+                        <p><span className="text-amber-400">EVOLUTION_API_KEY</span>=sua_api_key</p>
+                        <p><span className="text-amber-400">EVOLUTION_INSTANCE</span>=gastos</p>
+                      </div>
                     </div>
                     <div className="bg-slate-900 rounded-lg p-4">
                       <p className="text-sm text-slate-300 mb-2">Comandos disponíveis:</p>
                       <div className="space-y-1 text-sm text-slate-400">
                         <p><code className="text-green-400">Mercado 120</code> - Registra transação</p>
+                        <p><code className="text-green-400">Almoço 35.50</code> - Com centavos</p>
                         <p><code className="text-green-400">resumo</code> - Resumo do mês</p>
                       </div>
                     </div>

@@ -11,17 +11,17 @@ import type {
 
 export async function getAccount(): Promise<Account | null> {
   const supabase = createClient()
-  const { data: profile } = await supabase
+  const { data: profiles } = await supabase
     .from('profiles')
     .select('account_id')
+    .not('account_id', 'is', null)
     .limit(1)
-    .single()
-  if (!profile?.account_id) return null
+  if (!profiles?.length || !profiles[0].account_id) return null
 
   const { data, error } = await supabase
     .from('accounts')
     .select('*')
-    .eq('id', profile.account_id)
+    .eq('id', profiles[0].account_id)
     .single()
   if (error) return null
   return data
@@ -57,16 +57,15 @@ export async function upsertProfile(profile: Partial<Profile>) {
   let accountId = profile.account_id
   if (!accountId) {
     // Verifica se já existe uma account para este usuário
-    const { data: existingProfile } = await supabase
+    const { data: existingProfiles } = await supabase
       .from('profiles')
       .select('account_id')
       .eq('user_id', profile.user_id!)
       .not('account_id', 'is', null)
       .limit(1)
-      .single()
 
-    if (existingProfile?.account_id) {
-      accountId = existingProfile.account_id
+    if (existingProfiles?.length && existingProfiles[0].account_id) {
+      accountId = existingProfiles[0].account_id
     } else {
       // Cria uma nova account
       const { data: newAccount, error: accError } = await supabase

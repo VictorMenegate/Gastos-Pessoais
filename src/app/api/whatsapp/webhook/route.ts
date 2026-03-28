@@ -305,7 +305,7 @@ async function completeSession(id: string) {
     .eq('id', id)
 }
 
-// --- Evolution API ---
+// --- Evolution API v1.8 ---
 
 async function sendMessage(to: string, text: string) {
   if (!EVOLUTION_API_URL || !EVOLUTION_API_KEY) return
@@ -319,7 +319,7 @@ async function sendMessage(to: string, text: string) {
       },
       body: JSON.stringify({
         number: to,
-        text,
+        textMessage: { text },
       }),
     })
   } catch (e) {
@@ -328,29 +328,7 @@ async function sendMessage(to: string, text: string) {
 }
 
 async function sendButtons(to: string, text: string, buttons: { id: string; text: string }[]) {
-  if (!EVOLUTION_API_URL || !EVOLUTION_API_KEY) return
-
-  try {
-    await fetch(`${EVOLUTION_API_URL}/message/sendButtons/${EVOLUTION_INSTANCE}`, {
-      method: 'POST',
-      headers: {
-        'apikey': EVOLUTION_API_KEY,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        number: to,
-        title: 'Gastos Pessoais',
-        description: text,
-        buttons: buttons.map(b => ({
-          type: 'reply',
-          buttonId: b.id,
-          buttonText: { displayText: b.text },
-        })),
-      }),
-    })
-  } catch (e) {
-    // Fallback: envia como texto normal se botões não suportados
-    const fallbackText = text + '\n\n' + buttons.map((b, i) => `*${i + 1}.* ${b.text}`).join('\n')
-    await sendMessage(to, fallbackText)
-  }
+  // Evolution v1.8 - envia como texto com opções numeradas
+  const fallbackText = text + '\n\n' + buttons.map((b, i) => `*${i + 1}.* ${b.text}`).join('\n')
+  await sendMessage(to, fallbackText)
 }

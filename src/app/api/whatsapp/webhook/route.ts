@@ -40,15 +40,17 @@ export async function POST(request: Request) {
 
   try {
     // Encontra perfil pelo telefone
-    const { data: profile } = await supabase
+    const { data: profiles, error: profileError } = await supabase
       .from('profiles')
-      .select('*, accounts(*)')
+      .select('*')
       .eq('whatsapp_phone', phone)
-      .single()
+      .limit(1)
 
-    if (!profile) {
+    const profile = profiles?.[0]
+
+    if (!profile || profileError) {
       await sendMessage(phone, 'Seu numero nao esta vinculado a nenhuma conta. Configure pelo site.')
-      return NextResponse.json({ status: 'unlinked' })
+      return NextResponse.json({ status: 'unlinked', phone, error: profileError?.message })
     }
 
     // Busca ou cria sessão

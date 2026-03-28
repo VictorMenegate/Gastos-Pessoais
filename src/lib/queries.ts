@@ -52,8 +52,36 @@ export async function getProfiles(): Promise<Profile[]> {
 
 export async function upsertProfile(profile: Partial<Profile>) {
   const supabase = createClient()
+
+  // Garante que existe uma account
+  let accountId = profile.account_id
+  if (!accountId) {
+    // Verifica se já existe uma account para este usuário
+    const { data: existingProfile } = await supabase
+      .from('profiles')
+      .select('account_id')
+      .eq('user_id', profile.user_id!)
+      .not('account_id', 'is', null)
+      .limit(1)
+      .single()
+
+    if (existingProfile?.account_id) {
+      accountId = existingProfile.account_id
+    } else {
+      // Cria uma nova account
+      const { data: newAccount, error: accError } = await supabase
+        .from('accounts')
+        .insert({ name: 'Minha Conta' })
+        .select()
+        .single()
+      if (accError) throw accError
+      accountId = newAccount.id
+    }
+  }
+
   const payload = {
     ...profile,
+    account_id: accountId,
     salary_schedule: typeof profile.salary_schedule === 'string'
       ? JSON.parse(profile.salary_schedule)
       : profile.salary_schedule,
@@ -61,6 +89,8 @@ export async function upsertProfile(profile: Partial<Profile>) {
   }
   if (!payload.id) delete payload.id
   if (!payload.created_at) delete payload.created_at
+  if (!payload.avatar_url) delete payload.avatar_url
+  if (!payload.whatsapp_phone) payload.whatsapp_phone = null
 
   const { data, error } = await supabase
     .from('profiles')

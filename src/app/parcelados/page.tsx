@@ -2,16 +2,18 @@
 
 import { useEffect, useState } from 'react'
 import { Plus, CreditCard } from 'lucide-react'
-import { getInstallments, createInstallment, markInstallmentPaid, getCategories, getProfiles } from '@/lib/queries'
+import { getInstallments, createInstallment, markInstallmentPaid, getCategories, getPaymentMethods, getProfiles } from '@/lib/queries'
+import { formatCurrency } from '@/lib/utils'
 import Sidebar from '@/components/Sidebar'
-import type { Category, Profile } from '@/types'
-
-const fmt = (v: number) =>
-  new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v)
+import Loading from '@/components/Loading'
+import EmptyState from '@/components/EmptyState'
+import ProgressBar from '@/components/ProgressBar'
+import type { Category, PaymentMethod, Profile } from '@/types'
 
 export default function ParceladosPage() {
   const [installments, setInstallments] = useState<any[]>([])
   const [categories, setCategories] = useState<Category[]>([])
+  const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([])
   const [profiles, setProfiles] = useState<Profile[]>([])
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
@@ -19,42 +21,47 @@ export default function ParceladosPage() {
   const [form, setForm] = useState({
     description: '', total_amount: '', installment_value: '',
     total_installments: '', start_date: new Date().toISOString().slice(0, 10),
-    due_day: '10', category_id: '', profile_id: '', notes: '',
+    due_day: '10', category_id: '', payment_method_id: '', profile_id: '', notes: '',
   })
 
   async function load() {
     setLoading(true)
-    const [inst, cats, profs] = await Promise.all([
-      getInstallments(), getCategories(), getProfiles(),
+    const [inst, cats, pms, profs] = await Promise.all([
+      getInstallments(), getCategories('expense'), getPaymentMethods(), getProfiles(),
     ])
-    setInstallments(inst); setCategories(cats); setProfiles(profs)
+    setInstallments(inst); setCategories(cats); setPaymentMethods(pms); setProfiles(profs)
     if (!form.profile_id && profs.length) setForm(f => ({ ...f, profile_id: profs[0].id }))
     setLoading(false)
   }
 
   useEffect(() => { load() }, [])
 
-  // Auto-calcula valor da parcela ao mudar total ou qtd
   function handleTotalOrQty(field: string, value: string) {
     const next = { ...form, [field]: value }
     if (next.total_amount && next.total_installments) {
-      const calc = (parseFloat(next.total_amount) / parseInt(next.total_installments)).toFixed(2)
-      setForm({ ...next, installment_value: calc })
-    } else {
-      setForm(next)
+      next.installment_value = (parseFloat(next.total_amount) / parseInt(next.total_installments)).toFixed(2)
     }
+    setForm(next)
   }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
+    const account = profiles[0]?.account_id
+    if (!account) return
     await createInstallment({
-      ...form,
+      account_id: account,
+      description: form.description,
       total_amount: parseFloat(form.total_amount),
       installment_value: parseFloat(form.installment_value),
       total_installments: parseInt(form.total_installments),
       due_day: parseInt(form.due_day),
+      start_date: form.start_date,
       paid_installments: 0,
       active: true,
+      category_id: form.category_id || undefined,
+      payment_method_id: form.payment_method_id || undefined,
+      profile_id: form.profile_id,
+      notes: form.notes || undefined,
     } as any)
     setShowForm(false)
     load()
@@ -66,7 +73,7 @@ export default function ParceladosPage() {
     load()
   }
 
-  const totalMonthly = installments.reduce((s, i) => s + Number(i.installment_value), 0)
+  const totalMonthly = installments.reduce((s: number, i: any) => s + Number(i.installment_value), 0)
 
   return (
     <div className="min-h-screen bg-slate-950">
@@ -76,7 +83,7 @@ export default function ParceladosPage() {
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-xl font-bold text-white">Parcelados</h1>
-              <p className="text-slate-400 text-sm">Compromisso mensal: {fmt(totalMonthly)}</p>
+              <p className="text-slate-400 text-sm">Compromisso mensal: {formatCurrency(totalMonthly)}</p>
             </div>
             <button onClick={() => setShowForm(!showForm)} className="btn-primary flex items-center gap-1.5">
               <Plus size={16} /> Novo
@@ -89,17 +96,17 @@ export default function ParceladosPage() {
               <form onSubmit={handleSubmit} className="grid grid-cols-2 gap-3">
                 <div className="col-span-2">
                   <label className="label">Descrição</label>
-                  <input className="input" placeholder="Ex: TV Samsung, Geladeira..." required
+                  <input className="input" placeholder="Ex: TV Samsung..." required
                     value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} />
                 </div>
                 <div>
                   <label className="label">Valor total (R$)</label>
-                  <input className="input" type="number" step="0.01" placeholder="0,00" required
+                  <input className="input" type="number" step="0.01" required
                     value={form.total_amount} onChange={e => handleTotalOrQty('total_amount', e.target.value)} />
                 </div>
                 <div>
                   <label className="label">Nº de parcelas</label>
-                  <input className="input" type="number" min="2" placeholder="12" required
+                  <input className="input" type="number" min="2" required
                     value={form.total_installments} onChange={e => handleTotalOrQty('total_installments', e.target.value)} />
                 </div>
                 <div>
@@ -108,7 +115,7 @@ export default function ParceladosPage() {
                     value={form.installment_value} onChange={e => setForm(f => ({ ...f, installment_value: e.target.value }))} />
                 </div>
                 <div>
-                  <label className="label">Dia de vencimento</label>
+                  <label className="label">Dia vencimento</label>
                   <input className="input" type="number" min="1" max="31" required
                     value={form.due_day} onChange={e => setForm(f => ({ ...f, due_day: e.target.value }))} />
                 </div>
@@ -116,6 +123,14 @@ export default function ParceladosPage() {
                   <label className="label">Data início</label>
                   <input className="input" type="date" required
                     value={form.start_date} onChange={e => setForm(f => ({ ...f, start_date: e.target.value }))} />
+                </div>
+                <div>
+                  <label className="label">Pagamento</label>
+                  <select className="input" value={form.payment_method_id}
+                    onChange={e => setForm(f => ({ ...f, payment_method_id: e.target.value }))}>
+                    <option value="">Não informado</option>
+                    {paymentMethods.map(pm => <option key={pm.id} value={pm.id}>{pm.icon} {pm.name}</option>)}
+                  </select>
                 </div>
                 <div>
                   <label className="label">Responsável</label>
@@ -128,7 +143,7 @@ export default function ParceladosPage() {
                   <label className="label">Categoria</label>
                   <select className="input" value={form.category_id}
                     onChange={e => setForm(f => ({ ...f, category_id: e.target.value }))}>
-                    <option value="">— Sem categoria —</option>
+                    <option value="">Sem categoria</option>
                     {categories.map(c => <option key={c.id} value={c.id}>{c.icon} {c.name}</option>)}
                   </select>
                 </div>
@@ -140,17 +155,12 @@ export default function ParceladosPage() {
             </div>
           )}
 
-          {loading ? (
-            <div className="flex justify-center py-12">
-              <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-green-500" />
-            </div>
-          ) : installments.length === 0 ? (
-            <div className="card text-center py-10 text-slate-500">Nenhum parcelamento ativo</div>
+          {loading ? <Loading /> : installments.length === 0 ? (
+            <EmptyState icon="💳" title="Nenhum parcelamento ativo" description="Registre compras parceladas para acompanhar" />
           ) : (
             <div className="space-y-3">
-              {installments.map(inst => {
+              {installments.map((inst: any) => {
                 const pct = Math.round((inst.paid_installments / inst.total_installments) * 100)
-                const remaining = inst.total_installments - inst.paid_installments
                 return (
                   <div key={inst.id} className="card space-y-3">
                     <div className="flex items-start justify-between">
@@ -160,35 +170,23 @@ export default function ParceladosPage() {
                           <p className="text-sm font-medium text-white">{inst.description}</p>
                         </div>
                         <p className="text-xs text-slate-400 mt-0.5">
-                          {inst.categories?.icon} {inst.categories?.name} • {inst.profiles?.name} • dia {inst.due_day}
+                          {inst.categories?.icon} {inst.categories?.name}
+                          {inst.payment_methods && ` • ${inst.payment_methods.icon} ${inst.payment_methods.name}`}
+                          {` • ${inst.profiles?.name} • dia ${inst.due_day}`}
                         </p>
                       </div>
                       <div className="text-right">
-                        <p className="text-sm font-bold text-white">{fmt(inst.installment_value)}/mês</p>
-                        <p className="text-xs text-slate-400">{remaining} restantes</p>
+                        <p className="text-sm font-bold text-white">{formatCurrency(inst.installment_value)}/mês</p>
+                        <p className="text-xs text-slate-400">{inst.total_installments - inst.paid_installments} restantes</p>
                       </div>
                     </div>
-
-                    {/* Barra de progresso */}
-                    <div>
-                      <div className="flex justify-between text-xs text-slate-400 mb-1">
-                        <span>{inst.paid_installments}/{inst.total_installments} pagas</span>
-                        <span>{pct}%</span>
-                      </div>
-                      <div className="w-full bg-slate-700 rounded-full h-2">
-                        <div
-                          className="bg-green-500 h-2 rounded-full transition-all"
-                          style={{ width: `${pct}%` }}
-                        />
-                      </div>
-                    </div>
-
+                    <ProgressBar value={inst.paid_installments} max={inst.total_installments} />
                     <div className="flex items-center justify-between">
                       <p className="text-xs text-slate-400">
-                        Total: {fmt(inst.total_amount)} • Pago: {fmt(inst.paid_installments * inst.installment_value)}
+                        Total: {formatCurrency(inst.total_amount)} • Pago: {formatCurrency(inst.paid_installments * inst.installment_value)}
                       </p>
                       <button onClick={() => handleMarkPaid(inst.id)} className="btn-secondary text-xs py-1">
-                        Marcar parcela paga
+                        Pagar parcela
                       </button>
                     </div>
                   </div>

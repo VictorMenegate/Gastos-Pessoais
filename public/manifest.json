@@ -1,7 +1,7 @@
 {
   "name": "Gastos Pessoais",
   "short_name": "Gastos",
-  "description": "Controle financeiro pessoal e do casal",
+  "description": "Sistema financeiro pessoal multiusuário",
   "start_url": "/dashboard",
   "display": "standalone",
   "background_color": "#0f172a",

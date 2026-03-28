@@ -27,14 +27,14 @@ export async function middleware(request: NextRequest) {
 
   const { data: { user } } = await supabase.auth.getUser()
 
-  // Redireciona para login se não autenticado
-  if (!user && !request.nextUrl.pathname.startsWith('/login')) {
+  // Redirect to login if not authenticated
+  if (!user && !request.nextUrl.pathname.startsWith('/login') && !request.nextUrl.pathname.startsWith('/api/')) {
     const url = request.nextUrl.clone()
     url.pathname = '/login'
     return NextResponse.redirect(url)
   }
 
-  // Redireciona para dashboard se já autenticado e tentando acessar login
+  // Redirect to dashboard if already authenticated and accessing login
   if (user && request.nextUrl.pathname === '/login') {
     const url = request.nextUrl.clone()
     url.pathname = '/dashboard'
@@ -46,6 +46,6 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    '/((?!_next/static|_next/image|favicon.ico|icon-.*\\.png|manifest\\.json|sw\\.js|workbox-.*|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+    '/((?!_next/static|_next/image|favicon.ico|icon-.*\\.png|manifest\\.json|sw\\.js|workbox-.*|api/whatsapp|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],
 }

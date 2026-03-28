@@ -1,56 +1,79 @@
-import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
-import { format } from 'date-fns'
+import { NextResponse } from 'next/server'
 
-export async function POST(request: NextRequest) {
-  // Valida o secret do cron
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+)
+
+export async function POST(request: Request) {
   const auth = request.headers.get('Authorization')
   if (auth !== `Bearer ${process.env.CRON_SECRET}`) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  )
-
-  const month = format(new Date(), 'yyyy-MM')
+  const month = new Date().toISOString().slice(0, 7)
 
   try {
-    const { data, error } = await supabase.rpc('generate_monthly_occurrences', {
-      target_month: month,
-    })
+    // 1. Gerar transações recorrentes
+    const { data: recurringResult, error: recurringError } = await supabase
+      .rpc('generate_recurring_for_month', { target_month: month })
+    if (recurringError) throw recurringError
 
-    if (error) throw error
-
-    // Também gera income_entries a partir dos salary_schedules
+    // 2. Gerar income entries dos salary_schedule
     const { data: profiles } = await supabase.from('profiles').select('*')
+    let incomeCount = 0
 
     for (const profile of profiles ?? []) {
-      const schedule = profile.salary_schedule as { label: string; amount: number; day: number }[]
-      for (const entry of schedule) {
-        const day = Math.min(entry.day, 28)
-        const expectedDate = `${month}-${String(day).padStart(2, '0')}`
-        await supabase.from('income_entries').upsert(
-          {
+      if (!profile.salary_schedule?.length || !profile.account_id) continue
+
+      for (const entry of profile.salary_schedule as { label: string; amount: number; day: number }[]) {
+        if (!entry.amount || entry.amount <= 0) continue
+
+        const year = parseInt(month.split('-')[0])
+        const monthNum = parseInt(month.split('-')[1])
+        const lastDay = new Date(year, monthNum, 0).getDate()
+        const day = Math.min(entry.day, lastDay)
+        const date = `${month}-${String(day).padStart(2, '0')}`
+
+        const { data: existing } = await supabase
+          .from('transactions')
+          .select('id')
+          .eq('profile_id', profile.id)
+          .eq('month_ref', month)
+          .eq('description', entry.label)
+          .eq('source', 'recurring')
+          .eq('type', 'income')
+          .limit(1)
+
+        if (!existing?.length) {
+          await supabase.from('transactions').insert({
+            account_id: profile.account_id,
             profile_id: profile.id,
-            label: entry.label,
+            type: 'income',
+            description: entry.label,
             amount: entry.amount,
-            expected_date: expectedDate,
+            date,
             month_ref: month,
-          },
-          { onConflict: 'profile_id,label,month_ref', ignoreDuplicates: true }
-        )
+            source: 'recurring',
+            is_recurring: true,
+          })
+          incomeCount++
+        }
       }
     }
+
+    // 3. Verificar alertas de orçamento
+    const { data: budgetResult } = await supabase.rpc('check_budget_alerts')
 
     return NextResponse.json({
       success: true,
       month,
-      result: data,
+      recurring: recurringResult,
+      income_generated: incomeCount,
+      budget_alerts: budgetResult,
     })
-  } catch (err) {
-    console.error('Cron error:', err)
-    return NextResponse.json({ error: String(err) }, { status: 500 })
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message }, { status: 500 })
   }
 }

@@ -1,6 +1,6 @@
 'use client'
 
-import { ChevronLeft, ChevronRight, Calendar } from 'lucide-react'
+import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { format, addMonths, subMonths, parseISO } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 
@@ -18,30 +18,28 @@ export default function MonthSelector({ value, onChange, compact }: Props) {
   }
 
   return (
-    <div className="flex items-center gap-1">
+    <div className="flex items-center gap-0.5 rounded-xl px-1 py-1"
+      style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.06)' }}>
       <button
         onClick={() => onChange(format(subMonths(date, 1), 'yyyy-MM'))}
-        className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-700 transition-colors"
+        className="p-1.5 rounded-lg text-slate-500 hover:text-white hover:bg-white/[0.06] transition-all"
       >
-        <ChevronLeft size={18} />
+        <ChevronLeft size={16} />
       </button>
 
       <button
         onClick={goToToday}
-        className="text-white font-semibold min-w-[120px] text-center capitalize text-sm hover:bg-slate-700 rounded-lg px-2 py-1.5 transition-colors flex items-center justify-center gap-1.5"
-        title="Ir para mês atual"
+        className="text-white font-bold min-w-[110px] text-center capitalize text-xs hover:bg-white/[0.06] rounded-lg px-2 py-1.5 transition-all tracking-wide"
+        title="Ir para mes atual"
       >
-        {compact ? (
-          <Calendar size={14} />
-        ) : null}
-        {format(date, compact ? "MMM ''yy" : 'MMMM yyyy', { locale: ptBR })}
+        {format(date, compact ? "MMM ''yy" : 'MMM yyyy', { locale: ptBR })}
       </button>
 
       <button
         onClick={() => onChange(format(addMonths(date, 1), 'yyyy-MM'))}
-        className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-700 transition-colors"
+        className="p-1.5 rounded-lg text-slate-500 hover:text-white hover:bg-white/[0.06] transition-all"
       >
-        <ChevronRight size={18} />
+        <ChevronRight size={16} />
       </button>
     </div>
   )

@@ -61,18 +61,18 @@ export default function Sidebar() {
   return (
     <>
       {/* ═══ DESKTOP SIDEBAR ═══ */}
-      <aside className="hidden md:flex flex-col w-[240px] min-h-screen fixed left-0 top-0 z-40 bg-white py-6 px-4"
-        style={{ borderRight: '2px solid var(--border)' }}>
+      <aside className="hidden md:flex flex-col w-[240px] min-h-screen fixed left-0 top-0 z-40 py-6 px-4"
+        style={{ background: '#e8ebf0' }}>
 
         {/* Logo */}
-        <div className="flex items-center gap-3 px-3 mb-8">
-          <div className="w-10 h-10 flex items-center justify-center"
-            style={{ background: '#2B4C7E', borderRadius: '14px' }}>
-            <span className="text-lg">💰</span>
+        <div className="flex items-center gap-3 px-2 mb-8">
+          <div className="w-11 h-11 flex items-center justify-center shadow-sm"
+            style={{ background: '#2B4C7E', borderRadius: '16px' }}>
+            <span className="text-xl">💰</span>
           </div>
           <div>
-            <h2 className="text-[15px] font-extrabold text-fg tracking-tight leading-tight">Gastos</h2>
-            <p className="text-[10px] text-fg-muted font-medium">Finance Pro</p>
+            <h2 className="text-base font-extrabold text-fg tracking-tight leading-tight">Gastos</h2>
+            <p className="text-[11px] text-fg-muted font-medium">Finance Pro</p>
           </div>
         </div>
 
@@ -85,7 +85,7 @@ export default function Sidebar() {
                 className={`flex items-center gap-3 px-3 py-2.5 text-[13px] font-medium transition-all ${
                   active
                     ? 'text-white font-semibold'
-                    : 'text-fg-secondary hover:text-brand-500 hover:bg-blue-50'
+                    : 'text-fg-secondary hover:text-fg hover:bg-white/60'
                 }`}
                 style={{ borderRadius: '14px', ...(active ? { background: '#2B4C7E' } : {}) }}>
                 <Icon size={18} className={active ? 'text-white' : 'text-fg-muted'} />
@@ -96,7 +96,7 @@ export default function Sidebar() {
         </nav>
 
         {/* Bottom */}
-        <div className="space-y-1 pt-3" style={{ borderTop: '2px solid var(--border)' }}>
+        <div className="space-y-1 pt-3 mt-3" style={{ borderTop: '1.5px solid rgba(0,0,0,0.08)' }}>
           {bottomItems.map(({ href, icon: Icon, label }) => {
             const active = pathname === href || pathname.startsWith(href + '/')
             return (
@@ -104,7 +104,7 @@ export default function Sidebar() {
                 className={`flex items-center gap-3 px-3 py-2.5 text-[13px] font-medium transition-all relative ${
                   active
                     ? 'text-white font-semibold'
-                    : 'text-fg-secondary hover:text-brand-500 hover:bg-blue-50'
+                    : 'text-fg-secondary hover:text-fg hover:bg-white/60'
                 }`}
                 style={{ borderRadius: '14px', ...(active ? { background: '#2B4C7E' } : {}) }}>
                 <Icon size={18} className={active ? 'text-white' : 'text-fg-muted'} />
@@ -118,7 +118,7 @@ export default function Sidebar() {
             )
           })}
           <button onClick={handleLogout}
-            className="flex items-center gap-3 px-3 py-2.5 text-[13px] font-medium text-fg-muted hover:text-red-500 hover:bg-red-50 w-full transition-all"
+            className="flex items-center gap-3 px-3 py-2.5 text-[13px] font-medium text-fg-muted hover:text-red-500 hover:bg-white/60 w-full transition-all"
             style={{ borderRadius: '14px' }}>
             <LogOut size={18} />
             Sair

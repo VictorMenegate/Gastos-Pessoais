@@ -93,8 +93,8 @@ export default function DashboardPage() {
       </div>
 
       {/* ══════ DESKTOP TOP BAR (hidden on mobile) ══════ */}
-      <div className="hidden md:flex items-center justify-between px-10 py-4 bg-white sticky top-0 z-30"
-        style={{ borderBottom: '2px solid var(--border)' }}>
+      <div className="hidden md:flex items-center justify-between px-10 py-5 sticky top-0 z-30"
+        style={{ background: 'white', borderBottom: '1.5px solid var(--border)', borderRadius: 'var(--content-radius) var(--content-radius) 0 0' }}>
         <div className="flex items-center gap-4">
           <div>
             <p className="text-fg-muted text-xs font-medium">{greeting} 👋</p>

@@ -61,9 +61,10 @@ export default function OrcamentosPage() {
   const totalSpent = budgets.reduce((s, b) => s + Number(b.spent_amount), 0)
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen" style={{ background: '#e8ebf0' }}>
       <Sidebar />
-      <main className="md:ml-[240px] pb-24 md:pb-6">
+      <main className="md:ml-[240px] pb-24 md:pb-6 md:py-3 md:pr-3">
+        <div className="md:bg-white md:min-h-[calc(100vh-24px)] md:overflow-auto" style={{ borderRadius: 'var(--content-radius, 0)' }}>
         <div className="p-4 md:p-8 lg:p-10 space-y-4 md:space-y-6 max-w-6xl mx-auto">
           <div className="flex items-center justify-between flex-wrap gap-3 md:gap-4">
             <div>
@@ -183,6 +184,7 @@ export default function OrcamentosPage() {
               })}
             </div>
           )}
+        </div>
         </div>
       </main>
     </div>

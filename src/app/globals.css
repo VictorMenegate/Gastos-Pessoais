@@ -5,7 +5,7 @@
 @tailwind utilities;
 
 :root {
-  --bg-page: #f0f2f5;
+  --bg-page: #e8ebf0;
   --bg-card: #ffffff;
   --bg-input: #f5f6fa;
   --text-primary: #1F1F20;
@@ -19,6 +19,13 @@
   --red: #EF4444;
   --green: #22c55e;
   --amber: #F59E0B;
+  --content-radius: 0px;
+}
+
+@media (min-width: 768px) {
+  :root {
+    --content-radius: 24px;
+  }
 }
 
 * {

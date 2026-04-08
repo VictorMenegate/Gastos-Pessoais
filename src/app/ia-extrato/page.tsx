@@ -176,9 +176,10 @@ export default function IAExtratoPage() {
   const selectedCount = result?.transacoes.filter(t => t.selected).length ?? 0
 
   return (
-    <div className="min-h-screen bg-surface-page">
+    <div className="min-h-screen" style={{ background: '#e8ebf0' }}>
       <Sidebar />
-      <main className="md:ml-[240px] pb-24 md:pb-6">
+      <main className="md:ml-[240px] pb-24 md:pb-6 md:py-3 md:pr-3">
+        <div className="md:bg-white md:min-h-[calc(100vh-24px)] md:overflow-auto" style={{ borderRadius: 'var(--content-radius, 0)' }}>
         <div className="p-4 md:p-8 lg:p-10 max-w-4xl mx-auto space-y-5 md:space-y-6">
 
           {/* Header */}
@@ -408,6 +409,7 @@ export default function IAExtratoPage() {
             </div>
           )}
 
+        </div>
         </div>
       </main>
     </div>

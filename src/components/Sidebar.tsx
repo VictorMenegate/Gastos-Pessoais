@@ -89,23 +89,24 @@ export default function Sidebar() {
         </button>
       </aside>
 
-      {/* Mobile bottom nav — white */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 flex justify-around pb-safe bg-white border-t border-[#DCE0E6]">
-        {mobileNavItems.map(({ href, icon: Icon, label }) => {
-          const active = pathname === href || pathname.startsWith(href + '/')
-          return (
-            <Link key={href} href={href}
-              className={`flex flex-col items-center gap-0.5 py-2.5 px-3 text-[10px] font-semibold ${
-                active ? 'text-brand-500' : 'text-[#9ca3af]'
-              }`}>
-              <Icon size={20} />
-              {label}
-              {active && (
-                <div className="w-1 h-1 rounded-full mt-0.5 bg-brand-500" />
-              )}
-            </Link>
-          )
-        })}
+      {/* Mobile bottom nav */}
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 pb-safe"
+        style={{ background: 'rgba(255,255,255,0.95)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)', borderTop: '1px solid #DCE0E6' }}>
+        <div className="flex justify-around items-end pt-2 px-2">
+          {mobileNavItems.map(({ href, icon: Icon, label }) => {
+            const active = pathname === href || pathname.startsWith(href + '/')
+            return (
+              <Link key={href} href={href}
+                className={`flex flex-col items-center gap-1 py-1.5 px-2 min-w-[56px] ${
+                  active ? 'text-brand-500' : 'text-[#b0b5be]'
+                }`}>
+                <Icon size={22} strokeWidth={active ? 2.5 : 1.8} />
+                <span className={`text-[10px] ${active ? 'font-bold' : 'font-medium'}`}>{label}</span>
+                {active && <div className="w-5 h-[3px] rounded-full bg-brand-500 -mt-0.5" />}
+              </Link>
+            )
+          })}
+        </div>
       </nav>
     </>
   )

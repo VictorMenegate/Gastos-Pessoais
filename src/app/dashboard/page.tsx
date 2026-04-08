@@ -2,8 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { format } from 'date-fns'
-import { ptBR } from 'date-fns/locale'
-import { TrendingUp, TrendingDown, Wallet, PiggyBank, Bell, ArrowUpRight, ArrowDownRight, ArrowRight } from 'lucide-react'
+import { Wallet, PiggyBank, Bell, ArrowUpRight, ArrowDownRight, ArrowRight, CreditCard } from 'lucide-react'
 import { getDashboardData } from '@/lib/queries'
 import { formatCurrency, formatPercent } from '@/lib/utils'
 import MonthSelector from '@/components/MonthSelector'
@@ -12,6 +11,7 @@ import ExpenseChart from './components/ExpenseChart'
 import MonthlyChart from './components/MonthlyChart'
 import BudgetOverview from './components/BudgetOverview'
 import RecentTransactions from './components/RecentTransactions'
+import Link from 'next/link'
 import type { DashboardData } from '@/types'
 
 export default function DashboardPage() {
@@ -28,164 +28,171 @@ export default function DashboardPage() {
   useEffect(() => { load(month) }, [month])
 
   const s = data?.summary
-  const greeting = new Date().getHours() < 12 ? 'Bom dia' : new Date().getHours() < 18 ? 'Boa tarde' : 'Boa noite'
+  const h = new Date().getHours()
+  const greeting = h < 12 ? 'Bom dia' : h < 18 ? 'Boa tarde' : 'Boa noite'
 
   return (
     <div className="animate-fade-in">
-      {/* ===== HERO SECTION — Blue gradient ===== */}
-      <div className="rounded-b-3xl md:rounded-b-[2rem] px-4 md:px-6 pt-5 pb-8 relative overflow-hidden"
-        style={{ background: 'linear-gradient(135deg, #2B4C7E 0%, #567EBB 60%, #2B4C7E 100%)' }}>
 
-        {/* Header row */}
-        <div className="flex items-center justify-between mb-6 max-w-6xl mx-auto">
+      {/* ══════ HERO ══════ */}
+      <div className="px-5 md:px-8 pt-6 pb-16 md:pb-20 relative overflow-hidden"
+        style={{
+          background: 'linear-gradient(160deg, #1e3a6e 0%, #2B4C7E 30%, #567EBB 70%, #4a72ab 100%)',
+          borderRadius: '0 0 32px 32px',
+        }}>
+
+        {/* Decorative circles */}
+        <div className="absolute -top-20 -right-20 w-60 h-60 rounded-full bg-white/[0.04]" />
+        <div className="absolute -bottom-10 -left-10 w-40 h-40 rounded-full bg-white/[0.03]" />
+
+        {/* Top bar */}
+        <div className="flex items-center justify-between mb-8 max-w-5xl mx-auto relative z-10">
           <div>
-            <p className="text-white/60 text-sm font-medium">{greeting} 👋</p>
-            <h1 className="text-lg font-bold text-white tracking-tight">Dashboard</h1>
+            <p className="text-white/50 text-xs font-medium">{greeting} 👋</p>
+            <h1 className="text-xl font-extrabold text-white tracking-tight">Dashboard</h1>
           </div>
           <div className="flex items-center gap-2">
             {data && data.alerts.length > 0 && (
-              <div className="flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-white/20 text-white">
-                <Bell size={12} />
-                {data.alerts.length}
-              </div>
+              <Link href="/alertas" className="w-9 h-9 rounded-xl bg-white/10 flex items-center justify-center relative">
+                <Bell size={16} className="text-white" />
+                <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-red-500 text-white text-[9px] font-bold flex items-center justify-center">
+                  {data.alerts.length > 9 ? '9' : data.alerts.length}
+                </span>
+              </Link>
             )}
             <MonthSelector value={month} onChange={m => { setMonth(m); load(m) }} variant="dark" />
           </div>
         </div>
 
         {/* Balance */}
-        <div className="text-center max-w-6xl mx-auto">
-          <p className="text-white/60 text-sm font-medium mb-1">Saldo do mes</p>
-          <p className="text-4xl md:text-5xl font-extrabold text-white tracking-tight">
-            {loading ? '...' : formatCurrency(s?.balance ?? 0)}
+        <div className="text-center max-w-5xl mx-auto relative z-10">
+          <p className="text-white/50 text-xs font-semibold uppercase tracking-wider mb-2">Saldo do mes</p>
+          <p className="text-[42px] md:text-[56px] font-extrabold text-white tracking-tight leading-none">
+            {loading ? '—' : formatCurrency(s?.balance ?? 0)}
           </p>
         </div>
 
-        {/* Quick stats row */}
+        {/* Income / Expense pills */}
         {!loading && s && (
-          <div className="flex justify-center gap-6 mt-5 max-w-6xl mx-auto">
-            <div className="flex items-center gap-2">
-              <div className="w-7 h-7 rounded-lg bg-white/15 flex items-center justify-center">
-                <ArrowDownRight size={14} className="text-green-300" />
+          <div className="flex justify-center gap-3 mt-7 max-w-5xl mx-auto relative z-10">
+            <div className="flex items-center gap-2.5 bg-white/10 backdrop-blur-sm rounded-2xl px-4 py-3 min-w-[140px]">
+              <div className="w-8 h-8 rounded-xl bg-white/15 flex items-center justify-center flex-shrink-0">
+                <ArrowDownRight size={16} className="text-green-300" />
               </div>
               <div>
-                <p className="text-white/50 text-[10px] font-semibold uppercase">Entradas</p>
-                <p className="text-white text-sm font-bold">{formatCurrency(s.totalIncome)}</p>
+                <p className="text-white/45 text-[10px] font-bold uppercase tracking-wide">Entradas</p>
+                <p className="text-white text-sm font-extrabold">{formatCurrency(s.totalIncome)}</p>
               </div>
             </div>
-            <div className="w-px h-10 bg-white/15" />
-            <div className="flex items-center gap-2">
-              <div className="w-7 h-7 rounded-lg bg-white/15 flex items-center justify-center">
-                <ArrowUpRight size={14} className="text-red-300" />
-              </div>
-              <div>
-                <p className="text-white/50 text-[10px] font-semibold uppercase">Saidas</p>
-                <p className="text-white text-sm font-bold">{formatCurrency(s.totalExpenses)}</p>
-              </div>
-            </div>
-            <div className="w-px h-10 bg-white/15 hidden md:block" />
-            <div className="hidden md:flex items-center gap-2">
-              <div className="w-7 h-7 rounded-lg bg-white/15 flex items-center justify-center">
-                <PiggyBank size={14} className="text-yellow-300" />
-              </div>
-              <div>
-                <p className="text-white/50 text-[10px] font-semibold uppercase">Economia</p>
-                <p className="text-white text-sm font-bold">{formatPercent(s.savingsRate, 1)}</p>
-              </div>
-            </div>
-          </div>
-        )}
 
-        {/* Savings banner */}
-        {!loading && s && s.savingsRate > 0 && (
-          <div className="mt-5 mx-auto max-w-sm bg-white/10 backdrop-blur-sm rounded-xl px-4 py-2.5 flex items-center gap-2">
-            <span className="text-base">🎉</span>
-            <p className="text-white/80 text-xs font-medium flex-1">
-              Voce economizou <span className="text-white font-bold">{formatPercent(s.savingsRate, 0)}</span> da sua renda este mes!
-            </p>
-            <ArrowRight size={14} className="text-white/40" />
+            <div className="flex items-center gap-2.5 bg-white/10 backdrop-blur-sm rounded-2xl px-4 py-3 min-w-[140px]">
+              <div className="w-8 h-8 rounded-xl bg-white/15 flex items-center justify-center flex-shrink-0">
+                <ArrowUpRight size={16} className="text-red-300" />
+              </div>
+              <div>
+                <p className="text-white/45 text-[10px] font-bold uppercase tracking-wide">Saidas</p>
+                <p className="text-white text-sm font-extrabold">{formatCurrency(s.totalExpenses)}</p>
+              </div>
+            </div>
           </div>
         )}
       </div>
 
-      {/* ===== CONTENT SECTION ===== */}
-      <div className="px-4 md:px-6 -mt-3 space-y-4 max-w-6xl mx-auto pb-6">
+      {/* ══════ CONTENT ══════ */}
+      <div className="px-4 md:px-6 -mt-8 space-y-5 max-w-5xl mx-auto pb-8 relative z-10">
 
         {loading ? <Loading /> : (
           <>
-            {/* KPI Cards — compact row */}
+            {/* Savings tip */}
+            {s && s.savingsRate > 0 && (
+              <div className="bg-white rounded-2xl px-4 py-3.5 flex items-center gap-3 shadow-md border border-surface-border">
+                <span className="text-xl">🎉</span>
+                <p className="text-fg-secondary text-sm font-medium flex-1">
+                  Voce economizou <span className="text-brand-500 font-bold">{formatPercent(s.savingsRate, 0)}</span> da sua renda este mes!
+                </p>
+                <ArrowRight size={16} className="text-fg-muted" />
+              </div>
+            )}
+
+            {/* KPI Row */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-              <KPICard icon={<ArrowDownRight size={16} />} label="Entradas"
+              <KPICard icon={<ArrowDownRight size={18} />} label="Entradas"
                 value={formatCurrency(s?.totalIncome ?? 0)}
                 sub={`${data?.transactions.filter(t => t.type === 'income').length ?? 0} transacoes`}
-                iconBg="bg-blue-50" iconColor="text-brand-500" />
-              <KPICard icon={<ArrowUpRight size={16} />} label="Saidas"
+                color="blue" />
+              <KPICard icon={<ArrowUpRight size={18} />} label="Saidas"
                 value={formatCurrency(s?.totalExpenses ?? 0)}
                 sub={`${data?.transactions.filter(t => t.type === 'expense').length ?? 0} transacoes`}
-                iconBg="bg-red-50" iconColor="text-red-500" />
-              <KPICard icon={<Wallet size={16} />} label="Saldo"
+                color="red" />
+              <KPICard icon={<Wallet size={18} />} label="Saldo"
                 value={formatCurrency(s?.balance ?? 0)}
                 sub="entradas - compromissos"
-                iconBg={s && s.balance >= 0 ? 'bg-green-50' : 'bg-red-50'}
-                iconColor={s && s.balance >= 0 ? 'text-green-600' : 'text-red-500'} />
-              <KPICard icon={<PiggyBank size={16} />} label="Economia"
+                color={s && s.balance >= 0 ? 'green' : 'red'} />
+              <KPICard icon={<PiggyBank size={18} />} label="Economia"
                 value={formatPercent(s?.savingsRate ?? 0, 1)}
                 sub={`${data?.installments.length ?? 0} parcelamentos`}
-                iconBg="bg-purple-50" iconColor="text-purple-600" />
+                color="purple" />
             </div>
 
             {/* Charts */}
             <div className="grid md:grid-cols-2 gap-4">
-              <div className="card animate-slide-up">
-                <h2 className="text-sm font-bold text-fg mb-4">Gastos por categoria</h2>
+              <div className="card">
+                <h2 className="text-base font-bold text-fg mb-4">Gastos por categoria</h2>
                 <ExpenseChart data={data?.byCategory ?? []} />
               </div>
-              <div className="card animate-slide-up" style={{ animationDelay: '100ms' }}>
-                <h2 className="text-sm font-bold text-fg mb-4">Comparacao mensal</h2>
+              <div className="card">
+                <h2 className="text-base font-bold text-fg mb-4">Comparacao mensal</h2>
                 <MonthlyChart data={data?.monthlyComparison ?? []} />
               </div>
             </div>
 
-            {/* Budget + Recent */}
+            {/* Budget + Transactions */}
             <div className="grid md:grid-cols-2 gap-4">
-              <div className="card animate-slide-up" style={{ animationDelay: '150ms' }}>
-                <h2 className="text-sm font-bold text-fg mb-4">Orcamentos</h2>
+              <div className="card">
+                <h2 className="text-base font-bold text-fg mb-4">Orcamentos</h2>
                 <BudgetOverview budgets={data?.budgetStatus ?? []} />
               </div>
-              <div className="card animate-slide-up" style={{ animationDelay: '200ms' }}>
-                <h2 className="text-sm font-bold text-fg mb-4">Transacoes recentes</h2>
+              <div className="card">
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-base font-bold text-fg">Atividade recente</h2>
+                  <Link href="/transacoes" className="text-xs font-semibold text-brand-500 hover:text-brand-400">Ver tudo</Link>
+                </div>
                 <RecentTransactions transactions={data?.transactions ?? []} />
               </div>
             </div>
 
             {/* Installments */}
             {(data?.installments?.length ?? 0) > 0 && (
-              <div className="card animate-slide-up" style={{ animationDelay: '250ms' }}>
-                <h2 className="text-sm font-bold text-fg mb-4">Parcelamentos ativos</h2>
+              <div className="card">
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-base font-bold text-fg">Parcelamentos ativos</h2>
+                  <Link href="/parcelados" className="text-xs font-semibold text-brand-500 hover:text-brand-400">Ver tudo</Link>
+                </div>
                 <div className="space-y-3">
-                  {data?.installments.map(inst => {
+                  {data?.installments.slice(0, 4).map(inst => {
                     const pct = Math.round((inst.paid_installments / inst.total_installments) * 100)
                     return (
-                      <div key={inst.id} className="flex items-center justify-between py-3 border-b border-surface-border last:border-0">
-                        <div className="flex-1">
-                          <p className="text-sm font-semibold text-fg">{inst.description}</p>
-                          <div className="flex items-center gap-3 mt-1.5">
-                            <div className="flex-1 max-w-[140px] h-1.5 rounded-full overflow-hidden bg-surface-input">
+                      <div key={inst.id} className="flex items-center gap-3 py-2.5 border-b border-surface-border last:border-0">
+                        <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center flex-shrink-0">
+                          <CreditCard size={18} className="text-brand-500" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-semibold text-fg truncate">{inst.description}</p>
+                          <div className="flex items-center gap-2 mt-1">
+                            <div className="flex-1 h-1.5 rounded-full overflow-hidden bg-surface-input">
                               <div className="h-full rounded-full"
                                 style={{
                                   width: `${pct}%`,
-                                  background: 'linear-gradient(90deg, #2B4C7E 0%, #567EBB 100%)',
+                                  background: 'linear-gradient(90deg, #2B4C7E, #567EBB)',
                                   transition: 'width 700ms ease',
                                 }} />
                             </div>
-                            <span className="text-xs font-semibold text-fg-muted">
-                              {inst.paid_installments}/{inst.total_installments}
-                            </span>
+                            <span className="text-[10px] font-bold text-fg-muted">{inst.paid_installments}/{inst.total_installments}</span>
                           </div>
                         </div>
-                        <div className="text-right">
-                          <p className="text-sm font-bold text-fg">{formatCurrency(inst.installment_value)}<span className="text-fg-muted font-medium">/mes</span></p>
-                          <p className="text-xs text-fg-muted font-medium">{inst.total_installments - inst.paid_installments} restantes</p>
+                        <div className="text-right flex-shrink-0">
+                          <p className="text-sm font-bold text-fg">{formatCurrency(inst.installment_value)}</p>
+                          <p className="text-[10px] text-fg-muted">/mes</p>
                         </div>
                       </div>
                     )
@@ -196,12 +203,12 @@ export default function DashboardPage() {
 
             {/* Alerts */}
             {data && data.alerts.length > 0 && (
-              <div className="card animate-slide-up border-amber-200" style={{ animationDelay: '300ms' }}>
-                <h2 className="text-sm font-bold text-amber-600 mb-3 flex items-center gap-2">
-                  <Bell size={14} /> Alertas ({data.alerts.length})
+              <div className="card border-amber-200">
+                <h2 className="text-base font-bold text-amber-600 mb-3 flex items-center gap-2">
+                  <Bell size={16} /> Alertas
                 </h2>
                 <div className="space-y-2">
-                  {data.alerts.slice(0, 5).map(alert => (
+                  {data.alerts.slice(0, 3).map(alert => (
                     <div key={alert.id} className={`text-sm p-3 rounded-xl border ${
                       alert.severity === 'danger' ? 'bg-red-50 border-red-200' :
                       alert.severity === 'warning' ? 'bg-amber-50 border-amber-200' : 'bg-blue-50 border-blue-200'
@@ -220,19 +227,27 @@ export default function DashboardPage() {
   )
 }
 
-function KPICard({ icon, label, value, sub, iconBg, iconColor }: {
+const colorMap = {
+  blue:   { bg: 'bg-blue-50',   text: 'text-brand-500' },
+  red:    { bg: 'bg-red-50',    text: 'text-red-500' },
+  green:  { bg: 'bg-emerald-50', text: 'text-emerald-600' },
+  purple: { bg: 'bg-violet-50', text: 'text-violet-600' },
+}
+
+function KPICard({ icon, label, value, sub, color }: {
   icon: React.ReactNode; label: string; value: string; sub: string
-  iconBg: string; iconColor: string
+  color: keyof typeof colorMap
 }) {
+  const c = colorMap[color]
   return (
-    <div className="card animate-count-up">
-      <div className="flex items-center gap-2 mb-2">
-        <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${iconBg} ${iconColor}`}>
+    <div className="card">
+      <div className="flex items-center gap-2 mb-2.5">
+        <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${c.bg} ${c.text}`}>
           {icon}
         </div>
         <span className="text-[10px] font-bold uppercase tracking-wider text-fg-muted">{label}</span>
       </div>
-      <p className="text-lg font-extrabold text-fg leading-tight tracking-tight">{value}</p>
+      <p className="text-lg font-extrabold text-fg leading-tight">{value}</p>
       <p className="text-[10px] text-fg-muted font-medium mt-0.5">{sub}</p>
     </div>
   )

@@ -76,14 +76,14 @@ export default function ParceladosPage() {
   const totalMonthly = installments.reduce((s: number, i: any) => s + Number(i.installment_value), 0)
 
   return (
-    <div className="min-h-screen bg-slate-950">
+    <div className="min-h-screen">
       <Sidebar />
       <main className="md:ml-56 pb-24 md:pb-6">
         <div className="p-4 md:p-6 space-y-4 max-w-4xl mx-auto">
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-xl font-bold text-white">Parcelados</h1>
-              <p className="text-slate-400 text-sm">Compromisso mensal: {formatCurrency(totalMonthly)}</p>
+              <p className="text-fg-muted text-sm">Compromisso mensal: {formatCurrency(totalMonthly)}</p>
             </div>
             <button onClick={() => setShowForm(!showForm)} className="btn-primary flex items-center gap-1.5">
               <Plus size={16} /> Novo
@@ -91,7 +91,7 @@ export default function ParceladosPage() {
           </div>
 
           {showForm && (
-            <div className="card border-green-800">
+            <div className="card border-brand-500/30">
               <h2 className="text-sm font-semibold text-white mb-4">Novo parcelamento</h2>
               <form onSubmit={handleSubmit} className="grid grid-cols-2 gap-3">
                 <div className="col-span-2">
@@ -166,10 +166,10 @@ export default function ParceladosPage() {
                     <div className="flex items-start justify-between">
                       <div>
                         <div className="flex items-center gap-2">
-                          <CreditCard size={16} className="text-slate-400" />
+                          <CreditCard size={16} className="text-fg-muted" />
                           <p className="text-sm font-medium text-white">{inst.description}</p>
                         </div>
-                        <p className="text-xs text-slate-400 mt-0.5">
+                        <p className="text-xs text-fg-muted mt-0.5">
                           {inst.categories?.icon} {inst.categories?.name}
                           {inst.payment_methods && ` • ${inst.payment_methods.icon} ${inst.payment_methods.name}`}
                           {` • ${inst.profiles?.name} • dia ${inst.due_day}`}
@@ -177,12 +177,12 @@ export default function ParceladosPage() {
                       </div>
                       <div className="text-right">
                         <p className="text-sm font-bold text-white">{formatCurrency(inst.installment_value)}/mês</p>
-                        <p className="text-xs text-slate-400">{inst.total_installments - inst.paid_installments} restantes</p>
+                        <p className="text-xs text-fg-muted">{inst.total_installments - inst.paid_installments} restantes</p>
                       </div>
                     </div>
                     <ProgressBar value={inst.paid_installments} max={inst.total_installments} />
                     <div className="flex items-center justify-between">
-                      <p className="text-xs text-slate-400">
+                      <p className="text-xs text-fg-muted">
                         Total: {formatCurrency(inst.total_amount)} • Pago: {formatCurrency(inst.paid_installments * inst.installment_value)}
                       </p>
                       <button onClick={() => handleMarkPaid(inst.id)} className="btn-secondary text-xs py-1">

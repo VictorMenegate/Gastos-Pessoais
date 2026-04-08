@@ -115,7 +115,7 @@ export default function ConfiguracoesPage() {
   const fmt = (v: number) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v)
 
   return (
-    <div className="min-h-screen bg-slate-950">
+    <div className="min-h-screen">
       <Sidebar />
       <main className="md:ml-56 pb-24 md:pb-6">
         <div className="p-4 md:p-6 space-y-6 max-w-3xl mx-auto">
@@ -130,11 +130,11 @@ export default function ConfiguracoesPage() {
           </div>
 
           {/* Tabs */}
-          <div className="flex gap-1 bg-slate-800 p-1 rounded-lg overflow-x-auto">
+          <div className="filter-tabs overflow-x-auto">
             {tabs.map(({ key, label, icon: Icon }) => (
               <button key={key} onClick={() => setTab(key)}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-colors whitespace-nowrap ${
-                  tab === key ? 'bg-slate-700 text-white' : 'text-slate-400 hover:text-white'
+                className={`filter-tab flex items-center gap-1.5 whitespace-nowrap ${
+                  tab === key ? 'filter-tab-active' : ''
                 }`}>
                 <Icon size={14} /> {label}
               </button>
@@ -170,7 +170,7 @@ export default function ConfiguracoesPage() {
                         <label className="label">WhatsApp</label>
                         <input className="input" placeholder="5511999999999 (com DDI)"
                           value={profile.whatsapp_phone ?? ''} onChange={e => updateProfile(profIdx, 'whatsapp_phone', e.target.value)} />
-                        <p className="text-xs text-slate-500 mt-1">Vincule para enviar transações pelo WhatsApp</p>
+                        <p className="text-xs text-fg-faint mt-1">Vincule para enviar transações pelo WhatsApp</p>
                       </div>
 
                       <div>
@@ -192,9 +192,11 @@ export default function ConfiguracoesPage() {
                             <button key={pt} type="button" onClick={() => updateProfile(profIdx, 'payment_type', pt)}
                               className={`px-4 py-2 rounded-lg text-sm font-medium border transition-colors ${
                                 profile.payment_type === pt
-                                  ? 'bg-green-600 border-green-500 text-white'
-                                  : 'bg-slate-800 border-slate-600 text-slate-300 hover:border-slate-500'
-                              }`}>{pt === 'single' ? 'Tudo junto' : 'Vale + Salário'}</button>
+                                  ? 'bg-brand-500 border-brand-500 text-white'
+                                  : 'text-fg-muted'
+                              }`}
+                              style={profile.payment_type !== pt ? { background: 'rgba(37, 21, 40, 0.5)', border: '1px solid rgba(51, 79, 83, 0.3)' } : undefined}
+                            >{pt === 'single' ? 'Tudo junto' : 'Vale + Salário'}</button>
                           ))}
                         </div>
                       </div>
@@ -203,7 +205,7 @@ export default function ConfiguracoesPage() {
                         <div className="flex items-center justify-between mb-2">
                           <label className="label mb-0">Entradas de salário</label>
                           <button type="button" onClick={() => addSalaryEntry(profIdx)}
-                            className="text-xs text-green-400 hover:text-green-300 flex items-center gap-1">
+                            className="text-xs text-brand-400 hover:text-brand-300 flex items-center gap-1">
                             <Plus size={12} /> Adicionar
                           </button>
                         </div>
@@ -224,14 +226,14 @@ export default function ConfiguracoesPage() {
                               </div>
                               {profile.salary_schedule.length > 1 && (
                                 <button type="button" onClick={() => removeSalaryEntry(profIdx, entryIdx)}
-                                  className="text-slate-500 hover:text-red-400 pb-2">
+                                  className="text-fg-faint hover:text-red-400 pb-2">
                                   <Trash2 size={16} />
                                 </button>
                               )}
                             </div>
                           ))}
-                          <p className="text-xs text-slate-500">
-                            Total mensal: <span className="text-green-400 font-medium">
+                          <p className="text-xs text-fg-faint">
+                            Total mensal: <span className="text-brand-400 font-medium">
                               {fmt(profile.salary_schedule.reduce((s, e) => s + e.amount, 0))}
                             </span>
                           </p>
@@ -241,7 +243,7 @@ export default function ConfiguracoesPage() {
                   ))}
                   {profiles.length < 6 && (
                     <button onClick={addProfile}
-                      className="w-full border-2 border-dashed border-slate-700 hover:border-slate-500 rounded-xl py-4 text-slate-400 hover:text-white text-sm flex items-center justify-center gap-2 transition-colors">
+                      className="w-full border-2 border-dashed border-surface-2 hover:border-surface-3 rounded-xl py-4 text-fg-muted hover:text-white text-sm flex items-center justify-center gap-2 transition-colors">
                       <Plus size={16} /> Adicionar perfil
                     </button>
                   )}
@@ -272,7 +274,7 @@ export default function ConfiguracoesPage() {
                         <span className="text-xl">{pm.icon}</span>
                         <div className="flex-1">
                           <p className="text-sm text-white">{pm.name}</p>
-                          <p className="text-xs text-slate-400">{pm.type}</p>
+                          <p className="text-xs text-fg-muted">{pm.type}</p>
                         </div>
                         {pm.is_default && <span className="badge-paid">Padrão</span>}
                       </div>
@@ -286,52 +288,52 @@ export default function ConfiguracoesPage() {
                 <div className="space-y-4">
                   <div className="card space-y-4">
                     <h2 className="text-sm font-semibold text-white flex items-center gap-2">
-                      <MessageCircle size={16} className="text-green-400" /> Integração WhatsApp (Evolution API)
+                      <MessageCircle size={16} className="text-brand-400" /> Integração WhatsApp (Evolution API)
                     </h2>
-                    <div className="bg-slate-900 rounded-lg p-4 space-y-3">
-                      <p className="text-sm text-slate-300">Como configurar:</p>
-                      <ol className="text-sm text-slate-400 space-y-2 list-decimal list-inside">
+                    <div className="bg-surface-0 rounded-lg p-4 space-y-3">
+                      <p className="text-sm text-fg">Como configurar:</p>
+                      <ol className="text-sm text-fg-muted space-y-2 list-decimal list-inside">
                         <li>Instale a <strong>Evolution API</strong> no EasyPanel (Docker)</li>
                         <li>Crie uma instância e escaneie o <strong>QR Code</strong></li>
                         <li>Configure o webhook da instância para apontar para este app</li>
                         <li>Vincule seu número na aba Perfis</li>
-                        <li>Envie mensagens: <code className="text-green-400">Mercado 120</code></li>
+                        <li>Envie mensagens: <code className="text-brand-400">Mercado 120</code></li>
                       </ol>
                     </div>
-                    <div className="bg-slate-900 rounded-lg p-4">
-                      <p className="text-sm text-slate-300 mb-2">Webhook URL (configurar na Evolution API):</p>
-                      <code className="text-xs text-green-400 bg-slate-800 px-3 py-2 rounded block break-all">
+                    <div className="bg-surface-0 rounded-lg p-4">
+                      <p className="text-sm text-fg mb-2">Webhook URL (configurar na Evolution API):</p>
+                      <code className="text-xs text-brand-400 px-3 py-2 rounded block break-all" style={{ background: 'rgba(37, 21, 40, 0.6)', border: '1px solid var(--border)' }}>
                         {typeof window !== 'undefined' ? `${window.location.origin}/api/whatsapp/webhook` : '/api/whatsapp/webhook'}
                       </code>
-                      <p className="text-xs text-slate-500 mt-2">Evento: <code>messages.upsert</code></p>
+                      <p className="text-xs text-fg-faint mt-2">Evento: <code>messages.upsert</code></p>
                     </div>
-                    <div className="bg-slate-900 rounded-lg p-4">
-                      <p className="text-sm text-slate-300 mb-2">Variáveis de ambiente necessárias:</p>
-                      <div className="space-y-1 text-xs text-slate-400 font-mono">
+                    <div className="bg-surface-0 rounded-lg p-4">
+                      <p className="text-sm text-fg mb-2">Variáveis de ambiente necessárias:</p>
+                      <div className="space-y-1 text-xs text-fg-muted font-mono">
                         <p><span className="text-amber-400">EVOLUTION_API_URL</span>=http://evolution:8080</p>
                         <p><span className="text-amber-400">EVOLUTION_API_KEY</span>=sua_api_key</p>
                         <p><span className="text-amber-400">EVOLUTION_INSTANCE</span>=gastos</p>
                       </div>
                     </div>
-                    <div className="bg-slate-900 rounded-lg p-4">
-                      <p className="text-sm text-slate-300 mb-2">Comandos disponíveis:</p>
-                      <div className="space-y-1 text-sm text-slate-400">
-                        <p><code className="text-green-400">Mercado 120</code> - Registra transação</p>
-                        <p><code className="text-green-400">Almoço 35.50</code> - Com centavos</p>
-                        <p><code className="text-green-400">resumo</code> - Resumo do mês</p>
+                    <div className="bg-surface-0 rounded-lg p-4">
+                      <p className="text-sm text-fg mb-2">Comandos disponíveis:</p>
+                      <div className="space-y-1 text-sm text-fg-muted">
+                        <p><code className="text-brand-400">Mercado 120</code> - Registra transação</p>
+                        <p><code className="text-brand-400">Almoço 35.50</code> - Com centavos</p>
+                        <p><code className="text-brand-400">resumo</code> - Resumo do mês</p>
                       </div>
                     </div>
                     <div>
-                      <p className="text-sm text-slate-300 mb-2">Números vinculados:</p>
+                      <p className="text-sm text-fg mb-2">Números vinculados:</p>
                       {profiles.filter(p => p.whatsapp_phone).map(p => (
                         <div key={p.id} className="flex items-center gap-2 text-sm">
                           <div className="w-2.5 h-2.5 rounded-full" style={{ background: p.color }} />
                           <span className="text-white">{p.name}</span>
-                          <span className="text-slate-400">{p.whatsapp_phone}</span>
+                          <span className="text-fg-muted">{p.whatsapp_phone}</span>
                         </div>
                       ))}
                       {!profiles.some(p => p.whatsapp_phone) && (
-                        <p className="text-sm text-slate-500">Nenhum número vinculado. Configure na aba Perfis.</p>
+                        <p className="text-sm text-fg-faint">Nenhum número vinculado. Configure na aba Perfis.</p>
                       )}
                     </div>
                   </div>
@@ -349,10 +351,10 @@ export default function ConfiguracoesPage() {
                     </div>
                     <div>
                       <label className="label">Código de convite</label>
-                      <p className="text-sm text-slate-300">
+                      <p className="text-sm text-fg">
                         Compartilhe para adicionar familiares à conta:
                       </p>
-                      <code className="text-lg font-mono text-green-400 bg-slate-900 px-4 py-2 rounded-lg block text-center mt-2">
+                      <code className="text-lg font-mono text-brand-400 bg-surface-0 px-4 py-2 rounded-lg block text-center mt-2">
                         {account?.invite_code ?? '---'}
                       </code>
                     </div>
@@ -363,7 +365,7 @@ export default function ConfiguracoesPage() {
                           <div key={p.id} className="flex items-center gap-2">
                             <div className="w-3 h-3 rounded-full" style={{ background: p.color }} />
                             <span className="text-white text-sm">{p.name}</span>
-                            <span className="text-xs text-slate-400">({p.role})</span>
+                            <span className="text-xs text-fg-muted">({p.role})</span>
                           </div>
                         ))}
                       </div>

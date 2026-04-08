@@ -8,18 +8,19 @@ module.exports = {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['Plus Jakarta Sans', 'Inter', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+        sans: ['DM Sans', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
       },
       colors: {
         brand: {
           50:  '#f2f5ec',
           100: '#E5EAD4',
           200: '#c8d9a8',
+          300: '#b3cf8f',
           400: '#9ACC77',
-          500: '#9ACC77',
-          600: '#45936C',
-          700: '#367554',
-          800: '#2a5a42',
+          500: '#45936C',
+          600: '#367554',
+          700: '#2a5a42',
+          800: '#1e3f2e',
           900: '#1F0A1D',
         },
         surface: {
@@ -29,16 +30,23 @@ module.exports = {
           3: '#334F53',
           4: '#3d5d61',
         },
+        // Semantic aliases for text
+        fg: {
+          DEFAULT: '#E5EAD4',
+          muted: '#a8b09e',
+          faint: '#6b7565',
+          heading: '#ffffff',
+        },
       },
       borderRadius: {
         '2xl': '16px',
       },
       boxShadow: {
-        'glow-green': '0 0 20px rgba(69, 147, 108, 0.2)',
-        'glow-blue': '0 0 20px rgba(51, 79, 83, 0.2)',
+        'glow-green': '0 0 24px rgba(69, 147, 108, 0.15)',
+        'glow-teal': '0 0 24px rgba(51, 79, 83, 0.2)',
         'glow-red': '0 0 20px rgba(239, 68, 68, 0.1)',
-        'card': '0 4px 24px rgba(0, 0, 0, 0.2)',
-        'card-hover': '0 8px 32px rgba(0, 0, 0, 0.3)',
+        'card': '0 2px 12px rgba(0, 0, 0, 0.12), inset 0 1px 0 rgba(229, 234, 212, 0.03)',
+        'card-hover': '0 8px 32px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(229, 234, 212, 0.04)',
       },
       backgroundImage: {
         'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',

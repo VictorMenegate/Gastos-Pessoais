@@ -67,14 +67,14 @@ export default function MetasPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-950">
+    <div className="min-h-screen">
       <Sidebar />
       <main className="md:ml-56 pb-24 md:pb-6">
         <div className="p-4 md:p-6 space-y-4 max-w-4xl mx-auto">
           <div className="flex items-center justify-between flex-wrap gap-3">
             <div>
               <h1 className="text-xl font-bold text-white">Metas Financeiras</h1>
-              <p className="text-slate-400 text-sm">{goals.length} meta(s) {filterStatus === 'active' ? 'ativas' : 'concluídas'}</p>
+              <p className="text-fg-muted text-sm">{goals.length} meta(s) {filterStatus === 'active' ? 'ativas' : 'concluídas'}</p>
             </div>
             <button onClick={() => setShowForm(!showForm)} className="btn-primary flex items-center gap-1.5">
               <Plus size={16} /> Nova meta
@@ -82,17 +82,15 @@ export default function MetasPage() {
           </div>
 
           {/* Filters */}
-          <div className="flex gap-1 bg-slate-800 p-1 rounded-lg w-fit">
+          <div className="filter-tabs">
             {([['active', 'Ativas'], ['completed', 'Concluídas']] as const).map(([val, lbl]) => (
               <button key={val} onClick={() => setFilterStatus(val as any)}
-                className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
-                  filterStatus === val ? 'bg-slate-700 text-white' : 'text-slate-400 hover:text-white'
-                }`}>{lbl}</button>
+                className={`filter-tab ${filterStatus === val ? 'filter-tab-active' : ''}`}>{lbl}</button>
             ))}
           </div>
 
           {showForm && (
-            <div className="card border-green-800">
+            <div className="card border-brand-500/30">
               <h2 className="text-sm font-semibold text-white mb-4">Nova meta</h2>
               <form onSubmit={handleSubmit} className="grid grid-cols-2 gap-3">
                 <div className="col-span-2">
@@ -116,8 +114,10 @@ export default function MetasPage() {
                     {GOAL_ICONS.map(icon => (
                       <button key={icon} type="button" onClick={() => setForm(f => ({ ...f, icon }))}
                         className={`w-8 h-8 rounded-lg text-lg flex items-center justify-center transition-all ${
-                          form.icon === icon ? 'bg-slate-600 ring-2 ring-green-500' : 'bg-slate-800 hover:bg-slate-700'
-                        }`}>{icon}</button>
+                          form.icon === icon ? 'bg-surface-3 ring-2 ring-brand-500' : 'hover:bg-surface-2'
+                        }`}
+                        style={form.icon !== icon ? { background: 'rgba(37, 21, 40, 0.6)', border: '1px solid var(--border)' } : undefined}
+                      >{icon}</button>
                     ))}
                   </div>
                 </div>
@@ -163,15 +163,15 @@ export default function MetasPage() {
                         </span>
                         <div>
                           <p className="text-sm font-semibold text-white">{goal.name}</p>
-                          {goal.description && <p className="text-xs text-slate-400">{goal.description}</p>}
+                          {goal.description && <p className="text-xs text-fg-muted">{goal.description}</p>}
                           {goal.deadline && (
-                            <p className="text-xs text-slate-500 mt-0.5">Prazo: {formatDate(goal.deadline)}</p>
+                            <p className="text-xs text-fg-faint mt-0.5">Prazo: {formatDate(goal.deadline)}</p>
                           )}
                         </div>
                       </div>
                       <div className="text-right">
                         <p className="text-sm font-bold text-white">{formatCurrency(goal.current_amount)}</p>
-                        <p className="text-xs text-slate-400">de {formatCurrency(goal.target_amount)}</p>
+                        <p className="text-xs text-fg-muted">de {formatCurrency(goal.target_amount)}</p>
                       </div>
                     </div>
 

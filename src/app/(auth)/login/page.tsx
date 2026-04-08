@@ -38,13 +38,19 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4 relative overflow-hidden"
-      style={{ background: 'linear-gradient(135deg, #1F0A1D 0%, #251528 40%, #1F0A1D 100%)' }}>
+      style={{
+        background: '#1F0A1D',
+        backgroundImage: `
+          radial-gradient(ellipse 50% 40% at 60% 30%, rgba(69, 147, 108, 0.06), transparent),
+          radial-gradient(ellipse 40% 50% at 20% 70%, rgba(51, 79, 83, 0.08), transparent)
+        `,
+      }}>
 
-      {/* Ambient glow blobs */}
-      <div className="absolute top-[-200px] right-[-100px] w-[500px] h-[500px] rounded-full opacity-[0.04] animate-pulse-soft"
+      {/* Ambient glow */}
+      <div className="absolute top-[-200px] right-[-100px] w-[500px] h-[500px] rounded-full opacity-[0.035] animate-pulse-soft"
         style={{ background: 'radial-gradient(circle, #9ACC77, transparent 70%)' }} />
-      <div className="absolute bottom-[-150px] left-[-100px] w-[400px] h-[400px] rounded-full opacity-[0.03] animate-pulse-soft"
-        style={{ background: 'radial-gradient(circle, #3b82f6, transparent 70%)', animationDelay: '1.5s' }} />
+      <div className="absolute bottom-[-150px] left-[-100px] w-[400px] h-[400px] rounded-full opacity-[0.025] animate-pulse-soft"
+        style={{ background: 'radial-gradient(circle, #334F53, transparent 70%)', animationDelay: '1.5s' }} />
 
       <div className="w-full max-w-sm relative z-10 animate-fade-in">
         {/* Logo */}
@@ -52,12 +58,12 @@ export default function LoginPage() {
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-5"
             style={{
               background: 'linear-gradient(135deg, #45936C 0%, #9ACC77 100%)',
-              boxShadow: '0 8px 30px rgba(69, 147, 108, 0.3)',
+              boxShadow: '0 8px 32px rgba(69, 147, 108, 0.3), inset 0 1px 0 rgba(255,255,255,0.15)',
             }}>
             <span className="text-3xl">💰</span>
           </div>
           <h1 className="text-3xl font-extrabold text-white tracking-tight">Gastos Pessoais</h1>
-          <p className="text-slate-500 text-sm font-medium mt-2">Sistema financeiro multiusuario</p>
+          <p className="text-fg-faint text-sm font-medium mt-2">Sistema financeiro multiusuario</p>
         </div>
 
         <div className="card" style={{ padding: '28px' }}>
@@ -79,13 +85,13 @@ export default function LoginPage() {
 
             {error && (
               <div className="text-sm font-medium p-3 rounded-xl"
-                style={{ background: 'rgba(239,68,68,0.1)', color: '#f87171', border: '1px solid rgba(239,68,68,0.2)' }}>
+                style={{ background: 'rgba(239,68,68,0.08)', color: '#f87171', border: '1px solid rgba(239,68,68,0.15)' }}>
                 {error}
               </div>
             )}
             {message && (
               <div className="text-sm font-medium p-3 rounded-xl"
-                style={{ background: 'rgba(69,147,108,0.1)', color: '#9ACC77', border: '1px solid rgba(69,147,108,0.2)' }}>
+                style={{ background: 'rgba(69,147,108,0.08)', color: '#9ACC77', border: '1px solid rgba(69,147,108,0.15)' }}>
                 {message}
               </div>
             )}
@@ -103,11 +109,10 @@ export default function LoginPage() {
             </button>
           </form>
 
-          <p className="text-center text-sm text-slate-500 mt-5 font-medium">
+          <p className="text-center text-sm text-fg-faint mt-5 font-medium">
             {isSignUp ? 'Ja tem conta?' : 'Nao tem conta?'}{' '}
             <button onClick={() => { setIsSignUp(!isSignUp); setError(''); setMessage('') }}
-              className="font-bold transition-colors"
-              style={{ color: '#9ACC77' }}>
+              className="font-bold text-brand-400 hover:text-white">
               {isSignUp ? 'Entrar' : 'Criar conta'}
             </button>
           </p>

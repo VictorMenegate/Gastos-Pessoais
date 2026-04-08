@@ -34,12 +34,12 @@ export default function DashboardPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-extrabold text-white tracking-tight">Dashboard</h1>
-          <p className="text-slate-500 text-sm font-medium mt-0.5">Visao geral das suas financas</p>
+          <p className="text-fg-faint text-sm font-medium mt-0.5">Visao geral das suas financas</p>
         </div>
         <div className="flex items-center gap-3">
           {data && data.alerts.length > 0 && (
             <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-semibold"
-              style={{ background: 'rgba(245, 158, 11, 0.12)', color: '#fbbf24', border: '1px solid rgba(245,158,11,0.2)' }}>
+              style={{ background: 'rgba(245, 158, 11, 0.1)', color: '#fbbf24', border: '1px solid rgba(245,158,11,0.15)' }}>
               <Bell size={14} />
               <span>{data.alerts.length}</span>
             </div>
@@ -57,53 +57,43 @@ export default function DashboardPage() {
               label="Entradas"
               value={formatCurrency(s?.totalIncome ?? 0)}
               sub={`${data?.transactions.filter(t => t.type === 'income').length ?? 0} transacoes`}
-              gradient="from-emerald-500/20 to-emerald-600/5"
               iconColor="#9ACC77"
-              glowColor="rgba(69, 147, 108, 0.12)"
+              accentColor="69, 147, 108"
             />
             <KPICard
               icon={<ArrowUpRight size={18} />}
               label="Saidas"
               value={formatCurrency(s?.totalExpenses ?? 0)}
               sub={`${data?.transactions.filter(t => t.type === 'expense').length ?? 0} transacoes`}
-              gradient="from-red-500/20 to-red-600/5"
               iconColor="#f87171"
-              glowColor="rgba(239, 68, 68, 0.1)"
+              accentColor="239, 68, 68"
             />
             <KPICard
               icon={<Wallet size={18} />}
               label="Saldo"
               value={formatCurrency(s?.balance ?? 0)}
               sub="entradas - compromissos"
-              gradient={s && s.balance >= 0 ? 'from-emerald-500/20 to-emerald-600/5' : 'from-red-500/20 to-red-600/5'}
               iconColor={s && s.balance >= 0 ? '#9ACC77' : '#f87171'}
-              glowColor={s && s.balance >= 0 ? 'rgba(69, 147, 108, 0.12)' : 'rgba(239, 68, 68, 0.1)'}
+              accentColor={s && s.balance >= 0 ? '69, 147, 108' : '239, 68, 68'}
             />
             <KPICard
               icon={<PiggyBank size={18} />}
               label="Economia"
               value={formatPercent(s?.savingsRate ?? 0, 1)}
               sub={`${data?.installments.length ?? 0} parcelamentos`}
-              gradient="from-blue-500/20 to-blue-600/5"
-              iconColor="#60a5fa"
-              glowColor="rgba(30, 64, 175, 0.12)"
+              iconColor="#9ACC77"
+              accentColor="51, 79, 83"
             />
           </div>
 
           {/* Charts Row */}
           <div className="grid md:grid-cols-2 gap-4">
             <div className="card animate-slide-up">
-              <h2 className="text-sm font-bold text-slate-300 mb-4 tracking-wide uppercase"
-                style={{ fontSize: '11px', letterSpacing: '0.08em' }}>
-                Gastos por categoria
-              </h2>
+              <h2 className="section-title mb-4">Gastos por categoria</h2>
               <ExpenseChart data={data?.byCategory ?? []} />
             </div>
             <div className="card animate-slide-up" style={{ animationDelay: '100ms' }}>
-              <h2 className="text-sm font-bold text-slate-300 mb-4 tracking-wide uppercase"
-                style={{ fontSize: '11px', letterSpacing: '0.08em' }}>
-                Comparacao mensal
-              </h2>
+              <h2 className="section-title mb-4">Comparacao mensal</h2>
               <MonthlyChart data={data?.monthlyComparison ?? []} />
             </div>
           </div>
@@ -111,17 +101,11 @@ export default function DashboardPage() {
           {/* Budget + Recent Transactions */}
           <div className="grid md:grid-cols-2 gap-4">
             <div className="card animate-slide-up" style={{ animationDelay: '150ms' }}>
-              <h2 className="text-sm font-bold text-slate-300 mb-4 tracking-wide uppercase"
-                style={{ fontSize: '11px', letterSpacing: '0.08em' }}>
-                Orcamentos
-              </h2>
+              <h2 className="section-title mb-4">Orcamentos</h2>
               <BudgetOverview budgets={data?.budgetStatus ?? []} />
             </div>
             <div className="card animate-slide-up" style={{ animationDelay: '200ms' }}>
-              <h2 className="text-sm font-bold text-slate-300 mb-4 tracking-wide uppercase"
-                style={{ fontSize: '11px', letterSpacing: '0.08em' }}>
-                Transacoes recentes
-              </h2>
+              <h2 className="section-title mb-4">Transacoes recentes</h2>
               <RecentTransactions transactions={data?.transactions ?? []} />
             </div>
           </div>
@@ -129,34 +113,33 @@ export default function DashboardPage() {
           {/* Installments */}
           {(data?.installments?.length ?? 0) > 0 && (
             <div className="card animate-slide-up" style={{ animationDelay: '250ms' }}>
-              <h2 className="text-sm font-bold text-slate-300 mb-4 tracking-wide uppercase"
-                style={{ fontSize: '11px', letterSpacing: '0.08em' }}>
-                Parcelamentos ativos
-              </h2>
+              <h2 className="section-title mb-4">Parcelamentos ativos</h2>
               <div className="space-y-3">
                 {data?.installments.map(inst => {
                   const pct = Math.round((inst.paid_installments / inst.total_installments) * 100)
                   return (
-                    <div key={inst.id} className="flex items-center justify-between py-3 border-b border-white/[0.04] last:border-0">
+                    <div key={inst.id} className="flex items-center justify-between py-3 last:border-0"
+                      style={{ borderBottom: '1px solid var(--border)' }}>
                       <div className="flex-1">
                         <p className="text-sm font-semibold text-white">{inst.description}</p>
                         <div className="flex items-center gap-3 mt-1.5">
                           <div className="flex-1 max-w-[140px] h-1.5 rounded-full overflow-hidden"
-                            style={{ background: 'rgba(255,255,255,0.06)' }}>
-                            <div className="h-full rounded-full transition-all duration-700"
+                            style={{ background: 'rgba(51, 79, 83, 0.3)' }}>
+                            <div className="h-full rounded-full"
                               style={{
                                 width: `${pct}%`,
                                 background: 'linear-gradient(90deg, #45936C 0%, #9ACC77 100%)',
+                                transition: 'width 700ms ease',
                               }} />
                           </div>
-                          <span className="text-xs font-semibold text-slate-500">
+                          <span className="text-xs font-semibold text-fg-faint">
                             {inst.paid_installments}/{inst.total_installments}
                           </span>
                         </div>
                       </div>
                       <div className="text-right">
-                        <p className="text-sm font-bold text-white">{formatCurrency(inst.installment_value)}<span className="text-slate-500 font-medium">/mes</span></p>
-                        <p className="text-xs text-slate-500 font-medium">{inst.total_installments - inst.paid_installments} restantes</p>
+                        <p className="text-sm font-bold text-white">{formatCurrency(inst.installment_value)}<span className="text-fg-faint font-medium">/mes</span></p>
+                        <p className="text-xs text-fg-faint font-medium">{inst.total_installments - inst.paid_installments} restantes</p>
                       </div>
                     </div>
                   )
@@ -169,24 +152,23 @@ export default function DashboardPage() {
           {data && data.alerts.length > 0 && (
             <div className="card animate-slide-up" style={{
               animationDelay: '300ms',
-              borderColor: 'rgba(245, 158, 11, 0.15)',
+              borderColor: 'rgba(245, 158, 11, 0.12)',
             }}>
-              <h2 className="text-sm font-bold mb-3 flex items-center gap-2"
-                style={{ color: '#fbbf24', fontSize: '11px', letterSpacing: '0.08em' }}>
+              <h2 className="section-title mb-3 flex items-center gap-2" style={{ color: '#fbbf24' }}>
                 <Bell size={14} /> ALERTAS ({data.alerts.length})
               </h2>
               <div className="space-y-2">
                 {data.alerts.slice(0, 5).map(alert => (
                   <div key={alert.id} className="text-sm p-3 rounded-xl" style={{
-                    background: alert.severity === 'danger' ? 'rgba(239,68,68,0.08)' :
-                      alert.severity === 'warning' ? 'rgba(245,158,11,0.08)' : 'rgba(59,130,246,0.08)',
+                    background: alert.severity === 'danger' ? 'rgba(239,68,68,0.06)' :
+                      alert.severity === 'warning' ? 'rgba(245,158,11,0.06)' : 'rgba(51,79,83,0.15)',
                     border: `1px solid ${
-                      alert.severity === 'danger' ? 'rgba(239,68,68,0.15)' :
-                      alert.severity === 'warning' ? 'rgba(245,158,11,0.15)' : 'rgba(59,130,246,0.15)'
+                      alert.severity === 'danger' ? 'rgba(239,68,68,0.12)' :
+                      alert.severity === 'warning' ? 'rgba(245,158,11,0.12)' : 'rgba(51,79,83,0.25)'
                     }`,
                   }}>
                     <p className="font-semibold text-white">{alert.title}</p>
-                    <p className="text-xs text-slate-400 mt-0.5">{alert.message}</p>
+                    <p className="text-xs text-fg-muted mt-0.5">{alert.message}</p>
                   </div>
                 ))}
               </div>
@@ -198,26 +180,25 @@ export default function DashboardPage() {
   )
 }
 
-function KPICard({ icon, label, value, sub, gradient, iconColor, glowColor }: {
+function KPICard({ icon, label, value, sub, iconColor, accentColor }: {
   icon: React.ReactNode; label: string; value: string; sub: string
-  gradient: string; iconColor: string; glowColor: string
+  iconColor: string; accentColor: string
 }) {
   return (
     <div className="card animate-count-up group relative overflow-hidden">
-      {/* Glow background */}
       <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
-        style={{ background: `radial-gradient(circle at top right, ${glowColor}, transparent 70%)` }} />
+        style={{ background: `radial-gradient(circle at top right, rgba(${accentColor}, 0.08), transparent 70%)` }} />
 
       <div className="relative">
-        <div className="flex items-center gap-2 mb-2">
-          <div className="w-8 h-8 rounded-lg flex items-center justify-center"
-            style={{ background: glowColor, color: iconColor }}>
+        <div className="flex items-center gap-2.5 mb-3">
+          <div className="w-9 h-9 rounded-xl flex items-center justify-center"
+            style={{ background: `rgba(${accentColor}, 0.1)`, color: iconColor }}>
             {icon}
           </div>
-          <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">{label}</span>
+          <span className="text-[11px] font-bold uppercase tracking-wider text-fg-faint">{label}</span>
         </div>
         <p className="text-xl font-extrabold text-white leading-tight tracking-tight">{value}</p>
-        <p className="text-[11px] text-slate-500 font-medium mt-1">{sub}</p>
+        <p className="text-[11px] text-fg-faint font-medium mt-1">{sub}</p>
       </div>
     </div>
   )

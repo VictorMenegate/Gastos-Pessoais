@@ -68,7 +68,7 @@ export default function TransacoesPage() {
   const totalExpense = filtered.filter(t => t.type === 'expense').reduce((s, t) => s + Number(t.amount), 0)
 
   return (
-    <div className="min-h-screen bg-slate-950">
+    <div className="min-h-screen">
       <Sidebar />
       <main className="md:ml-56 pb-24 md:pb-6">
         <div className="p-4 md:p-6 space-y-4 max-w-4xl mx-auto">
@@ -76,8 +76,8 @@ export default function TransacoesPage() {
           <div className="flex items-center justify-between flex-wrap gap-3">
             <div>
               <h1 className="text-xl font-bold text-white">Transações</h1>
-              <p className="text-slate-400 text-sm">
-                <span className="text-green-400">+{formatCurrency(totalIncome)}</span>
+              <p className="text-fg-muted text-sm">
+                <span className="text-brand-400">+{formatCurrency(totalIncome)}</span>
                 {' / '}
                 <span className="text-red-400">-{formatCurrency(totalExpense)}</span>
               </p>
@@ -92,18 +92,16 @@ export default function TransacoesPage() {
 
           {/* Filters */}
           <div className="flex flex-wrap gap-2 items-center">
-            <div className="flex gap-1 bg-slate-800 p-1 rounded-lg">
+            <div className="filter-tabs">
               {(['all', 'expense', 'income'] as const).map(f => (
                 <button key={f} onClick={() => setFilterType(f)}
-                  className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
-                    filterType === f ? 'bg-slate-700 text-white' : 'text-slate-400 hover:text-white'
-                  }`}>
+                  className={`filter-tab ${filterType === f ? 'filter-tab-active' : ''}`}>
                   {f === 'all' ? 'Todas' : f === 'expense' ? 'Saídas' : 'Entradas'}
                 </button>
               ))}
             </div>
             <div className="relative flex-1 min-w-[180px]">
-              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-fg-muted" />
               <input
                 className="input pl-8 py-1.5 text-sm"
                 placeholder="Buscar..."
@@ -137,12 +135,12 @@ export default function TransacoesPage() {
                     <div className="flex items-center gap-2">
                       <p className="text-sm font-medium text-white truncate">{t.description}</p>
                       {t.source !== 'manual' && (
-                        <span className="text-xs px-1.5 py-0.5 rounded bg-slate-700 text-slate-400">
+                        <span className="text-xs px-1.5 py-0.5 rounded bg-surface-2 text-fg-muted">
                           {t.source === 'whatsapp' ? '📱' : t.source === 'recurring' ? '🔄' : '🏦'}
                         </span>
                       )}
                     </div>
-                    <p className="text-xs text-slate-400">
+                    <p className="text-xs text-fg-muted">
                       {t.categories?.name ?? 'Sem categoria'}
                       {t.payment_methods && ` • ${t.payment_methods.icon} ${t.payment_methods.name}`}
                       {` • ${t.profiles?.name}`}
@@ -150,12 +148,12 @@ export default function TransacoesPage() {
                     </p>
                   </div>
                   <p className={`text-sm font-semibold flex-shrink-0 ${
-                    t.type === 'income' ? 'text-green-400' : 'text-red-400'
+                    t.type === 'income' ? 'text-brand-400' : 'text-red-400'
                   }`}>
                     {t.type === 'income' ? '+' : '-'}{formatCurrency(t.amount)}
                   </p>
                   <button onClick={() => handleDelete(t.id)}
-                    className="text-slate-500 hover:text-red-400 flex-shrink-0">
+                    className="text-fg-faint hover:text-red-400 flex-shrink-0">
                     <Trash2 size={16} />
                   </button>
                 </div>

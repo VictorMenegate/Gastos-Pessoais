@@ -73,14 +73,14 @@ export default function RecorrentesPage() {
   const totalIncome = items.filter(i => i.type === 'income').reduce((s, i) => s + Number(i.amount), 0)
 
   return (
-    <div className="min-h-screen bg-slate-950">
+    <div className="min-h-screen">
       <Sidebar />
       <main className="md:ml-56 pb-24 md:pb-6">
         <div className="p-4 md:p-6 space-y-4 max-w-4xl mx-auto">
           <div className="flex items-center justify-between flex-wrap gap-3">
             <div>
               <h1 className="text-xl font-bold text-white">Recorrentes</h1>
-              <p className="text-slate-400 text-sm">
+              <p className="text-fg-muted text-sm">
                 Despesas: {formatCurrency(totalExpense)} • Receitas: {formatCurrency(totalIncome)}
               </p>
             </div>
@@ -90,31 +90,33 @@ export default function RecorrentesPage() {
           </div>
 
           {/* Filters */}
-          <div className="flex gap-1 bg-slate-800 p-1 rounded-lg w-fit">
+          <div className="filter-tabs">
             {(['all', 'expense', 'income'] as const).map(f => (
               <button key={f} onClick={() => setFilterType(f)}
-                className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
-                  filterType === f ? 'bg-slate-700 text-white' : 'text-slate-400 hover:text-white'
-                }`}>
+                className={`filter-tab ${filterType === f ? 'filter-tab-active' : ''}`}>
                 {f === 'all' ? 'Todas' : f === 'expense' ? 'Despesas' : 'Receitas'}
               </button>
             ))}
           </div>
 
           {showForm && (
-            <div className="card border-green-800">
+            <div className="card border-brand-500/30">
               <h2 className="text-sm font-semibold text-white mb-4">Nova recorrência</h2>
               <form onSubmit={handleSubmit} className="grid grid-cols-2 gap-3">
                 {/* Type toggle */}
                 <div className="col-span-2 flex gap-2">
                   <button type="button" onClick={() => setForm(f => ({ ...f, type: 'expense' }))}
                     className={`flex-1 py-2 rounded-lg text-sm font-medium border transition-colors ${
-                      form.type === 'expense' ? 'bg-red-600 border-red-500 text-white' : 'bg-slate-800 border-slate-600 text-slate-300'
-                    }`}>📤 Despesa</button>
+                      form.type === 'expense' ? 'bg-red-600 border-red-500 text-white' : 'text-fg-muted'
+                    }`}
+                    style={form.type !== 'expense' ? { background: 'rgba(37, 21, 40, 0.5)', border: '1px solid rgba(51, 79, 83, 0.3)' } : undefined}
+                  >📤 Despesa</button>
                   <button type="button" onClick={() => setForm(f => ({ ...f, type: 'income' }))}
                     className={`flex-1 py-2 rounded-lg text-sm font-medium border transition-colors ${
-                      form.type === 'income' ? 'bg-green-600 border-green-500 text-white' : 'bg-slate-800 border-slate-600 text-slate-300'
-                    }`}>📥 Receita</button>
+                      form.type === 'income' ? 'bg-brand-500 border-brand-500 text-white' : 'text-fg-muted'
+                    }`}
+                    style={form.type !== 'income' ? { background: 'rgba(37, 21, 40, 0.5)', border: '1px solid rgba(51, 79, 83, 0.3)' } : undefined}
+                  >📥 Receita</button>
                 </div>
                 <div className="col-span-2">
                   <label className="label">Descrição</label>
@@ -177,20 +179,20 @@ export default function RecorrentesPage() {
             <div className="space-y-2">
               {filtered.map(item => (
                 <div key={item.id} className="card flex items-center gap-3">
-                  <div className={`w-2 h-8 rounded-full flex-shrink-0 ${item.type === 'income' ? 'bg-green-500' : 'bg-red-500'}`} />
+                  <div className={`w-2 h-8 rounded-full flex-shrink-0 ${item.type === 'income' ? 'bg-brand-500' : 'bg-red-500'}`} />
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-white truncate">{item.description}</p>
-                    <p className="text-xs text-slate-400">
+                    <p className="text-xs text-fg-muted">
                       {item.categories?.icon} {item.categories?.name ?? 'Sem categoria'}
                       {` • ${item.profiles?.name}`}
                       {` • dia ${item.day_of_month}`}
                       {` • ${FREQUENCY_OPTIONS.find(o => o.value === item.frequency)?.label}`}
                     </p>
                   </div>
-                  <p className={`text-sm font-semibold flex-shrink-0 ${item.type === 'income' ? 'text-green-400' : 'text-red-400'}`}>
+                  <p className={`text-sm font-semibold flex-shrink-0 ${item.type === 'income' ? 'text-brand-400' : 'text-red-400'}`}>
                     {formatCurrency(item.amount)}
                   </p>
-                  <button onClick={() => handleDelete(item.id)} className="text-slate-500 hover:text-red-400">
+                  <button onClick={() => handleDelete(item.id)} className="text-fg-faint hover:text-red-400">
                     <Trash2 size={16} />
                   </button>
                 </div>

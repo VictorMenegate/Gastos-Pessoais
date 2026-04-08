@@ -11,7 +11,7 @@ interface Props {
 export default function ExpenseChart({ data }: Props) {
   if (!data.length) {
     return (
-      <div className="h-48 flex items-center justify-center text-slate-500 text-sm">
+      <div className="h-48 flex items-center justify-center text-fg-faint text-sm">
         Nenhum gasto registrado neste mês
       </div>
     )
@@ -31,8 +31,13 @@ export default function ExpenseChart({ data }: Props) {
           </Pie>
           <Tooltip
             formatter={(v: number) => [formatCurrency(v), '']}
-            contentStyle={{ background: '#1e293b', border: '1px solid #334155', borderRadius: 8 }}
-            labelStyle={{ color: '#94a3b8' }}
+            contentStyle={{
+              background: '#251528',
+              border: '1px solid rgba(229, 234, 212, 0.08)',
+              borderRadius: 10,
+              color: '#E5EAD4',
+            }}
+            labelStyle={{ color: '#a8b09e' }}
           />
         </PieChart>
       </ResponsiveContainer>
@@ -42,11 +47,11 @@ export default function ExpenseChart({ data }: Props) {
           <div key={item.name} className="flex items-center justify-between text-sm">
             <div className="flex items-center gap-2">
               <span className="inline-block w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ background: item.color }} />
-              <span className="text-slate-300">{item.icon} {item.name}</span>
+              <span className="text-fg-muted">{item.icon} {item.name}</span>
             </div>
             <div className="text-right">
               <span className="text-white font-medium">{formatCurrency(item.value)}</span>
-              <span className="text-slate-500 text-xs ml-1">{item.percentage.toFixed(0)}%</span>
+              <span className="text-fg-faint text-xs ml-1">{item.percentage.toFixed(0)}%</span>
             </div>
           </div>
         ))}

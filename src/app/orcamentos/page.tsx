@@ -61,14 +61,14 @@ export default function OrcamentosPage() {
   const totalSpent = budgets.reduce((s, b) => s + Number(b.spent_amount), 0)
 
   return (
-    <div className="min-h-screen bg-slate-950">
+    <div className="min-h-screen">
       <Sidebar />
       <main className="md:ml-56 pb-24 md:pb-6">
         <div className="p-4 md:p-6 space-y-4 max-w-4xl mx-auto">
           <div className="flex items-center justify-between flex-wrap gap-3">
             <div>
               <h1 className="text-xl font-bold text-white">Orçamentos</h1>
-              <p className="text-slate-400 text-sm">
+              <p className="text-fg-muted text-sm">
                 Gasto: {formatCurrency(totalSpent)} de {formatCurrency(totalBudget)}
               </p>
             </div>
@@ -84,8 +84,8 @@ export default function OrcamentosPage() {
           {budgets.length > 0 && (
             <div className="card">
               <div className="flex justify-between text-sm mb-2">
-                <span className="text-slate-300">Total orçado</span>
-                <span className="text-slate-400">
+                <span className="text-fg">Total orçado</span>
+                <span className="text-fg-muted">
                   {formatCurrency(totalSpent)} / {formatCurrency(totalBudget)}
                 </span>
               </div>
@@ -99,7 +99,7 @@ export default function OrcamentosPage() {
           )}
 
           {showForm && (
-            <div className="card border-green-800">
+            <div className="card border-brand-500/30">
               <h2 className="text-sm font-semibold text-white mb-4">Novo orçamento</h2>
               <form onSubmit={handleSubmit} className="grid grid-cols-2 gap-3">
                 <div>
@@ -149,19 +149,19 @@ export default function OrcamentosPage() {
                         <span className="text-lg">{b.category_icon}</span>
                         <div>
                           <p className="text-sm font-medium text-white">{b.category_name}</p>
-                          <p className="text-xs text-slate-400">
+                          <p className="text-xs text-fg-muted">
                             {formatCurrency(b.spent_amount)} de {formatCurrency(b.budget_amount)}
                           </p>
                         </div>
                       </div>
                       <div className="flex items-center gap-3">
                         <span className={`text-sm font-bold ${
-                          pct >= 100 ? 'text-red-400' : pct >= 80 ? 'text-amber-400' : 'text-green-400'
+                          pct >= 100 ? 'text-red-400' : pct >= 80 ? 'text-amber-400' : 'text-brand-400'
                         }`}>
                           {pct.toFixed(0)}%
                         </span>
                         <button onClick={() => handleDelete(b.budget_id)}
-                          className="text-slate-500 hover:text-red-400">
+                          className="text-fg-faint hover:text-red-400">
                           <Trash2 size={14} />
                         </button>
                       </div>

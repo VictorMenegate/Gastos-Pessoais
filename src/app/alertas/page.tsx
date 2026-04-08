@@ -35,14 +35,14 @@ export default function AlertasPage() {
   const unreadCount = alerts.filter(a => !a.read).length
 
   return (
-    <div className="min-h-screen bg-slate-950">
+    <div className="min-h-screen">
       <Sidebar />
       <main className="md:ml-56 pb-24 md:pb-6">
         <div className="p-4 md:p-6 space-y-4 max-w-4xl mx-auto">
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-xl font-bold text-white">Alertas</h1>
-              <p className="text-slate-400 text-sm">{unreadCount} não lido(s)</p>
+              <p className="text-fg-muted text-sm">{unreadCount} não lido(s)</p>
             </div>
             {unreadCount > 0 && (
               <button onClick={handleMarkAllRead} className="btn-secondary flex items-center gap-1.5 text-sm">
@@ -69,11 +69,11 @@ export default function AlertasPage() {
                   >
                     <span className="text-lg flex-shrink-0 mt-0.5">{config.icon}</span>
                     <div className="flex-1">
-                      <p className={`text-sm font-medium ${alert.read ? 'text-slate-400' : 'text-white'}`}>
+                      <p className={`text-sm font-medium ${alert.read ? 'text-fg-muted' : 'text-white'}`}>
                         {alert.title}
                       </p>
-                      <p className="text-xs text-slate-400 mt-0.5">{alert.message}</p>
-                      <p className="text-xs text-slate-500 mt-1">{formatDate(alert.created_at, "dd/MM 'às' HH:mm")}</p>
+                      <p className="text-xs text-fg-muted mt-0.5">{alert.message}</p>
+                      <p className="text-xs text-fg-faint mt-1">{formatDate(alert.created_at, "dd/MM 'às' HH:mm")}</p>
                     </div>
                     {!alert.read && (
                       <div className="w-2 h-2 rounded-full bg-blue-500 flex-shrink-0 mt-2" />

@@ -20,13 +20,9 @@ export default function LoginPage() {
     setMessage('')
 
     if (isSignUp) {
-      const { error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: { emailRedirectTo: `${location.origin}/api/auth/callback` },
-      })
+      const { error } = await supabase.auth.signUp({ email, password })
       if (error) setError(error.message)
-      else setMessage('Verifique seu email para confirmar o cadastro.')
+      else window.location.href = '/dashboard'
     } else {
       const { error } = await supabase.auth.signInWithPassword({ email, password })
       if (error) setError('Email ou senha incorretos.')

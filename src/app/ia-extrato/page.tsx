@@ -283,7 +283,7 @@ export default function IAExtratoPage() {
                   </button>
                 )}
 
-                <input ref={fileRef} type="file" accept="image/*,.pdf,application/pdf" className="hidden"
+                <input ref={fileRef} type="file" accept="image/png,image/jpeg,image/webp,application/pdf,.pdf,.png,.jpg,.jpeg" className="hidden"
                   onChange={e => e.target.files?.[0] && handleFile(e.target.files[0])} />
               </div>
 

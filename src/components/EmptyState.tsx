@@ -11,7 +11,7 @@ export default function EmptyState({ icon = '📭', title, description, action }
   return (
     <div className="card text-center py-16">
       <span className="text-5xl block mb-4">{icon}</span>
-      <p className="text-white font-bold text-base">{title}</p>
+      <p className="text-fg font-bold text-base">{title}</p>
       {description && <p className="text-fg-muted text-sm mt-1.5 font-medium">{description}</p>}
       {action && <div className="mt-5">{action}</div>}
     </div>

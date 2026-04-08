@@ -11,13 +11,11 @@ interface Props {
 export default function ExpenseChart({ data }: Props) {
   if (!data.length) {
     return (
-      <div className="h-48 flex items-center justify-center text-fg-faint text-sm">
+      <div className="h-48 flex items-center justify-center text-fg-muted text-sm">
         Nenhum gasto registrado neste mês
       </div>
     )
   }
-
-  const total = data.reduce((s, d) => s + d.value, 0)
 
   return (
     <div className="flex flex-col md:flex-row items-center gap-4">
@@ -31,13 +29,8 @@ export default function ExpenseChart({ data }: Props) {
           </Pie>
           <Tooltip
             formatter={(v: number) => [formatCurrency(v), '']}
-            contentStyle={{
-              background: '#251528',
-              border: '1px solid rgba(229, 234, 212, 0.08)',
-              borderRadius: 10,
-              color: '#E5EAD4',
-            }}
-            labelStyle={{ color: '#a8b09e' }}
+            contentStyle={{ background: '#fff', border: '1px solid #DCE0E6', borderRadius: 10, color: '#1F1F20' }}
+            labelStyle={{ color: '#606D80' }}
           />
         </PieChart>
       </ResponsiveContainer>
@@ -47,11 +40,11 @@ export default function ExpenseChart({ data }: Props) {
           <div key={item.name} className="flex items-center justify-between text-sm">
             <div className="flex items-center gap-2">
               <span className="inline-block w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ background: item.color }} />
-              <span className="text-fg-muted">{item.icon} {item.name}</span>
+              <span className="text-fg-secondary">{item.icon} {item.name}</span>
             </div>
             <div className="text-right">
-              <span className="text-white font-medium">{formatCurrency(item.value)}</span>
-              <span className="text-fg-faint text-xs ml-1">{item.percentage.toFixed(0)}%</span>
+              <span className="text-fg font-medium">{formatCurrency(item.value)}</span>
+              <span className="text-fg-muted text-xs ml-1">{item.percentage.toFixed(0)}%</span>
             </div>
           </div>
         ))}

@@ -38,27 +38,18 @@ export default function Sidebar() {
 
   return (
     <>
-      {/* Desktop sidebar */}
+      {/* Desktop sidebar — blue gradient */}
       <aside className="hidden md:flex flex-col w-[220px] min-h-screen fixed left-0 top-0 z-40 px-3 py-5"
-        style={{
-          background: 'linear-gradient(180deg, rgba(31, 10, 29, 0.92) 0%, rgba(37, 21, 40, 0.88) 100%)',
-          backdropFilter: 'blur(24px)',
-          WebkitBackdropFilter: 'blur(24px)',
-          borderRight: '1px solid rgba(229, 234, 212, 0.05)',
-        }}>
+        style={{ background: 'linear-gradient(180deg, #2B4C7E 0%, #1F1F20 100%)' }}>
 
         {/* Logo */}
         <div className="flex items-center gap-2.5 px-3 mb-8">
-          <div className="w-9 h-9 rounded-xl flex items-center justify-center"
-            style={{
-              background: 'linear-gradient(135deg, #45936C 0%, #9ACC77 100%)',
-              boxShadow: '0 4px 12px rgba(69, 147, 108, 0.3)',
-            }}>
+          <div className="w-9 h-9 rounded-xl flex items-center justify-center bg-white/20">
             <span className="text-lg">💰</span>
           </div>
           <div>
             <span className="font-bold text-white text-base tracking-tight">Gastos</span>
-            <span className="block text-[10px] font-medium tracking-widest" style={{ color: 'var(--text-muted)' }}>FINANCE PRO</span>
+            <span className="block text-[10px] font-medium tracking-widest text-white/50">FINANCE PRO</span>
           </div>
         </div>
 
@@ -69,13 +60,9 @@ export default function Sidebar() {
             return (
               <Link key={href} href={href}
                 className={`group flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-semibold ${
-                  active ? 'text-white' : 'text-[var(--text-secondary)] hover:text-white'
-                }`}
-                style={active ? {
-                  background: 'linear-gradient(135deg, rgba(69, 147, 108, 0.18) 0%, rgba(51, 79, 83, 0.15) 100%)',
-                  boxShadow: 'inset 0 0 0 1px rgba(69, 147, 108, 0.2), 0 0 16px rgba(69, 147, 108, 0.06)',
-                } : undefined}>
-                <Icon size={17} className={active ? 'text-[#9ACC77]' : 'text-[var(--text-muted)] group-hover:text-[var(--text-secondary)]'} />
+                  active ? 'text-white bg-white/15' : 'text-white/60 hover:text-white hover:bg-white/8'
+                }`}>
+                <Icon size={17} className={active ? 'text-white' : 'text-white/40 group-hover:text-white/70'} />
                 {label}
               </Link>
             )
@@ -84,12 +71,11 @@ export default function Sidebar() {
 
         {/* Alerts */}
         <Link href="/alertas"
-          className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-medium text-[var(--text-secondary)] hover:text-white relative">
-          <Bell size={17} className="text-[var(--text-muted)]" />
+          className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-medium text-white/60 hover:text-white hover:bg-white/8 relative">
+          <Bell size={17} className="text-white/40" />
           Alertas
           {alertCount > 0 && (
-            <span className="absolute right-3 text-[10px] font-bold rounded-full w-5 h-5 flex items-center justify-center"
-              style={{ background: 'linear-gradient(135deg, #dc2626 0%, #ef4444 100%)', color: 'white' }}>
+            <span className="absolute right-3 text-[10px] font-bold rounded-full w-5 h-5 flex items-center justify-center bg-red-500 text-white">
               {alertCount > 9 ? '9+' : alertCount}
             </span>
           )}
@@ -97,35 +83,25 @@ export default function Sidebar() {
 
         {/* Logout */}
         <button onClick={handleLogout}
-          className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-medium w-full mt-1"
-          style={{ color: 'var(--text-muted)' }}
-          onMouseEnter={e => e.currentTarget.style.color = '#f87171'}
-          onMouseLeave={e => e.currentTarget.style.color = 'var(--text-muted)'}>
+          className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-medium text-white/40 hover:text-red-300 w-full mt-1">
           <LogOut size={17} />
           Sair
         </button>
       </aside>
 
-      {/* Mobile bottom nav */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 flex justify-around pb-safe"
-        style={{
-          background: 'linear-gradient(0deg, rgba(31, 10, 29, 0.95) 0%, rgba(31, 10, 29, 0.88) 100%)',
-          backdropFilter: 'blur(24px)',
-          WebkitBackdropFilter: 'blur(24px)',
-          borderTop: '1px solid rgba(229, 234, 212, 0.05)',
-        }}>
+      {/* Mobile bottom nav — white */}
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 flex justify-around pb-safe bg-white border-t border-[#DCE0E6]">
         {mobileNavItems.map(({ href, icon: Icon, label }) => {
           const active = pathname === href || pathname.startsWith(href + '/')
           return (
             <Link key={href} href={href}
               className={`flex flex-col items-center gap-0.5 py-2.5 px-3 text-[10px] font-semibold ${
-                active ? 'text-[#9ACC77]' : 'text-[var(--text-muted)]'
+                active ? 'text-brand-500' : 'text-[#9ca3af]'
               }`}>
               <Icon size={20} />
               {label}
               {active && (
-                <div className="w-1 h-1 rounded-full mt-0.5"
-                  style={{ background: '#9ACC77', boxShadow: '0 0 6px rgba(154, 204, 119, 0.6)' }} />
+                <div className="w-1 h-1 rounded-full mt-0.5 bg-brand-500" />
               )}
             </Link>
           )

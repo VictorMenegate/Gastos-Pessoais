@@ -14,7 +14,7 @@ export default function RecentTransactions({ transactions }: Props) {
 
   if (!recent.length) {
     return (
-      <div className="text-center py-6 text-fg-faint text-sm">
+      <div className="text-center py-6 text-fg-muted text-sm">
         Nenhuma transação neste mês
       </div>
     )
@@ -24,17 +24,16 @@ export default function RecentTransactions({ transactions }: Props) {
     <div>
       <div className="space-y-1">
         {recent.map(t => (
-          <div key={t.id} className="flex items-center gap-3 py-2 last:border-0"
-            style={{ borderBottom: '1px solid var(--border)' }}>
+          <div key={t.id} className="flex items-center gap-3 py-2 border-b border-surface-border last:border-0">
             <span className="text-lg flex-shrink-0">{t.categories?.icon ?? '💸'}</span>
             <div className="flex-1 min-w-0">
-              <p className="text-sm text-white truncate">{t.description}</p>
-              <p className="text-xs text-fg-faint">
+              <p className="text-sm text-fg truncate">{t.description}</p>
+              <p className="text-xs text-fg-muted">
                 {t.categories?.name ?? 'Sem categoria'} • {t.profiles?.name} • {formatDate(t.date)}
               </p>
             </div>
             <p className={`text-sm font-semibold flex-shrink-0 ${
-              t.type === 'income' ? 'text-brand-400' : 'text-red-400'
+              t.type === 'income' ? 'text-brand-500' : 'text-red-500'
             }`}>
               {t.type === 'income' ? '+' : '-'}{formatCurrency(t.amount)}
             </p>
@@ -42,7 +41,7 @@ export default function RecentTransactions({ transactions }: Props) {
         ))}
       </div>
       <Link href="/transacoes"
-        className="flex items-center justify-center gap-1 text-sm text-brand-400 hover:text-brand-300 mt-3 py-2 transition-colors">
+        className="flex items-center justify-center gap-1 text-sm text-brand-500 hover:text-brand-400 mt-3 py-2 transition-colors">
         Ver todas <ArrowRight size={14} />
       </Link>
     </div>

@@ -73,8 +73,8 @@ export default function MetasPage() {
         <div className="p-4 md:p-6 space-y-4 max-w-4xl mx-auto">
           <div className="flex items-center justify-between flex-wrap gap-3">
             <div>
-              <h1 className="text-xl font-bold text-white">Metas Financeiras</h1>
-              <p className="text-fg-muted text-sm">{goals.length} meta(s) {filterStatus === 'active' ? 'ativas' : 'concluídas'}</p>
+              <h1 className="text-xl font-bold text-fg">Metas Financeiras</h1>
+              <p className="text-fg-secondary text-sm">{goals.length} meta(s) {filterStatus === 'active' ? 'ativas' : 'concluídas'}</p>
             </div>
             <button onClick={() => setShowForm(!showForm)} className="btn-primary flex items-center gap-1.5">
               <Plus size={16} /> Nova meta
@@ -90,8 +90,8 @@ export default function MetasPage() {
           </div>
 
           {showForm && (
-            <div className="card border-brand-500/30">
-              <h2 className="text-sm font-semibold text-white mb-4">Nova meta</h2>
+            <div className="card border-brand-200">
+              <h2 className="text-sm font-semibold text-fg mb-4">Nova meta</h2>
               <form onSubmit={handleSubmit} className="grid grid-cols-2 gap-3">
                 <div className="col-span-2">
                   <label className="label">Nome da meta</label>
@@ -114,9 +114,8 @@ export default function MetasPage() {
                     {GOAL_ICONS.map(icon => (
                       <button key={icon} type="button" onClick={() => setForm(f => ({ ...f, icon }))}
                         className={`w-8 h-8 rounded-lg text-lg flex items-center justify-center transition-all ${
-                          form.icon === icon ? 'bg-surface-3 ring-2 ring-brand-500' : 'hover:bg-surface-2'
+                          form.icon === icon ? 'bg-surface-hover ring-2 ring-brand-500' : 'bg-surface-input border border-surface-border hover:bg-surface-hover'
                         }`}
-                        style={form.icon !== icon ? { background: 'rgba(37, 21, 40, 0.6)', border: '1px solid var(--border)' } : undefined}
                       >{icon}</button>
                     ))}
                   </div>
@@ -162,16 +161,16 @@ export default function MetasPage() {
                           {goal.icon}
                         </span>
                         <div>
-                          <p className="text-sm font-semibold text-white">{goal.name}</p>
-                          {goal.description && <p className="text-xs text-fg-muted">{goal.description}</p>}
+                          <p className="text-sm font-semibold text-fg">{goal.name}</p>
+                          {goal.description && <p className="text-xs text-fg-secondary">{goal.description}</p>}
                           {goal.deadline && (
-                            <p className="text-xs text-fg-faint mt-0.5">Prazo: {formatDate(goal.deadline)}</p>
+                            <p className="text-xs text-fg-muted mt-0.5">Prazo: {formatDate(goal.deadline)}</p>
                           )}
                         </div>
                       </div>
                       <div className="text-right">
-                        <p className="text-sm font-bold text-white">{formatCurrency(goal.current_amount)}</p>
-                        <p className="text-xs text-fg-muted">de {formatCurrency(goal.target_amount)}</p>
+                        <p className="text-sm font-bold text-fg">{formatCurrency(goal.current_amount)}</p>
+                        <p className="text-xs text-fg-secondary">de {formatCurrency(goal.target_amount)}</p>
                       </div>
                     </div>
 

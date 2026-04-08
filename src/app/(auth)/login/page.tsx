@@ -38,36 +38,20 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4 relative overflow-hidden"
-      style={{
-        background: '#1F0A1D',
-        backgroundImage: `
-          radial-gradient(ellipse 50% 40% at 60% 30%, rgba(69, 147, 108, 0.06), transparent),
-          radial-gradient(ellipse 40% 50% at 20% 70%, rgba(51, 79, 83, 0.08), transparent)
-        `,
-      }}>
-
-      {/* Ambient glow */}
-      <div className="absolute top-[-200px] right-[-100px] w-[500px] h-[500px] rounded-full opacity-[0.035] animate-pulse-soft"
-        style={{ background: 'radial-gradient(circle, #9ACC77, transparent 70%)' }} />
-      <div className="absolute bottom-[-150px] left-[-100px] w-[400px] h-[400px] rounded-full opacity-[0.025] animate-pulse-soft"
-        style={{ background: 'radial-gradient(circle, #334F53, transparent 70%)', animationDelay: '1.5s' }} />
+      style={{ background: 'linear-gradient(135deg, #2B4C7E 0%, #567EBB 50%, #2B4C7E 100%)' }}>
 
       <div className="w-full max-w-sm relative z-10 animate-fade-in">
         {/* Logo */}
         <div className="text-center mb-10">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-5"
-            style={{
-              background: 'linear-gradient(135deg, #45936C 0%, #9ACC77 100%)',
-              boxShadow: '0 8px 32px rgba(69, 147, 108, 0.3), inset 0 1px 0 rgba(255,255,255,0.15)',
-            }}>
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-5 bg-white/20 backdrop-blur-sm">
             <span className="text-3xl">💰</span>
           </div>
           <h1 className="text-3xl font-extrabold text-white tracking-tight">Gastos Pessoais</h1>
-          <p className="text-fg-faint text-sm font-medium mt-2">Sistema financeiro multiusuario</p>
+          <p className="text-white/60 text-sm font-medium mt-2">Sistema financeiro multiusuario</p>
         </div>
 
-        <div className="card" style={{ padding: '28px' }}>
-          <h2 className="text-lg font-bold text-white mb-6">
+        <div className="bg-white rounded-2xl p-7 shadow-xl">
+          <h2 className="text-lg font-bold text-fg mb-6">
             {isSignUp ? 'Criar conta' : 'Entrar'}
           </h2>
 
@@ -84,14 +68,12 @@ export default function LoginPage() {
             </div>
 
             {error && (
-              <div className="text-sm font-medium p-3 rounded-xl"
-                style={{ background: 'rgba(239,68,68,0.08)', color: '#f87171', border: '1px solid rgba(239,68,68,0.15)' }}>
+              <div className="text-sm font-medium p-3 rounded-xl bg-red-50 text-red-600 border border-red-200">
                 {error}
               </div>
             )}
             {message && (
-              <div className="text-sm font-medium p-3 rounded-xl"
-                style={{ background: 'rgba(69,147,108,0.08)', color: '#9ACC77', border: '1px solid rgba(69,147,108,0.15)' }}>
+              <div className="text-sm font-medium p-3 rounded-xl bg-blue-50 text-brand-500 border border-blue-200">
                 {message}
               </div>
             )}
@@ -109,10 +91,10 @@ export default function LoginPage() {
             </button>
           </form>
 
-          <p className="text-center text-sm text-fg-faint mt-5 font-medium">
+          <p className="text-center text-sm text-fg-muted mt-5 font-medium">
             {isSignUp ? 'Ja tem conta?' : 'Nao tem conta?'}{' '}
             <button onClick={() => { setIsSignUp(!isSignUp); setError(''); setMessage('') }}
-              className="font-bold text-brand-400 hover:text-white">
+              className="font-bold text-brand-500 hover:text-brand-400">
               {isSignUp ? 'Entrar' : 'Criar conta'}
             </button>
           </p>

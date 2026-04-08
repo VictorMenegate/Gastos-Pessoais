@@ -64,8 +64,8 @@ export default function TransactionForm({ defaultType = 'expense', onSubmit, onC
   }
 
   return (
-    <div className="card border-brand-500/30">
-      <h2 className="text-sm font-semibold text-white mb-4">
+    <div className="card border-brand-200">
+      <h2 className="text-sm font-semibold text-fg mb-4">
         {form.type === 'income' ? '📥 Nova entrada' : '📤 Nova saída'}
       </h2>
       <form onSubmit={handleSubmit} className="grid grid-cols-2 gap-3">
@@ -76,9 +76,8 @@ export default function TransactionForm({ defaultType = 'expense', onSubmit, onC
             className={`flex-1 py-2 rounded-lg text-sm font-medium border transition-colors ${
               form.type === 'expense'
                 ? 'bg-red-600 border-red-500 text-white'
-                : 'text-fg-muted'
+                : 'bg-surface-input border border-surface-border text-fg-secondary hover:bg-surface-hover'
             }`}
-            style={form.type !== 'expense' ? { background: 'rgba(37, 21, 40, 0.5)', border: '1px solid rgba(51, 79, 83, 0.3)' } : undefined}
           >
             📤 Saída
           </button>
@@ -87,9 +86,8 @@ export default function TransactionForm({ defaultType = 'expense', onSubmit, onC
             className={`flex-1 py-2 rounded-lg text-sm font-medium border transition-colors ${
               form.type === 'income'
                 ? 'bg-brand-500 border-brand-500 text-white'
-                : 'text-fg-muted'
+                : 'bg-surface-input border border-surface-border text-fg-secondary hover:bg-surface-hover'
             }`}
-            style={form.type !== 'income' ? { background: 'rgba(37, 21, 40, 0.5)', border: '1px solid rgba(51, 79, 83, 0.3)' } : undefined}
           >
             📥 Entrada
           </button>

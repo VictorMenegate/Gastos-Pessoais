@@ -15,9 +15,9 @@ export const PROFILE_COLORS = [
 
 // Cores para gráficos
 export const CHART_COLORS = [
-  '#9ACC77', '#45936C', '#334F53', '#E5EAD4', '#8b5cf6',
-  '#ec4899', '#3d5d61', '#f97316', '#6366f1', '#45936C',
-  '#a855f7', '#e11d48', '#0ea5e9', '#9ACC77', '#d946ef',
+  '#567EBB', '#2B4C7E', '#606D80', '#DCE0E6', '#8b5cf6',
+  '#ec4899', '#6e7b8d', '#f97316', '#6366f1', '#2B4C7E',
+  '#a855f7', '#e11d48', '#0ea5e9', '#567EBB', '#d946ef',
 ]
 
 // Ícones padrão para metas
@@ -41,7 +41,7 @@ export const FREQUENCY_OPTIONS = [
 // Tipos de transação
 export const TRANSACTION_TYPES = [
   { value: 'expense', label: 'Saída', icon: '📤', color: '#ef4444' },
-  { value: 'income', label: 'Entrada', icon: '📥', color: '#9ACC77' },
+  { value: 'income', label: 'Entrada', icon: '📥', color: '#2B4C7E' },
 ] as const
 
 // Métodos de pagamento
@@ -56,8 +56,8 @@ export const PAYMENT_METHOD_TYPES = [
 
 // Severidade de alertas
 export const ALERT_SEVERITY_CONFIG = {
-  info: { bg: 'bg-blue-900/50', border: 'border-blue-800', text: 'text-blue-400', icon: 'ℹ️' },
-  warning: { bg: 'bg-amber-900/50', border: 'border-amber-800', text: 'text-amber-400', icon: '⚠️' },
-  danger: { bg: 'bg-red-900/50', border: 'border-red-800', text: 'text-red-400', icon: '🚨' },
-  success: { bg: 'bg-green-900/50', border: 'border-green-800', text: 'text-green-400', icon: '✅' },
+  info: { bg: 'bg-blue-50', border: 'border-blue-200', text: 'text-blue-600', icon: 'ℹ️' },
+  warning: { bg: 'bg-amber-50', border: 'border-amber-200', text: 'text-amber-600', icon: '⚠️' },
+  danger: { bg: 'bg-red-50', border: 'border-red-200', text: 'text-red-500', icon: '🚨' },
+  success: { bg: 'bg-green-50', border: 'border-green-200', text: 'text-green-600', icon: '✅' },
 } as const

@@ -67,8 +67,8 @@ export default function OrcamentosPage() {
         <div className="p-4 md:p-6 space-y-4 max-w-4xl mx-auto">
           <div className="flex items-center justify-between flex-wrap gap-3">
             <div>
-              <h1 className="text-xl font-bold text-white">Orçamentos</h1>
-              <p className="text-fg-muted text-sm">
+              <h1 className="text-xl font-bold text-fg">Orçamentos</h1>
+              <p className="text-fg-secondary text-sm">
                 Gasto: {formatCurrency(totalSpent)} de {formatCurrency(totalBudget)}
               </p>
             </div>
@@ -85,22 +85,22 @@ export default function OrcamentosPage() {
             <div className="card">
               <div className="flex justify-between text-sm mb-2">
                 <span className="text-fg">Total orçado</span>
-                <span className="text-fg-muted">
+                <span className="text-fg-secondary">
                   {formatCurrency(totalSpent)} / {formatCurrency(totalBudget)}
                 </span>
               </div>
               <ProgressBar
                 value={totalSpent}
                 max={totalBudget}
-                color={totalSpent / totalBudget >= 1 ? '#ef4444' : totalSpent / totalBudget >= 0.8 ? '#f59e0b' : '#9ACC77'}
+                color={totalSpent / totalBudget >= 1 ? '#ef4444' : totalSpent / totalBudget >= 0.8 ? '#f59e0b' : '#2B4C7E'}
                 size="md"
               />
             </div>
           )}
 
           {showForm && (
-            <div className="card border-brand-500/30">
-              <h2 className="text-sm font-semibold text-white mb-4">Novo orçamento</h2>
+            <div className="card border-brand-200">
+              <h2 className="text-sm font-semibold text-fg mb-4">Novo orçamento</h2>
               <form onSubmit={handleSubmit} className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="label">Categoria</label>
@@ -143,25 +143,25 @@ export default function OrcamentosPage() {
               {budgets.map(b => {
                 const pct = Number(b.spent_percentage)
                 return (
-                  <div key={b.budget_id} className={`card space-y-2 ${pct >= 100 ? 'border-red-800' : pct >= 80 ? 'border-amber-800' : ''}`}>
+                  <div key={b.budget_id} className={`card space-y-2 ${pct >= 100 ? 'border-red-300' : pct >= 80 ? 'border-amber-300' : ''}`}>
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <span className="text-lg">{b.category_icon}</span>
                         <div>
-                          <p className="text-sm font-medium text-white">{b.category_name}</p>
-                          <p className="text-xs text-fg-muted">
+                          <p className="text-sm font-medium text-fg">{b.category_name}</p>
+                          <p className="text-xs text-fg-secondary">
                             {formatCurrency(b.spent_amount)} de {formatCurrency(b.budget_amount)}
                           </p>
                         </div>
                       </div>
                       <div className="flex items-center gap-3">
                         <span className={`text-sm font-bold ${
-                          pct >= 100 ? 'text-red-400' : pct >= 80 ? 'text-amber-400' : 'text-brand-400'
+                          pct >= 100 ? 'text-red-500' : pct >= 80 ? 'text-amber-600' : 'text-brand-500'
                         }`}>
                           {pct.toFixed(0)}%
                         </span>
                         <button onClick={() => handleDelete(b.budget_id)}
-                          className="text-fg-faint hover:text-red-400">
+                          className="text-fg-muted hover:text-red-500">
                           <Trash2 size={14} />
                         </button>
                       </div>
@@ -169,12 +169,12 @@ export default function OrcamentosPage() {
                     <ProgressBar
                       value={b.spent_amount}
                       max={b.budget_amount}
-                      color={pct >= 100 ? '#ef4444' : pct >= 80 ? '#f59e0b' : '#9ACC77'}
+                      color={pct >= 100 ? '#ef4444' : pct >= 80 ? '#f59e0b' : '#2B4C7E'}
                       showLabel={false}
                       size="md"
                     />
                     {pct >= 100 && (
-                      <p className="text-xs text-red-400">
+                      <p className="text-xs text-red-500">
                         Excedido em {formatCurrency(b.spent_amount - b.budget_amount)}
                       </p>
                     )}

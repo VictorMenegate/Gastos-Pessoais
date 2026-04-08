@@ -11,37 +11,26 @@ interface Props {
 export default function MonthlyChart({ data }: Props) {
   if (!data.length) {
     return (
-      <div className="h-48 flex items-center justify-center text-fg-faint text-sm">
+      <div className="h-48 flex items-center justify-center text-fg-muted text-sm">
         Sem dados para comparação
       </div>
     )
   }
 
-  const chartData = data.map(d => ({
-    ...d,
-    label: d.month.slice(5),
-  }))
+  const chartData = data.map(d => ({ ...d, label: d.month.slice(5) }))
 
   return (
     <ResponsiveContainer width="100%" height={220}>
       <BarChart data={chartData} barGap={4}>
-        <CartesianGrid strokeDasharray="3 3" stroke="rgba(229, 234, 212, 0.05)" />
-        <XAxis dataKey="label" stroke="#6b7565" fontSize={12} />
-        <YAxis stroke="#6b7565" fontSize={11} tickFormatter={v => `${(v / 1000).toFixed(0)}k`} />
+        <CartesianGrid strokeDasharray="3 3" stroke="#DCE0E6" />
+        <XAxis dataKey="label" stroke="#9ca3af" fontSize={12} />
+        <YAxis stroke="#9ca3af" fontSize={11} tickFormatter={v => `${(v / 1000).toFixed(0)}k`} />
         <Tooltip
-          formatter={(value: number, name: string) => [
-            formatCurrency(value),
-            name === 'income' ? 'Entradas' : 'Saídas',
-          ]}
-          contentStyle={{
-            background: '#251528',
-            border: '1px solid rgba(229, 234, 212, 0.08)',
-            borderRadius: 10,
-            color: '#E5EAD4',
-          }}
-          labelStyle={{ color: '#a8b09e' }}
+          formatter={(value: number, name: string) => [formatCurrency(value), name === 'income' ? 'Entradas' : 'Saídas']}
+          contentStyle={{ background: '#fff', border: '1px solid #DCE0E6', borderRadius: 10, color: '#1F1F20' }}
+          labelStyle={{ color: '#606D80' }}
         />
-        <Bar dataKey="income" fill="#9ACC77" radius={[4, 4, 0, 0]} />
+        <Bar dataKey="income" fill="#567EBB" radius={[4, 4, 0, 0]} />
         <Bar dataKey="expenses" fill="#ef4444" radius={[4, 4, 0, 0]} />
       </BarChart>
     </ResponsiveContainer>

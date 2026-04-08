@@ -75,11 +75,11 @@ export default function TransacoesPage() {
           {/* Header */}
           <div className="flex items-center justify-between flex-wrap gap-3">
             <div>
-              <h1 className="text-xl font-bold text-white">Transações</h1>
-              <p className="text-fg-muted text-sm">
-                <span className="text-brand-400">+{formatCurrency(totalIncome)}</span>
+              <h1 className="text-xl font-bold text-fg">Transações</h1>
+              <p className="text-fg-secondary text-sm">
+                <span className="text-brand-500">+{formatCurrency(totalIncome)}</span>
                 {' / '}
-                <span className="text-red-400">-{formatCurrency(totalExpense)}</span>
+                <span className="text-red-500">-{formatCurrency(totalExpense)}</span>
               </p>
             </div>
             <div className="flex items-center gap-2">
@@ -133,14 +133,14 @@ export default function TransacoesPage() {
                   <span className="text-xl flex-shrink-0">{t.categories?.icon ?? '💸'}</span>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
-                      <p className="text-sm font-medium text-white truncate">{t.description}</p>
+                      <p className="text-sm font-medium text-fg truncate">{t.description}</p>
                       {t.source !== 'manual' && (
-                        <span className="text-xs px-1.5 py-0.5 rounded bg-surface-2 text-fg-muted">
+                        <span className="text-xs px-1.5 py-0.5 rounded bg-surface-input text-fg-muted">
                           {t.source === 'whatsapp' ? '📱' : t.source === 'recurring' ? '🔄' : '🏦'}
                         </span>
                       )}
                     </div>
-                    <p className="text-xs text-fg-muted">
+                    <p className="text-xs text-fg-secondary">
                       {t.categories?.name ?? 'Sem categoria'}
                       {t.payment_methods && ` • ${t.payment_methods.icon} ${t.payment_methods.name}`}
                       {` • ${t.profiles?.name}`}
@@ -148,12 +148,12 @@ export default function TransacoesPage() {
                     </p>
                   </div>
                   <p className={`text-sm font-semibold flex-shrink-0 ${
-                    t.type === 'income' ? 'text-brand-400' : 'text-red-400'
+                    t.type === 'income' ? 'text-brand-500' : 'text-red-500'
                   }`}>
                     {t.type === 'income' ? '+' : '-'}{formatCurrency(t.amount)}
                   </p>
                   <button onClick={() => handleDelete(t.id)}
-                    className="text-fg-faint hover:text-red-400 flex-shrink-0">
+                    className="text-fg-muted hover:text-red-500 flex-shrink-0">
                     <Trash2 size={16} />
                   </button>
                 </div>

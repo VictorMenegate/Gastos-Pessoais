@@ -41,8 +41,8 @@ export default function AlertasPage() {
         <div className="p-4 md:p-6 space-y-4 max-w-4xl mx-auto">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-xl font-bold text-white">Alertas</h1>
-              <p className="text-fg-muted text-sm">{unreadCount} não lido(s)</p>
+              <h1 className="text-xl font-bold text-fg">Alertas</h1>
+              <p className="text-fg-secondary text-sm">{unreadCount} não lido(s)</p>
             </div>
             {unreadCount > 0 && (
               <button onClick={handleMarkAllRead} className="btn-secondary flex items-center gap-1.5 text-sm">
@@ -63,17 +63,17 @@ export default function AlertasPage() {
                     style={{ borderLeftColor: !alert.read ? (
                       alert.severity === 'danger' ? '#ef4444' :
                       alert.severity === 'warning' ? '#f59e0b' :
-                      alert.severity === 'success' ? '#9ACC77' : '#3b82f6'
+                      alert.severity === 'success' ? '#567EBB' : '#3b82f6'
                     ) : undefined }}
                     onClick={() => !alert.read && handleMarkRead(alert.id)}
                   >
                     <span className="text-lg flex-shrink-0 mt-0.5">{config.icon}</span>
                     <div className="flex-1">
-                      <p className={`text-sm font-medium ${alert.read ? 'text-fg-muted' : 'text-white'}`}>
+                      <p className={`text-sm font-medium ${alert.read ? 'text-fg-secondary' : 'text-fg'}`}>
                         {alert.title}
                       </p>
-                      <p className="text-xs text-fg-muted mt-0.5">{alert.message}</p>
-                      <p className="text-xs text-fg-faint mt-1">{formatDate(alert.created_at, "dd/MM 'às' HH:mm")}</p>
+                      <p className="text-xs text-fg-secondary mt-0.5">{alert.message}</p>
+                      <p className="text-xs text-fg-muted mt-1">{formatDate(alert.created_at, "dd/MM 'às' HH:mm")}</p>
                     </div>
                     {!alert.read && (
                       <div className="w-2 h-2 rounded-full bg-blue-500 flex-shrink-0 mt-2" />

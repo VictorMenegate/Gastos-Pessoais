@@ -117,7 +117,7 @@ export default function ConfiguracoesPage() {
   return (
     <div className="min-h-screen">
       <Sidebar />
-      <main className="md:ml-[220px] lg:ml-[264px] pb-24 md:pb-6">
+      <main className="md:ml-[240px] pb-24 md:pb-6">
         <div className="p-4 md:p-8 lg:p-10 space-y-6 md:space-y-8 max-w-5xl mx-auto">
           <div className="flex items-center justify-between">
             <h1 className="text-xl md:text-2xl font-bold text-fg">Configurações</h1>

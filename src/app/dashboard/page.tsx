@@ -39,7 +39,7 @@ export default function DashboardPage() {
   return (
     <div>
       {/* ══════ MOBILE HERO (hidden on lg+) ══════ */}
-      <div ref={heroRef} className="lg:hidden px-5 pt-6 pb-16 relative overflow-hidden"
+      <div ref={heroRef} className="md:hidden px-5 pt-6 pb-16 relative overflow-hidden"
         style={{
           background: 'linear-gradient(160deg, #1e3a6e 0%, #2B4C7E 30%, #567EBB 70%, #4a72ab 100%)',
           borderRadius: '0 0 32px 32px',
@@ -93,7 +93,7 @@ export default function DashboardPage() {
       </div>
 
       {/* ══════ DESKTOP TOP BAR (hidden on mobile) ══════ */}
-      <div className="hidden lg:flex items-center justify-between px-10 py-4 bg-white sticky top-0 z-30"
+      <div className="hidden md:flex items-center justify-between px-10 py-4 bg-white sticky top-0 z-30"
         style={{ borderBottom: '2px solid var(--border)' }}>
         <div className="flex items-center gap-4">
           <div>
@@ -121,12 +121,12 @@ export default function DashboardPage() {
       </div>
 
       {/* ══════ CONTENT ══════ */}
-      <div className="px-4 lg:px-10 -mt-8 lg:mt-0 lg:py-8 space-y-5 lg:space-y-6 max-w-[1400px] mx-auto pb-8 relative z-10">
+      <div className="px-4 md:px-10 -mt-8 md:mt-0 md:py-8 space-y-5 md:space-y-6 max-w-[1400px] mx-auto pb-8 relative z-10">
 
         {loading ? <Loading /> : (
           <>
             {/* ── Desktop: Revenue row (like reference) ── */}
-            <div className="hidden lg:block">
+            <div className="hidden md:block">
               <div className="flex items-end justify-between mb-6">
                 <div>
                   <p className="text-fg-muted text-sm font-medium mb-1">Saldo do periodo</p>
@@ -159,7 +159,7 @@ export default function DashboardPage() {
             </div>
 
             {/* Mobile savings tip */}
-            <div className="lg:hidden">
+            <div className="md:hidden">
               {s && s.savingsRate > 0 && (
                 <div className="bg-white rounded-2xl px-4 py-3.5 flex items-center gap-3 shadow-md border border-surface-border">
                   <span className="text-xl">🎉</span>

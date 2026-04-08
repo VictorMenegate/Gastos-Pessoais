@@ -11,7 +11,7 @@ import {
 } from 'lucide-react'
 
 const navItems = [
-  { href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
+  { href: '/dashboard', icon: LayoutDashboard, label: 'Resumo' },
   { href: '/transacoes', icon: ArrowUpDown, label: 'Transacoes' },
   { href: '/recorrentes', icon: RefreshCw, label: 'Recorrentes' },
   { href: '/parcelados', icon: CreditCard, label: 'Parcelados' },

@@ -3,27 +3,33 @@
 import { useEffect, useState } from 'react'
 import { format } from 'date-fns'
 import { Wallet, PiggyBank, Bell, ArrowUpRight, ArrowDownRight, ArrowRight, CreditCard, Search, TrendingUp, TrendingDown } from 'lucide-react'
-import { getDashboardData } from '@/lib/queries'
+import { getDashboardData, getFinancialGoals } from '@/lib/queries'
 import { formatCurrency, formatPercent } from '@/lib/utils'
 import { useHeroTimeline, useStaggerIn } from '@/lib/useAnime'
 import MonthSelector from '@/components/MonthSelector'
 import Loading from '@/components/Loading'
+import FAB from '@/components/FAB'
 import ExpenseChart from './components/ExpenseChart'
 import MonthlyChart from './components/MonthlyChart'
 import BudgetOverview from './components/BudgetOverview'
+import GoalsOverview from './components/GoalsOverview'
 import RecentTransactions from './components/RecentTransactions'
 import Link from 'next/link'
-import type { DashboardData } from '@/types'
+import type { DashboardData, FinancialGoal } from '@/types'
 
 export default function DashboardPage() {
   const [month, setMonth] = useState(format(new Date(), 'yyyy-MM'))
   const [data, setData] = useState<DashboardData | null>(null)
+  const [goals, setGoals] = useState<FinancialGoal[]>([])
   const [loading, setLoading] = useState(true)
 
   async function load(m: string) {
     setLoading(true)
-    try { setData(await getDashboardData(m)) }
-    finally { setLoading(false) }
+    try {
+      const [d, g] = await Promise.all([getDashboardData(m), getFinancialGoals('active')])
+      setData(d)
+      setGoals(g)
+    } finally { setLoading(false) }
   }
 
   useEffect(() => { load(month) }, [month])
@@ -207,16 +213,27 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            {/* Desktop: 3-col layout | Mobile: stacked */}
-            <div className="grid lg:grid-cols-3 gap-4 lg:gap-5">
+            {/* Metas row */}
+            <div className="grid lg:grid-cols-2 gap-4 lg:gap-5">
+              <div className="card">
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-base lg:text-lg font-bold text-fg">Metas</h2>
+                  <Link href="/metas" className="text-xs font-semibold text-brand-500 hover:text-brand-400">Ver todas</Link>
+                </div>
+                <GoalsOverview goals={goals} />
+              </div>
               <div className="card">
                 <div className="flex items-center justify-between mb-4">
                   <h2 className="text-base lg:text-lg font-bold text-fg">Orcamentos</h2>
+                  <Link href="/orcamentos" className="text-xs font-semibold text-brand-500 hover:text-brand-400">Ver todos</Link>
                 </div>
                 <BudgetOverview budgets={data?.budgetStatus ?? []} />
               </div>
+            </div>
 
-              <div className="card">
+            {/* Desktop: 3-col layout | Mobile: stacked */}
+            <div className="grid lg:grid-cols-3 gap-4 lg:gap-5">
+              <div className="card lg:col-span-2">
                 <div className="flex items-center justify-between mb-4">
                   <h2 className="text-base lg:text-lg font-bold text-fg">Atividade recente</h2>
                   <Link href="/transacoes" className="text-xs font-semibold text-brand-500 hover:text-brand-400">Ver tudo</Link>
@@ -224,7 +241,7 @@ export default function DashboardPage() {
                 <RecentTransactions transactions={data?.transactions ?? []} />
               </div>
 
-              {/* Installments or Alerts as 3rd column */}
+              {/* Installments or Alerts */}
               <div className="space-y-5">
                 {(data?.installments?.length ?? 0) > 0 && (
                   <div className="card">
@@ -284,6 +301,9 @@ export default function DashboardPage() {
           </>
         )}
       </div>
+
+      {/* FAB mobile */}
+      <FAB />
     </div>
   )
 }

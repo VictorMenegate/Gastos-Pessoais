@@ -1,6 +1,7 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { format } from 'date-fns'
 import { Plus, Trash2, Pencil, Filter, Search, Sparkles } from 'lucide-react'
 import { getTransactions, createTransaction, deleteTransaction, getProfiles } from '@/lib/queries'
@@ -22,6 +23,22 @@ export default function TransacoesPage() {
   const [showExtrato, setShowExtrato] = useState(false)
   const [filterType, setFilterType] = useState<TransactionType | 'all'>('all')
   const [searchQuery, setSearchQuery] = useState('')
+  const searchParams = useSearchParams()
+  const actionHandled = useRef(false)
+
+  useEffect(() => {
+    if (actionHandled.current) return
+    const action = searchParams.get('action')
+    if (action === 'gasto' || action === 'entrada') {
+      setShowForm(true)
+      setShowExtrato(false)
+      actionHandled.current = true
+    } else if (action === 'extrato') {
+      setShowExtrato(true)
+      setShowForm(false)
+      actionHandled.current = true
+    }
+  }, [searchParams])
 
   async function load(m: string) {
     setLoading(true)

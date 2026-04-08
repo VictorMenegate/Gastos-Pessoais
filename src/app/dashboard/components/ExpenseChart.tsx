@@ -1,5 +1,7 @@
 'use client'
 
+import Link from 'next/link'
+import { PieChart as PieChartIcon } from 'lucide-react'
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts'
 import { formatCurrency } from '@/lib/utils'
 import type { CategoryBreakdown } from '@/types'
@@ -11,8 +13,17 @@ interface Props {
 export default function ExpenseChart({ data }: Props) {
   if (!data.length) {
     return (
-      <div className="h-48 flex items-center justify-center text-fg-muted text-sm">
-        Nenhum gasto registrado neste mês
+      <div className="h-48 flex flex-col items-center justify-center space-y-3">
+        <div className="w-12 h-12 rounded-2xl bg-blue-50 flex items-center justify-center">
+          <PieChartIcon size={22} className="text-brand-500" />
+        </div>
+        <div className="text-center">
+          <p className="text-sm font-semibold text-fg">Nenhum gasto registrado</p>
+          <p className="text-xs text-fg-muted mt-0.5">Comece adicionando seu primeiro gasto</p>
+        </div>
+        <Link href="/transacoes?action=gasto" className="text-sm font-semibold text-brand-500 hover:text-brand-400">
+          Adicionar gasto
+        </Link>
       </div>
     )
   }

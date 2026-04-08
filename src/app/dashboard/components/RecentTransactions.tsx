@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { ArrowRight } from 'lucide-react'
+import { ArrowRight, ArrowUpDown } from 'lucide-react'
 import { formatCurrency, formatDate } from '@/lib/utils'
 import type { Transaction } from '@/types'
 
@@ -14,8 +14,17 @@ export default function RecentTransactions({ transactions }: Props) {
 
   if (!recent.length) {
     return (
-      <div className="text-center py-6 text-fg-muted text-sm">
-        Nenhuma transação neste mês
+      <div className="text-center py-6 space-y-3">
+        <div className="w-12 h-12 rounded-2xl bg-blue-50 flex items-center justify-center mx-auto">
+          <ArrowUpDown size={22} className="text-brand-500" />
+        </div>
+        <div>
+          <p className="text-sm font-semibold text-fg">Nenhuma transacao neste mes</p>
+          <p className="text-xs text-fg-muted mt-0.5">Registre sua primeira transacao</p>
+        </div>
+        <Link href="/transacoes?action=gasto" className="inline-flex items-center gap-1 text-sm font-semibold text-brand-500 hover:text-brand-400">
+          Adicionar gasto <ArrowRight size={14} />
+        </Link>
       </div>
     )
   }

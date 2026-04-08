@@ -2,12 +2,12 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { getAlerts } from '@/lib/queries'
 import {
   LayoutDashboard, ArrowUpDown, RefreshCw, CreditCard,
-  Target, PieChart, Settings, LogOut, Bell,
+  Target, PieChart, Settings, LogOut, Bell, MoreHorizontal, X,
 } from 'lucide-react'
 
 const navItems = [
@@ -17,24 +17,43 @@ const navItems = [
   { href: '/parcelados', icon: CreditCard, label: 'Parcelados' },
   { href: '/orcamentos', icon: PieChart, label: 'Orcamentos' },
   { href: '/metas', icon: Target, label: 'Metas' },
+  { href: '/alertas', icon: Bell, label: 'Alertas' },
   { href: '/configuracoes', icon: Settings, label: 'Config' },
 ]
 
-const mobileNavItems = navItems.slice(0, 5)
+const mobileMainItems = navItems.slice(0, 4)
+const mobileMoreItems = navItems.slice(4)
 
 export default function Sidebar() {
   const pathname = usePathname()
   const supabase = createClient()
   const [alertCount, setAlertCount] = useState(0)
+  const [moreOpen, setMoreOpen] = useState(false)
+  const moreRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     getAlerts(true).then(a => setAlertCount(a.length)).catch(() => {})
   }, [pathname])
 
+  // Close menu on route change
+  useEffect(() => { setMoreOpen(false) }, [pathname])
+
+  // Close on click outside
+  useEffect(() => {
+    if (!moreOpen) return
+    function handle(e: MouseEvent) {
+      if (moreRef.current && !moreRef.current.contains(e.target as Node)) setMoreOpen(false)
+    }
+    document.addEventListener('mousedown', handle)
+    return () => document.removeEventListener('mousedown', handle)
+  }, [moreOpen])
+
   async function handleLogout() {
     await supabase.auth.signOut()
     window.location.href = '/login'
   }
+
+  const isMoreActive = mobileMoreItems.some(i => pathname === i.href || pathname.startsWith(i.href + '/'))
 
   return (
     <>
@@ -64,22 +83,15 @@ export default function Sidebar() {
                 }`}>
                 <Icon size={17} className={active ? 'text-white' : 'text-white/40 group-hover:text-white/70'} />
                 {label}
+                {href === '/alertas' && alertCount > 0 && (
+                  <span className="ml-auto text-[10px] font-bold rounded-full w-5 h-5 flex items-center justify-center bg-red-500 text-white">
+                    {alertCount > 9 ? '9+' : alertCount}
+                  </span>
+                )}
               </Link>
             )
           })}
         </nav>
-
-        {/* Alerts */}
-        <Link href="/alertas"
-          className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-medium text-white/60 hover:text-white hover:bg-white/8 relative">
-          <Bell size={17} className="text-white/40" />
-          Alertas
-          {alertCount > 0 && (
-            <span className="absolute right-3 text-[10px] font-bold rounded-full w-5 h-5 flex items-center justify-center bg-red-500 text-white">
-              {alertCount > 9 ? '9+' : alertCount}
-            </span>
-          )}
-        </Link>
 
         {/* Logout */}
         <button onClick={handleLogout}
@@ -92,8 +104,39 @@ export default function Sidebar() {
       {/* Mobile bottom nav */}
       <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 pb-safe"
         style={{ background: 'rgba(255,255,255,0.95)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)', borderTop: '1px solid #DCE0E6' }}>
+
+        {/* More menu popup */}
+        {moreOpen && (
+          <div ref={moreRef}
+            className="absolute bottom-full right-3 mb-2 bg-white rounded-2xl shadow-xl border border-surface-border p-2 min-w-[180px] animate-slide-up">
+            {mobileMoreItems.map(({ href, icon: Icon, label }) => {
+              const active = pathname === href || pathname.startsWith(href + '/')
+              return (
+                <Link key={href} href={href}
+                  className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium ${
+                    active ? 'text-brand-500 bg-blue-50' : 'text-fg-secondary hover:bg-surface-input'
+                  }`}>
+                  <Icon size={18} />
+                  {label}
+                  {href === '/alertas' && alertCount > 0 && (
+                    <span className="ml-auto text-[10px] font-bold rounded-full w-5 h-5 flex items-center justify-center bg-red-500 text-white">
+                      {alertCount > 9 ? '9+' : alertCount}
+                    </span>
+                  )}
+                </Link>
+              )
+            })}
+            <hr className="my-1 border-surface-border" />
+            <button onClick={handleLogout}
+              className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-red-500 hover:bg-red-50 w-full">
+              <LogOut size={18} />
+              Sair
+            </button>
+          </div>
+        )}
+
         <div className="flex justify-around items-end pt-2 px-2">
-          {mobileNavItems.map(({ href, icon: Icon, label }) => {
+          {mobileMainItems.map(({ href, icon: Icon, label }) => {
             const active = pathname === href || pathname.startsWith(href + '/')
             return (
               <Link key={href} href={href}
@@ -106,6 +149,16 @@ export default function Sidebar() {
               </Link>
             )
           })}
+
+          {/* More button */}
+          <button onClick={() => setMoreOpen(!moreOpen)}
+            className={`flex flex-col items-center gap-1 py-1.5 px-2 min-w-[56px] ${
+              isMoreActive || moreOpen ? 'text-brand-500' : 'text-[#b0b5be]'
+            }`}>
+            {moreOpen ? <X size={22} strokeWidth={2} /> : <MoreHorizontal size={22} strokeWidth={1.8} />}
+            <span className={`text-[10px] ${isMoreActive ? 'font-bold' : 'font-medium'}`}>Mais</span>
+            {isMoreActive && !moreOpen && <div className="w-5 h-[3px] rounded-full bg-brand-500 -mt-0.5" />}
+          </button>
         </div>
       </nav>
     </>

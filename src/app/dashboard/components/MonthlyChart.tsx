@@ -33,10 +33,10 @@ export default function MonthlyChart({ data }: Props) {
             formatCurrency(value),
             name === 'income' ? 'Entradas' : 'Saídas',
           ]}
-          contentStyle={{ background: '#1e293b', border: '1px solid #334155', borderRadius: 8 }}
+          contentStyle={{ background: '#251528', border: '1px solid rgba(229,234,212,0.1)', borderRadius: 8 }}
           labelStyle={{ color: '#94a3b8' }}
         />
-        <Bar dataKey="income" fill="#22c55e" radius={[4, 4, 0, 0]} />
+        <Bar dataKey="income" fill="#9ACC77" radius={[4, 4, 0, 0]} />
         <Bar dataKey="expenses" fill="#ef4444" radius={[4, 4, 0, 0]} />
       </BarChart>
     </ResponsiveContainer>

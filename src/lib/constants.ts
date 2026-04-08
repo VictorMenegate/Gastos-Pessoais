@@ -15,9 +15,9 @@ export const PROFILE_COLORS = [
 
 // Cores para gráficos
 export const CHART_COLORS = [
-  '#22c55e', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6',
-  '#ec4899', '#14b8a6', '#f97316', '#6366f1', '#10b981',
-  '#a855f7', '#e11d48', '#0ea5e9', '#84cc16', '#d946ef',
+  '#9ACC77', '#45936C', '#334F53', '#E5EAD4', '#8b5cf6',
+  '#ec4899', '#3d5d61', '#f97316', '#6366f1', '#45936C',
+  '#a855f7', '#e11d48', '#0ea5e9', '#9ACC77', '#d946ef',
 ]
 
 // Ícones padrão para metas
@@ -41,7 +41,7 @@ export const FREQUENCY_OPTIONS = [
 // Tipos de transação
 export const TRANSACTION_TYPES = [
   { value: 'expense', label: 'Saída', icon: '📤', color: '#ef4444' },
-  { value: 'income', label: 'Entrada', icon: '📥', color: '#22c55e' },
+  { value: 'income', label: 'Entrada', icon: '📥', color: '#9ACC77' },
 ] as const
 
 // Métodos de pagamento

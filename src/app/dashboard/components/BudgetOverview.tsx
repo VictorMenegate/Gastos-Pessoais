@@ -32,7 +32,7 @@ export default function BudgetOverview({ budgets }: Props) {
           <ProgressBar
             value={b.spent_amount}
             max={b.budget_amount}
-            color={b.spent_percentage >= 100 ? '#ef4444' : b.spent_percentage >= 80 ? '#f59e0b' : '#22c55e'}
+            color={b.spent_percentage >= 100 ? '#ef4444' : b.spent_percentage >= 80 ? '#f59e0b' : '#9ACC77'}
             showLabel={false}
           />
         </div>

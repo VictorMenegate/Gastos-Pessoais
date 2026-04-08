@@ -63,7 +63,7 @@ export default function AlertasPage() {
                     style={{ borderLeftColor: !alert.read ? (
                       alert.severity === 'danger' ? '#ef4444' :
                       alert.severity === 'warning' ? '#f59e0b' :
-                      alert.severity === 'success' ? '#22c55e' : '#3b82f6'
+                      alert.severity === 'success' ? '#9ACC77' : '#3b82f6'
                     ) : undefined }}
                     onClick={() => !alert.read && handleMarkRead(alert.id)}
                   >

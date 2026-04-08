@@ -94,14 +94,14 @@ export default function ConfiguracoesPage() {
   }
 
   // --- Payment method ---
-  const [pmForm, setPmForm] = useState({ name: '', type: 'pix' as any, icon: '⚡', color: '#22c55e' })
+  const [pmForm, setPmForm] = useState({ name: '', type: 'pix' as any, icon: '⚡', color: '#9ACC77' })
 
   async function handleAddPaymentMethod(e: React.FormEvent) {
     e.preventDefault()
     const accountId = profiles[0]?.account_id
     if (!accountId) return
     await createPaymentMethod({ ...pmForm, account_id: accountId })
-    setPmForm({ name: '', type: 'pix', icon: '⚡', color: '#22c55e' })
+    setPmForm({ name: '', type: 'pix', icon: '⚡', color: '#9ACC77' })
     load()
   }
 

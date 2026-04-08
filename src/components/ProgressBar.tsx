@@ -8,7 +8,7 @@ interface Props {
   size?: 'sm' | 'md'
 }
 
-export default function ProgressBar({ value, max = 100, color = '#22c55e', showLabel = true, size = 'sm' }: Props) {
+export default function ProgressBar({ value, max = 100, color = '#9ACC77', showLabel = true, size = 'sm' }: Props) {
   const percentage = Math.min(Math.round((value / max) * 100), 100)
   const heights = { sm: 'h-1.5', md: 'h-2.5' }
   const overBudget = percentage >= 100

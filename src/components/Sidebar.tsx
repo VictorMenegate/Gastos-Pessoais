@@ -41,7 +41,7 @@ export default function Sidebar() {
       {/* Desktop sidebar */}
       <aside className="hidden md:flex flex-col w-[220px] min-h-screen fixed left-0 top-0 z-40 px-3 py-5"
         style={{
-          background: 'rgba(10, 14, 26, 0.85)',
+          background: 'rgba(31, 10, 29, 0.85)',
           backdropFilter: 'blur(20px)',
           WebkitBackdropFilter: 'blur(20px)',
           borderRight: '1px solid rgba(255,255,255,0.06)',
@@ -50,7 +50,7 @@ export default function Sidebar() {
         {/* Logo */}
         <div className="flex items-center gap-2.5 px-3 mb-8">
           <div className="w-9 h-9 rounded-xl flex items-center justify-center"
-            style={{ background: 'linear-gradient(135deg, #059669 0%, #22c55e 100%)' }}>
+            style={{ background: 'linear-gradient(135deg, #45936C 0%, #9ACC77 100%)' }}>
             <span className="text-lg">💰</span>
           </div>
           <div>
@@ -71,9 +71,9 @@ export default function Sidebar() {
                     : 'text-slate-400 hover:text-white'
                 }`}
                 style={active ? {
-                  background: 'linear-gradient(135deg, rgba(5, 150, 105, 0.2) 0%, rgba(34, 197, 94, 0.1) 100%)',
-                  boxShadow: '0 0 20px rgba(5, 150, 105, 0.1)',
-                  border: '1px solid rgba(5, 150, 105, 0.2)',
+                  background: 'linear-gradient(135deg, rgba(69, 147, 108, 0.2) 0%, rgba(154, 204, 119, 0.1) 100%)',
+                  boxShadow: '0 0 20px rgba(69, 147, 108, 0.1)',
+                  border: '1px solid rgba(69, 147, 108, 0.2)',
                 } : {
                   border: '1px solid transparent',
                 }}>
@@ -109,7 +109,7 @@ export default function Sidebar() {
       {/* Mobile bottom nav */}
       <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 flex justify-around pb-safe"
         style={{
-          background: 'rgba(10, 14, 26, 0.92)',
+          background: 'rgba(31, 10, 29, 0.92)',
           backdropFilter: 'blur(20px)',
           WebkitBackdropFilter: 'blur(20px)',
           borderTop: '1px solid rgba(255,255,255,0.06)',

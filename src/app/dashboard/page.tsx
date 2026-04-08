@@ -58,8 +58,8 @@ export default function DashboardPage() {
               value={formatCurrency(s?.totalIncome ?? 0)}
               sub={`${data?.transactions.filter(t => t.type === 'income').length ?? 0} transacoes`}
               gradient="from-emerald-500/20 to-emerald-600/5"
-              iconColor="#34d399"
-              glowColor="rgba(5, 150, 105, 0.12)"
+              iconColor="#9ACC77"
+              glowColor="rgba(69, 147, 108, 0.12)"
             />
             <KPICard
               icon={<ArrowUpRight size={18} />}
@@ -76,8 +76,8 @@ export default function DashboardPage() {
               value={formatCurrency(s?.balance ?? 0)}
               sub="entradas - compromissos"
               gradient={s && s.balance >= 0 ? 'from-emerald-500/20 to-emerald-600/5' : 'from-red-500/20 to-red-600/5'}
-              iconColor={s && s.balance >= 0 ? '#34d399' : '#f87171'}
-              glowColor={s && s.balance >= 0 ? 'rgba(5, 150, 105, 0.12)' : 'rgba(239, 68, 68, 0.1)'}
+              iconColor={s && s.balance >= 0 ? '#9ACC77' : '#f87171'}
+              glowColor={s && s.balance >= 0 ? 'rgba(69, 147, 108, 0.12)' : 'rgba(239, 68, 68, 0.1)'}
             />
             <KPICard
               icon={<PiggyBank size={18} />}
@@ -146,7 +146,7 @@ export default function DashboardPage() {
                             <div className="h-full rounded-full transition-all duration-700"
                               style={{
                                 width: `${pct}%`,
-                                background: 'linear-gradient(90deg, #059669 0%, #22c55e 100%)',
+                                background: 'linear-gradient(90deg, #45936C 0%, #9ACC77 100%)',
                               }} />
                           </div>
                           <span className="text-xs font-semibold text-slate-500">

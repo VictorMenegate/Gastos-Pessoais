@@ -38,11 +38,11 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4 relative overflow-hidden"
-      style={{ background: 'linear-gradient(135deg, #0a0e1a 0%, #0f1629 40%, #0a1628 100%)' }}>
+      style={{ background: 'linear-gradient(135deg, #1F0A1D 0%, #251528 40%, #1F0A1D 100%)' }}>
 
       {/* Ambient glow blobs */}
       <div className="absolute top-[-200px] right-[-100px] w-[500px] h-[500px] rounded-full opacity-[0.04] animate-pulse-soft"
-        style={{ background: 'radial-gradient(circle, #22c55e, transparent 70%)' }} />
+        style={{ background: 'radial-gradient(circle, #9ACC77, transparent 70%)' }} />
       <div className="absolute bottom-[-150px] left-[-100px] w-[400px] h-[400px] rounded-full opacity-[0.03] animate-pulse-soft"
         style={{ background: 'radial-gradient(circle, #3b82f6, transparent 70%)', animationDelay: '1.5s' }} />
 
@@ -51,8 +51,8 @@ export default function LoginPage() {
         <div className="text-center mb-10">
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-5"
             style={{
-              background: 'linear-gradient(135deg, #059669 0%, #22c55e 100%)',
-              boxShadow: '0 8px 30px rgba(5, 150, 105, 0.3)',
+              background: 'linear-gradient(135deg, #45936C 0%, #9ACC77 100%)',
+              boxShadow: '0 8px 30px rgba(69, 147, 108, 0.3)',
             }}>
             <span className="text-3xl">💰</span>
           </div>
@@ -85,7 +85,7 @@ export default function LoginPage() {
             )}
             {message && (
               <div className="text-sm font-medium p-3 rounded-xl"
-                style={{ background: 'rgba(5,150,105,0.1)', color: '#34d399', border: '1px solid rgba(5,150,105,0.2)' }}>
+                style={{ background: 'rgba(69,147,108,0.1)', color: '#9ACC77', border: '1px solid rgba(69,147,108,0.2)' }}>
                 {message}
               </div>
             )}
@@ -107,7 +107,7 @@ export default function LoginPage() {
             {isSignUp ? 'Ja tem conta?' : 'Nao tem conta?'}{' '}
             <button onClick={() => { setIsSignUp(!isSignUp); setError(''); setMessage('') }}
               className="font-bold transition-colors"
-              style={{ color: '#34d399' }}>
+              style={{ color: '#9ACC77' }}>
               {isSignUp ? 'Entrar' : 'Criar conta'}
             </button>
           </p>

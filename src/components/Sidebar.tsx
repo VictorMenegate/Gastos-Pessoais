@@ -7,12 +7,13 @@ import { createClient } from '@/lib/supabase/client'
 import { getAlerts } from '@/lib/queries'
 import {
   LayoutDashboard, ArrowUpDown, RefreshCw, CreditCard,
-  Target, PieChart, Settings, LogOut, Bell, MoreHorizontal, X,
+  Target, PieChart, Settings, LogOut, Bell, MoreHorizontal, X, Sparkles,
 } from 'lucide-react'
 
 const navItems = [
   { href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
   { href: '/transacoes', icon: ArrowUpDown, label: 'Transacoes' },
+  { href: '/ia-extrato', icon: Sparkles, label: 'IA Extrato' },
   { href: '/recorrentes', icon: RefreshCw, label: 'Recorrentes' },
   { href: '/parcelados', icon: CreditCard, label: 'Parcelados' },
   { href: '/orcamentos', icon: PieChart, label: 'Orcamentos' },

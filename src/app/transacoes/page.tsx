@@ -2,11 +2,12 @@
 
 import { useEffect, useState } from 'react'
 import { format } from 'date-fns'
-import { Plus, Trash2, Pencil, Filter, Search } from 'lucide-react'
+import { Plus, Trash2, Pencil, Filter, Search, Sparkles } from 'lucide-react'
 import { getTransactions, createTransaction, deleteTransaction, getProfiles } from '@/lib/queries'
 import { formatCurrency, formatDate, currentMonthRef, monthRefFromDate } from '@/lib/utils'
 import MonthSelector from '@/components/MonthSelector'
 import TransactionForm from '@/components/TransactionForm'
+import ExtratoUpload from '@/components/ExtratoUpload'
 import Loading from '@/components/Loading'
 import EmptyState from '@/components/EmptyState'
 import Sidebar from '@/components/Sidebar'
@@ -18,6 +19,7 @@ export default function TransacoesPage() {
   const [profiles, setProfiles] = useState<Profile[]>([])
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
+  const [showExtrato, setShowExtrato] = useState(false)
   const [filterType, setFilterType] = useState<TransactionType | 'all'>('all')
   const [searchQuery, setSearchQuery] = useState('')
 
@@ -85,7 +87,11 @@ export default function TransacoesPage() {
             </div>
             <div className="flex items-center gap-2">
               <MonthSelector value={month} onChange={m => { setMonth(m); load(m) }} compact />
-              <button onClick={() => setShowForm(!showForm)} className="btn-primary flex items-center gap-1.5">
+              <button onClick={() => { setShowExtrato(!showExtrato); setShowForm(false) }}
+                className="btn-secondary flex items-center gap-1.5">
+                <Sparkles size={16} /> Extrato
+              </button>
+              <button onClick={() => { setShowForm(!showForm); setShowExtrato(false) }} className="btn-primary flex items-center gap-1.5">
                 <Plus size={16} /> Nova
               </button>
             </div>
@@ -111,6 +117,14 @@ export default function TransacoesPage() {
               />
             </div>
           </div>
+
+          {/* Extrato Upload */}
+          {showExtrato && (
+            <ExtratoUpload
+              onClose={() => setShowExtrato(false)}
+              onSaved={() => load(month)}
+            />
+          )}
 
           {/* Form */}
           {showForm && (

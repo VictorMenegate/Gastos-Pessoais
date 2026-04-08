@@ -108,12 +108,18 @@ export async function POST(req: NextRequest) {
 
   try {
     const body = await req.json()
-    const { image, mimeType, bankName, pdfText } = body
+    const { image, mimeType, bankName, pdfText, pdfBase64 } = body
 
     let responseText: string
 
-    if (pdfText) {
-      // PDF text mode
+    if (pdfBase64) {
+      // PDF base64 mode - parse on server
+      const pdfParse = (await import('pdf-parse')).default
+      const buffer = Buffer.from(pdfBase64, 'base64')
+      const pdf = await pdfParse(buffer)
+      responseText = await callGroqText(pdf.text, bankName)
+    } else if (pdfText) {
+      // PDF text mode (legacy)
       responseText = await callGroqText(pdfText, bankName)
     } else if (image && mimeType) {
       // Image vision mode

@@ -5,6 +5,7 @@ import { format } from 'date-fns'
 import { Wallet, PiggyBank, Bell, ArrowUpRight, ArrowDownRight, ArrowRight, CreditCard } from 'lucide-react'
 import { getDashboardData } from '@/lib/queries'
 import { formatCurrency, formatPercent } from '@/lib/utils'
+import { useHeroTimeline, useStaggerIn } from '@/lib/useAnime'
 import MonthSelector from '@/components/MonthSelector'
 import Loading from '@/components/Loading'
 import ExpenseChart from './components/ExpenseChart'
@@ -31,11 +32,16 @@ export default function DashboardPage() {
   const h = new Date().getHours()
   const greeting = h < 12 ? 'Bom dia' : h < 18 ? 'Boa tarde' : 'Boa noite'
 
+  // Anime.js orchestration
+  const heroRef = useHeroTimeline(loading)
+  const kpiRef = useStaggerIn([loading])
+  const contentRef = useStaggerIn([loading])
+
   return (
-    <div className="animate-fade-in">
+    <div>
 
       {/* ══════ HERO ══════ */}
-      <div className="px-5 md:px-8 pt-6 pb-16 md:pb-20 relative overflow-hidden"
+      <div ref={heroRef} className="px-5 md:px-8 pt-6 pb-16 md:pb-20 relative overflow-hidden"
         style={{
           background: 'linear-gradient(160deg, #1e3a6e 0%, #2B4C7E 30%, #567EBB 70%, #4a72ab 100%)',
           borderRadius: '0 0 32px 32px',
@@ -48,8 +54,8 @@ export default function DashboardPage() {
         {/* Top bar */}
         <div className="flex items-center justify-between mb-8 max-w-5xl mx-auto relative z-10">
           <div>
-            <p className="text-white/50 text-xs font-medium">{greeting} 👋</p>
-            <h1 className="text-xl font-extrabold text-white tracking-tight">Dashboard</h1>
+            <p data-anim="greeting" className="text-white/50 text-xs font-medium opacity-0">{greeting} 👋</p>
+            <h1 data-anim="title" className="text-xl font-extrabold text-white tracking-tight opacity-0">Dashboard</h1>
           </div>
           <div className="flex items-center gap-2">
             {data && data.alerts.length > 0 && (
@@ -66,8 +72,8 @@ export default function DashboardPage() {
 
         {/* Balance */}
         <div className="text-center max-w-5xl mx-auto relative z-10">
-          <p className="text-white/50 text-xs font-semibold uppercase tracking-wider mb-2">Saldo do mes</p>
-          <p className="text-[42px] md:text-[56px] font-extrabold text-white tracking-tight leading-none">
+          <p data-anim="balance-label" className="text-white/50 text-xs font-semibold uppercase tracking-wider mb-2 opacity-0">Saldo do mes</p>
+          <p data-anim="balance-value" className="text-[42px] md:text-[56px] font-extrabold text-white tracking-tight leading-none opacity-0">
             {loading ? '—' : formatCurrency(s?.balance ?? 0)}
           </p>
         </div>
@@ -75,7 +81,7 @@ export default function DashboardPage() {
         {/* Income / Expense pills */}
         {!loading && s && (
           <div className="flex justify-center gap-3 mt-7 max-w-5xl mx-auto relative z-10">
-            <div className="flex items-center gap-2.5 bg-white/10 backdrop-blur-sm rounded-2xl px-4 py-3 min-w-[140px]">
+            <div data-anim="pill" className="flex items-center gap-2.5 bg-white/10 backdrop-blur-sm rounded-2xl px-4 py-3 min-w-[140px] opacity-0">
               <div className="w-8 h-8 rounded-xl bg-white/15 flex items-center justify-center flex-shrink-0">
                 <ArrowDownRight size={16} className="text-green-300" />
               </div>
@@ -85,7 +91,7 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            <div className="flex items-center gap-2.5 bg-white/10 backdrop-blur-sm rounded-2xl px-4 py-3 min-w-[140px]">
+            <div data-anim="pill" className="flex items-center gap-2.5 bg-white/10 backdrop-blur-sm rounded-2xl px-4 py-3 min-w-[140px] opacity-0">
               <div className="w-8 h-8 rounded-xl bg-white/15 flex items-center justify-center flex-shrink-0">
                 <ArrowUpRight size={16} className="text-red-300" />
               </div>
@@ -105,7 +111,7 @@ export default function DashboardPage() {
           <>
             {/* Savings tip */}
             {s && s.savingsRate > 0 && (
-              <div className="bg-white rounded-2xl px-4 py-3.5 flex items-center gap-3 shadow-md border border-surface-border">
+              <div data-anim="banner" className="bg-white rounded-2xl px-4 py-3.5 flex items-center gap-3 shadow-md border border-surface-border">
                 <span className="text-xl">🎉</span>
                 <p className="text-fg-secondary text-sm font-medium flex-1">
                   Voce economizou <span className="text-brand-500 font-bold">{formatPercent(s.savingsRate, 0)}</span> da sua renda este mes!
@@ -114,8 +120,8 @@ export default function DashboardPage() {
               </div>
             )}
 
-            {/* KPI Row */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+            {/* KPI Row — staggered entrance */}
+            <div ref={kpiRef} className="grid grid-cols-2 lg:grid-cols-4 gap-3">
               <KPICard icon={<ArrowDownRight size={18} />} label="Entradas"
                 value={formatCurrency(s?.totalIncome ?? 0)}
                 sub={`${data?.transactions.filter(t => t.type === 'income').length ?? 0} transacoes`}
@@ -134,13 +140,13 @@ export default function DashboardPage() {
                 color="purple" />
             </div>
 
-            {/* Charts */}
-            <div className="grid md:grid-cols-2 gap-4">
-              <div className="card">
+            {/* Charts — staggered */}
+            <div ref={contentRef} className="grid md:grid-cols-2 gap-4">
+              <div className="card opacity-0">
                 <h2 className="text-base font-bold text-fg mb-4">Gastos por categoria</h2>
                 <ExpenseChart data={data?.byCategory ?? []} />
               </div>
-              <div className="card">
+              <div className="card opacity-0">
                 <h2 className="text-base font-bold text-fg mb-4">Comparacao mensal</h2>
                 <MonthlyChart data={data?.monthlyComparison ?? []} />
               </div>
@@ -240,7 +246,7 @@ function KPICard({ icon, label, value, sub, color }: {
 }) {
   const c = colorMap[color]
   return (
-    <div className="card">
+    <div className="card opacity-0">
       <div className="flex items-center gap-2 mb-2.5">
         <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${c.bg} ${c.text}`}>
           {icon}

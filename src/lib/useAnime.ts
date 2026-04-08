@@ -14,10 +14,11 @@ export function useStaggerIn(deps: any[] = []) {
 
     anime({
       targets: Array.from(children),
-      translateY: [24, 0],
+      translateY: [16, 0],
       opacity: [0, 1],
-      easing: 'spring(1, 80, 10, 0)',
-      delay: anime.stagger(80, { start: 100 }),
+      easing: 'easeOutCubic',
+      duration: 350,
+      delay: anime.stagger(40, { start: 50 }),
     })
   }, deps)
 
@@ -33,22 +34,22 @@ export function useEntrance(animation: 'fadeUp' | 'fadeScale' | 'slideRight' = '
 
     const configs = {
       fadeUp: {
-        translateY: [30, 0],
+        translateY: [16, 0],
         opacity: [0, 1],
-        easing: 'spring(1, 80, 10, 0)',
-        duration: 800,
+        easing: 'easeOutCubic',
+        duration: 350,
       },
       fadeScale: {
-        scale: [0.92, 1],
+        scale: [0.95, 1],
         opacity: [0, 1],
-        easing: 'spring(1, 80, 10, 0)',
-        duration: 800,
+        easing: 'easeOutCubic',
+        duration: 350,
       },
       slideRight: {
-        translateX: [-30, 0],
+        translateX: [-16, 0],
         opacity: [0, 1],
-        easing: 'spring(1, 80, 10, 0)',
-        duration: 800,
+        easing: 'easeOutCubic',
+        duration: 350,
       },
     }
 
@@ -62,7 +63,7 @@ export function useEntrance(animation: 'fadeUp' | 'fadeScale' | 'slideRight' = '
 }
 
 /** Animate number counting up */
-export function useCountUp(targetValue: number, duration = 1200) {
+export function useCountUp(targetValue: number, duration = 600) {
   const ref = useRef<HTMLSpanElement>(null)
   const prevValue = useRef(0)
 
@@ -108,49 +109,49 @@ export function useHeroTimeline(loading: boolean) {
     const banner = hero.querySelector('[data-anim="banner"]')
 
     const tl = anime.timeline({
-      easing: 'spring(1, 80, 12, 0)',
+      easing: 'easeOutCubic',
     })
 
     tl.add({
       targets: greeting,
-      translateX: [-20, 0],
+      translateX: [-12, 0],
       opacity: [0, 1],
-      duration: 600,
+      duration: 300,
     })
     .add({
       targets: title,
-      translateX: [-20, 0],
+      translateX: [-12, 0],
       opacity: [0, 1],
-      duration: 600,
-    }, '-=400')
+      duration: 300,
+    }, '-=200')
     .add({
       targets: balanceLabel,
-      translateY: [10, 0],
+      translateY: [8, 0],
       opacity: [0, 1],
-      duration: 500,
-    }, '-=300')
+      duration: 250,
+    }, '-=150')
     .add({
       targets: balanceValue,
-      translateY: [40, 0],
-      opacity: [0, 1],
-      scale: [0.9, 1],
-      duration: 900,
-    }, '-=400')
-    .add({
-      targets: Array.from(pills),
       translateY: [20, 0],
       opacity: [0, 1],
-      delay: anime.stagger(120),
-      duration: 700,
-    }, '-=500')
+      scale: [0.95, 1],
+      duration: 400,
+    }, '-=200')
+    .add({
+      targets: Array.from(pills),
+      translateY: [12, 0],
+      opacity: [0, 1],
+      delay: anime.stagger(50),
+      duration: 300,
+    }, '-=250')
 
     if (banner) {
       tl.add({
         targets: banner,
-        translateY: [15, 0],
+        translateY: [10, 0],
         opacity: [0, 1],
-        duration: 600,
-      }, '-=300')
+        duration: 300,
+      }, '-=150')
     }
   }, [loading])
 

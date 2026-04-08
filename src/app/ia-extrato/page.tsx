@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { Camera, Upload, X, Check, Loader2, ArrowLeft, Sparkles } from 'lucide-react'
+import { Camera, Upload, X, Check, Loader2, ArrowLeft, Sparkles, FileText } from 'lucide-react'
 import { createTransaction, getProfiles, getCategories } from '@/lib/queries'
 import { formatCurrency } from '@/lib/utils'
 import { monthRefFromDate } from '@/lib/utils'
@@ -46,7 +46,9 @@ export default function IAExtratoPage() {
   const [selectedBank, setSelectedBank] = useState<typeof BANKS[0] | null>(null)
   const [customBank, setCustomBank] = useState('')
   const [preview, setPreview] = useState<string | null>(null)
+  const [pdfName, setPdfName] = useState<string | null>(null)
   const [fileData, setFileData] = useState<{ base64: string; mimeType: string } | null>(null)
+  const [pdfText, setPdfText] = useState<string | null>(null)
   const [result, setResult] = useState<AnalysisResult | null>(null)
   const [error, setError] = useState('')
   const [saving, setSaving] = useState(false)
@@ -69,8 +71,26 @@ export default function IAExtratoPage() {
     : selectedBank
 
   // File handling
-  function handleFile(file: File) {
+  async function handleFile(file: File) {
     const mimeType = file.type || 'image/jpeg'
+
+    if (mimeType === 'application/pdf') {
+      // PDF: extract text client-side
+      setPdfName(file.name)
+      setPreview(null)
+      setFileData(null)
+      setPdfText(null)
+
+      const arrayBuffer = await file.arrayBuffer()
+      const pdfParse = (await import('pdf-parse/lib/pdf-parse.js')).default
+      const pdf = await pdfParse(Buffer.from(arrayBuffer))
+      setPdfText(pdf.text)
+      return
+    }
+
+    // Image
+    setPdfName(null)
+    setPdfText(null)
     const reader = new FileReader()
     reader.onload = (e) => {
       const dataUrl = e.target?.result as string
@@ -81,21 +101,27 @@ export default function IAExtratoPage() {
     reader.readAsDataURL(file)
   }
 
+  const hasFile = !!fileData || !!pdfText
+
   // Analyze
   async function analyze() {
-    if (!fileData || !effectiveBank) return
+    if ((!fileData && !pdfText) || !effectiveBank) return
     setStep('analyzing')
     setError('')
 
     try {
+      const body: any = { bankName: effectiveBank.name }
+      if (pdfText) {
+        body.pdfText = pdfText
+      } else if (fileData) {
+        body.image = fileData.base64
+        body.mimeType = fileData.mimeType
+      }
+
       const res = await fetch('/api/analyze-screenshot', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({
-          image: fileData.base64,
-          mimeType: fileData.mimeType,
-          bankName: effectiveBank.name,
-        }),
+        body: JSON.stringify(body),
       })
 
       const data = await res.json()
@@ -167,6 +193,8 @@ export default function IAExtratoPage() {
     setSelectedBank(null)
     setCustomBank('')
     setPreview(null)
+    setPdfName(null)
+    setPdfText(null)
     setFileData(null)
     setResult(null)
     setError('')
@@ -236,26 +264,38 @@ export default function IAExtratoPage() {
               <div className="card text-center space-y-4">
                 <div className="text-3xl">{effectiveBank?.emoji}</div>
                 <h2 className="text-base font-bold text-fg">{effectiveBank?.name}</h2>
-                <p className="text-sm text-fg-muted">Envie uma screenshot do extrato, fatura ou tela inicial do app</p>
+                <p className="text-sm text-fg-muted">Envie uma screenshot ou PDF do extrato/fatura</p>
 
                 {preview ? (
                   <div className="relative rounded-xl overflow-hidden border border-surface-border">
                     <img src={preview} alt="Preview" className="w-full max-h-[300px] object-contain bg-surface-input" />
-                    <button onClick={() => { setPreview(null); setFileData(null) }}
+                    <button onClick={() => { setPreview(null); setFileData(null); setPdfText(null); setPdfName(null) }}
                       className="absolute top-2 right-2 w-8 h-8 rounded-full bg-white/90 flex items-center justify-center shadow">
                       <X size={16} />
+                    </button>
+                  </div>
+                ) : pdfName ? (
+                  <div className="relative flex items-center gap-3 p-4 rounded-xl border-2 border-brand-200 bg-blue-50">
+                    <FileText size={28} className="text-brand-500 flex-shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold text-fg truncate">{pdfName}</p>
+                      <p className="text-xs text-fg-muted">{pdfText ? `${pdfText.length.toLocaleString()} caracteres extraidos` : 'Extraindo texto...'}</p>
+                    </div>
+                    <button onClick={() => { setPdfName(null); setPdfText(null); setFileData(null) }}
+                      className="w-8 h-8 rounded-full bg-white flex items-center justify-center shadow-sm flex-shrink-0">
+                      <X size={14} />
                     </button>
                   </div>
                 ) : (
                   <button onClick={() => fileRef.current?.click()}
                     className="w-full py-12 border-2 border-dashed border-brand-200 rounded-xl bg-blue-50/50 flex flex-col items-center gap-2 hover:bg-blue-50 transition-colors">
                     <Camera size={32} className="text-brand-500" />
-                    <span className="text-sm font-semibold text-brand-500">Escolher imagem</span>
-                    <span className="text-xs text-fg-muted">PNG, JPG ou screenshot</span>
+                    <span className="text-sm font-semibold text-brand-500">Escolher arquivo</span>
+                    <span className="text-xs text-fg-muted">Imagem (PNG, JPG) ou PDF</span>
                   </button>
                 )}
 
-                <input ref={fileRef} type="file" accept="image/*" className="hidden"
+                <input ref={fileRef} type="file" accept="image/*,.pdf,application/pdf" className="hidden"
                   onChange={e => e.target.files?.[0] && handleFile(e.target.files[0])} />
               </div>
 
@@ -265,7 +305,7 @@ export default function IAExtratoPage() {
                 </div>
               )}
 
-              <button onClick={analyze} disabled={!fileData} className="btn-primary w-full">
+              <button onClick={analyze} disabled={!hasFile} className="btn-primary w-full">
                 <Sparkles size={16} /> Analisar com IA
               </button>
             </div>

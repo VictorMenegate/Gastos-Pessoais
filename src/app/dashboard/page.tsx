@@ -93,7 +93,8 @@ export default function DashboardPage() {
       </div>
 
       {/* ══════ DESKTOP TOP BAR (hidden on mobile) ══════ */}
-      <div className="hidden lg:flex items-center justify-between px-10 py-5 border-b border-surface-border bg-white sticky top-0 z-30">
+      <div className="hidden lg:flex items-center justify-between px-10 py-4 bg-white sticky top-0 z-30"
+        style={{ borderBottom: '2px solid var(--border)' }}>
         <div className="flex items-center gap-4">
           <div>
             <p className="text-fg-muted text-xs font-medium">{greeting} 👋</p>
@@ -102,14 +103,16 @@ export default function DashboardPage() {
         </div>
         <div className="flex items-center gap-3">
           <div className="relative">
-            <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-fg-muted" />
-            <input placeholder="Buscar transacoes..." className="input pl-10 w-[280px] py-2.5 text-sm" />
+            <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-fg-muted" />
+            <input placeholder="Buscar transacoes..." className="pl-11 pr-4 py-2.5 text-sm font-medium bg-[var(--bg-input)] border-2 border-[var(--border)] text-[var(--text-primary)] w-[300px]"
+              style={{ borderRadius: '16px' }} />
           </div>
           <MonthSelector value={month} onChange={m => { setMonth(m); load(m) }} />
           {data && data.alerts.length > 0 && (
-            <Link href="/alertas" className="w-10 h-10 rounded-xl bg-surface-input border border-surface-border flex items-center justify-center relative hover:bg-surface-hover transition-colors">
+            <Link href="/alertas" className="w-10 h-10 flex items-center justify-center relative hover:bg-[var(--bg-input)] transition-colors"
+              style={{ borderRadius: '14px', border: '2px solid var(--border)' }}>
               <Bell size={18} className="text-fg-secondary" />
-              <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-red-500 text-white text-[9px] font-bold flex items-center justify-center">
+              <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-brand-500 text-white text-[9px] font-bold flex items-center justify-center">
                 {data.alerts.length > 9 ? '9' : data.alerts.length}
               </span>
             </Link>
@@ -132,12 +135,14 @@ export default function DashboardPage() {
                       {formatCurrency(s?.balance ?? 0)}
                     </p>
                     {s && s.savingsRate > 0 && (
-                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-600 text-sm font-bold">
+                      <span className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-bold text-emerald-600"
+                        style={{ background: '#dcfce7', borderRadius: '12px', border: '1.5px solid #bbf7d0' }}>
                         <TrendingUp size={14} /> {formatPercent(s.savingsRate, 1)}
                       </span>
                     )}
                     {s && s.savingsRate < 0 && (
-                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-red-50 text-red-500 text-sm font-bold">
+                      <span className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-bold text-red-500"
+                        style={{ background: '#fef2f2', borderRadius: '12px', border: '1.5px solid #fecaca' }}>
                         <TrendingDown size={14} /> {formatPercent(s.savingsRate, 1)}
                       </span>
                     )}
@@ -287,17 +292,19 @@ export default function DashboardPage() {
 function StatPill({ icon, label, value, color }: {
   icon: React.ReactNode; label: string; value: string; color: 'green' | 'red' | 'blue'
 }) {
-  const colors = {
-    green: 'bg-emerald-50 text-emerald-600 border-emerald-200',
-    red: 'bg-red-50 text-red-500 border-red-200',
-    blue: 'bg-blue-50 text-brand-500 border-blue-200',
+  const styles = {
+    green: { bg: '#f0fdf4', text: '#16a34a', border: '#bbf7d0' },
+    red:   { bg: '#fef2f2', text: '#dc2626', border: '#fecaca' },
+    blue:  { bg: '#eff6ff', text: '#2B4C7E', border: '#bfdbfe' },
   }
+  const s = styles[color]
   return (
-    <div className={`flex items-center gap-2.5 px-4 py-3 rounded-2xl border ${colors[color]}`}>
-      <div className="w-8 h-8 rounded-lg bg-white flex items-center justify-center shadow-sm">{icon}</div>
+    <div className="flex items-center gap-3 px-5 py-3.5"
+      style={{ background: s.bg, color: s.text, border: `2px solid ${s.border}`, borderRadius: '20px' }}>
+      <div className="w-9 h-9 rounded-xl bg-white flex items-center justify-center" style={{ border: `1.5px solid ${s.border}` }}>{icon}</div>
       <div>
-        <p className="text-[10px] font-bold uppercase opacity-70">{label}</p>
-        <p className="text-sm font-extrabold">{value}</p>
+        <p className="text-[10px] font-bold uppercase opacity-60">{label}</p>
+        <p className="text-base font-extrabold">{value}</p>
       </div>
     </div>
   )

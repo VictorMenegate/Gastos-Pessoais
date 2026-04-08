@@ -5,23 +5,20 @@
 @tailwind utilities;
 
 :root {
-  --bg-page: #f5f6f8;
+  --bg-page: #f0f2f5;
   --bg-card: #ffffff;
-  --bg-sidebar: linear-gradient(180deg, #2B4C7E 0%, #1F1F20 100%);
-  --bg-input: #f0f1f5;
+  --bg-input: #f5f6fa;
   --text-primary: #1F1F20;
   --text-secondary: #606D80;
   --text-muted: #9ca3af;
-  --text-on-dark: #ffffff;
-  --border: #DCE0E6;
-  --border-hover: #c0c5ce;
+  --border: #e0e4ea;
+  --border-hover: #c8cdd6;
   --accent: #2B4C7E;
   --accent-light: #567EBB;
   --accent-glow: rgba(43, 76, 126, 0.12);
   --red: #EF4444;
   --green: #22c55e;
   --amber: #F59E0B;
-  --radius: 16px;
 }
 
 * {
@@ -42,9 +39,9 @@ body {
 }
 
 /* Scrollbar */
-::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: #DCE0E6; border-radius: 10px; }
+::-webkit-scrollbar-thumb { background: #d0d4dc; border-radius: 10px; }
 ::-webkit-scrollbar-thumb:hover { background: #b0b5be; }
 
 /* Selection */
@@ -69,42 +66,44 @@ a, button, input, select, textarea, .card, [class*="transition"] {
     background: var(--bg-card);
     border: 1.5px solid var(--border);
     border-radius: 20px;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
   }
 
   @media (min-width: 1024px) {
     .card {
-      border-radius: 24px;
+      border-radius: 28px;
       padding: 28px;
+      border-width: 2px;
     }
   }
 
   .card:hover {
     border-color: var(--border-hover);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04), 0 8px 24px rgba(0, 0, 0, 0.04);
   }
 
   /* Buttons */
   .btn-primary {
-    @apply text-white font-semibold px-5 py-2.5 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed;
-    background: linear-gradient(135deg, #2B4C7E 0%, #567EBB 100%);
-    box-shadow: 0 2px 8px rgba(43, 76, 126, 0.25);
+    @apply text-white font-semibold px-5 py-2.5 disabled:opacity-50 disabled:cursor-not-allowed;
+    background: var(--accent);
+    border-radius: 14px;
   }
   .btn-primary:hover:not(:disabled) {
-    box-shadow: 0 4px 16px rgba(43, 76, 126, 0.35);
+    background: var(--accent-light);
     transform: translateY(-1px);
-    filter: brightness(1.05);
   }
   .btn-primary:active:not(:disabled) {
     transform: translateY(0);
-    filter: brightness(0.98);
+  }
+
+  @media (min-width: 1024px) {
+    .btn-primary { border-radius: 16px; }
   }
 
   .btn-secondary {
-    @apply font-medium px-4 py-2.5 rounded-xl;
+    @apply font-medium px-4 py-2.5;
     background: var(--bg-input);
-    border: 1px solid var(--border);
+    border: 1.5px solid var(--border);
     color: var(--text-secondary);
+    border-radius: 14px;
   }
   .btn-secondary:hover {
     background: #e8eaee;
@@ -113,21 +112,22 @@ a, button, input, select, textarea, .card, [class*="transition"] {
   }
 
   .btn-danger {
-    @apply text-white font-medium px-4 py-2.5 rounded-xl;
-    background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%);
-    box-shadow: 0 2px 8px rgba(220, 38, 38, 0.2);
+    @apply text-white font-medium px-4 py-2.5;
+    background: var(--red);
+    border-radius: 14px;
   }
   .btn-danger:hover {
-    box-shadow: 0 4px 16px rgba(220, 38, 38, 0.3);
+    filter: brightness(1.1);
     transform: translateY(-1px);
   }
 
   /* Inputs */
   .input {
-    @apply w-full rounded-xl px-4 py-2.5 text-sm font-medium;
+    @apply w-full px-4 py-2.5 text-sm font-medium;
     background: var(--bg-input);
-    border: 1px solid var(--border);
+    border: 1.5px solid var(--border);
     color: var(--text-primary);
+    border-radius: 14px;
   }
   .input::placeholder {
     color: var(--text-muted);
@@ -137,6 +137,10 @@ a, button, input, select, textarea, .card, [class*="transition"] {
     border-color: var(--accent-light);
     box-shadow: 0 0 0 3px var(--accent-glow);
     background: #ffffff;
+  }
+
+  @media (min-width: 1024px) {
+    .input { border-radius: 16px; }
   }
 
   .label {
@@ -175,14 +179,16 @@ a, button, input, select, textarea, .card, [class*="transition"] {
 
   /* Filter tabs */
   .filter-tabs {
-    @apply flex gap-0.5 p-1 rounded-xl w-fit;
+    @apply flex gap-0.5 p-1 w-fit;
     background: var(--bg-input);
-    border: 1px solid var(--border);
+    border: 1.5px solid var(--border);
+    border-radius: 14px;
   }
 
   .filter-tab {
-    @apply px-3 py-1.5 rounded-lg text-xs font-medium;
+    @apply px-3 py-1.5 text-xs font-medium;
     color: var(--text-muted);
+    border-radius: 10px;
   }
 
   .filter-tab:hover {
@@ -190,9 +196,9 @@ a, button, input, select, textarea, .card, [class*="transition"] {
   }
 
   .filter-tab-active {
-    background: #ffffff;
-    color: var(--text-primary);
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    background: var(--accent);
+    color: #ffffff;
+    border-radius: 10px;
     font-weight: 600;
   }
 }

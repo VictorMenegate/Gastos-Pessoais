@@ -70,11 +70,12 @@ export default function Sidebar() {
       {/* ═══ DESKTOP: Icon rail (far left) + Nav panel ═══ */}
 
       {/* Icon rail — 64px strip */}
-      <div className="hidden lg:flex flex-col items-center w-16 min-h-screen fixed left-0 top-0 z-50 py-5 gap-1 bg-white border-r border-surface-border">
+      <div className="hidden lg:flex flex-col items-center w-16 min-h-screen fixed left-0 top-0 z-50 py-5 gap-1.5"
+        style={{ background: '#ffffff', borderRight: '2px solid var(--border)' }}>
         {/* Logo */}
-        <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-6"
-          style={{ background: 'linear-gradient(135deg, #2B4C7E, #567EBB)' }}>
-          <span className="text-base">💰</span>
+        <div className="w-11 h-11 flex items-center justify-center mb-6"
+          style={{ background: '#2B4C7E', borderRadius: '16px' }}>
+          <span className="text-lg">💰</span>
         </div>
 
         {/* Main icons */}
@@ -82,11 +83,12 @@ export default function Sidebar() {
           const active = pathname === href || pathname.startsWith(href + '/')
           return (
             <Link key={href} href={href}
-              className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${
+              className={`w-10 h-10 flex items-center justify-center transition-all ${
                 active
-                  ? 'bg-brand-500 text-white shadow-md shadow-brand-500/25'
-                  : 'text-fg-muted hover:bg-surface-input hover:text-fg'
-              }`}>
+                  ? 'text-white'
+                  : 'text-fg-muted hover:text-brand-500 hover:bg-blue-50'
+              }`}
+              style={active ? { background: '#2B4C7E', borderRadius: '14px' } : { borderRadius: '14px' }}>
               <Icon size={20} />
             </Link>
           )
@@ -99,11 +101,12 @@ export default function Sidebar() {
           const active = pathname === href || pathname.startsWith(href + '/')
           return (
             <Link key={href} href={href}
-              className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all relative ${
+              className={`w-10 h-10 flex items-center justify-center transition-all relative ${
                 active
-                  ? 'bg-brand-500 text-white shadow-md shadow-brand-500/25'
-                  : 'text-fg-muted hover:bg-surface-input hover:text-fg'
-              }`}>
+                  ? 'text-white'
+                  : 'text-fg-muted hover:text-brand-500 hover:bg-blue-50'
+              }`}
+              style={active ? { background: '#2B4C7E', borderRadius: '14px' } : { borderRadius: '14px' }}>
               <Icon size={20} />
               {href === '/alertas' && alertCount > 0 && (
                 <span className="absolute -top-0.5 -right-0.5 w-4 h-4 rounded-full bg-red-500 text-white text-[9px] font-bold flex items-center justify-center">
@@ -121,7 +124,8 @@ export default function Sidebar() {
       </div>
 
       {/* Nav panel — next to icon rail, 200px */}
-      <div className="hidden lg:flex flex-col w-[200px] min-h-screen fixed left-16 top-0 z-40 bg-white border-r border-surface-border py-5 px-3">
+      <div className="hidden lg:flex flex-col w-[200px] min-h-screen fixed left-16 top-0 z-40 bg-white py-5 px-3"
+        style={{ borderRight: '2px solid var(--border)' }}>
         <div className="px-2 mb-6">
           <h2 className="text-sm font-extrabold text-fg tracking-tight">Gastos</h2>
           <p className="text-[10px] text-fg-muted font-medium mt-0.5">Finance Pro</p>
@@ -133,12 +137,13 @@ export default function Sidebar() {
             const active = pathname === href || pathname.startsWith(href + '/')
             return (
               <Link key={href} href={href}
-                className={`flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-[13px] font-medium transition-all ${
+                className={`flex items-center gap-2.5 px-2.5 py-2 text-[13px] font-medium transition-all ${
                   active
-                    ? 'text-brand-500 bg-blue-50 font-semibold'
-                    : 'text-fg-secondary hover:text-fg hover:bg-surface-input'
-                }`}>
-                <Icon size={16} className={active ? 'text-brand-500' : 'text-fg-muted'} />
+                    ? 'text-white font-semibold'
+                    : 'text-fg-secondary hover:text-brand-500 hover:bg-blue-50'
+                }`}
+                style={active ? { background: '#2B4C7E', borderRadius: '12px' } : { borderRadius: '12px' }}>
+                <Icon size={16} className={active ? 'text-white' : 'text-fg-muted'} />
                 {label}
                 {href === '/alertas' && alertCount > 0 && (
                   <span className="ml-auto text-[10px] font-bold rounded-full w-5 h-5 flex items-center justify-center bg-red-500 text-white">

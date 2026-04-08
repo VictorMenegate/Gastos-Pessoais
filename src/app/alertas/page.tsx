@@ -37,11 +37,11 @@ export default function AlertasPage() {
   return (
     <div className="min-h-screen">
       <Sidebar />
-      <main className="md:ml-56 pb-24 md:pb-6">
-        <div className="p-4 md:p-6 space-y-4 max-w-4xl mx-auto">
+      <main className="md:ml-60 pb-24 md:pb-6">
+        <div className="p-4 md:p-8 lg:p-10 space-y-4 md:space-y-6 max-w-6xl mx-auto">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-xl font-bold text-fg">Alertas</h1>
+              <h1 className="text-xl md:text-2xl font-bold text-fg">Alertas</h1>
               <p className="text-fg-secondary text-sm">{unreadCount} não lido(s)</p>
             </div>
             {unreadCount > 0 && (

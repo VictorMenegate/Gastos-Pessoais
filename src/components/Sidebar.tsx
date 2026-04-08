@@ -59,30 +59,30 @@ export default function Sidebar() {
   return (
     <>
       {/* Desktop sidebar — blue gradient */}
-      <aside className="hidden md:flex flex-col w-[220px] min-h-screen fixed left-0 top-0 z-40 px-3 py-5"
-        style={{ background: 'linear-gradient(180deg, #2B4C7E 0%, #1F1F20 100%)' }}>
+      <aside className="hidden md:flex flex-col w-[240px] min-h-screen fixed left-0 top-0 z-40 px-4 py-6"
+        style={{ background: 'linear-gradient(180deg, #2B4C7E 0%, #1a2d52 60%, #1F1F20 100%)' }}>
 
         {/* Logo */}
-        <div className="flex items-center gap-2.5 px-3 mb-8">
-          <div className="w-9 h-9 rounded-xl flex items-center justify-center bg-white/20">
+        <div className="flex items-center gap-3 px-3 mb-10">
+          <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-white/20 shadow-lg shadow-black/10">
             <span className="text-lg">💰</span>
           </div>
           <div>
             <span className="font-bold text-white text-base tracking-tight">Gastos</span>
-            <span className="block text-[10px] font-medium tracking-widest text-white/50">FINANCE PRO</span>
+            <span className="block text-[10px] font-medium tracking-widest text-white/40">FINANCE PRO</span>
           </div>
         </div>
 
         {/* Nav */}
-        <nav className="flex-1 space-y-0.5">
+        <nav className="flex-1 space-y-1">
           {navItems.map(({ href, icon: Icon, label }) => {
             const active = pathname === href || pathname.startsWith(href + '/')
             return (
               <Link key={href} href={href}
-                className={`group flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-semibold ${
-                  active ? 'text-white bg-white/15' : 'text-white/60 hover:text-white hover:bg-white/8'
+                className={`group flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-semibold transition-all duration-150 ${
+                  active ? 'text-white bg-white/15 shadow-sm shadow-black/10' : 'text-white/55 hover:text-white hover:bg-white/8'
                 }`}>
-                <Icon size={17} className={active ? 'text-white' : 'text-white/40 group-hover:text-white/70'} />
+                <Icon size={18} className={active ? 'text-white' : 'text-white/35 group-hover:text-white/70'} />
                 {label}
                 {href === '/alertas' && alertCount > 0 && (
                   <span className="ml-auto text-[10px] font-bold rounded-full w-5 h-5 flex items-center justify-center bg-red-500 text-white">

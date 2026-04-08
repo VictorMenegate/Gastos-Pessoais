@@ -117,10 +117,10 @@ export default function ConfiguracoesPage() {
   return (
     <div className="min-h-screen">
       <Sidebar />
-      <main className="md:ml-56 pb-24 md:pb-6">
-        <div className="p-4 md:p-6 space-y-6 max-w-3xl mx-auto">
+      <main className="md:ml-60 pb-24 md:pb-6">
+        <div className="p-4 md:p-8 lg:p-10 space-y-6 md:space-y-8 max-w-5xl mx-auto">
           <div className="flex items-center justify-between">
-            <h1 className="text-xl font-bold text-fg">Configurações</h1>
+            <h1 className="text-xl md:text-2xl font-bold text-fg">Configurações</h1>
             {tab === 'profiles' && (
               <button onClick={handleSaveProfiles} disabled={saving} className="btn-primary flex items-center gap-2">
                 <Save size={16} />

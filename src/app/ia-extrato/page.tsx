@@ -178,8 +178,8 @@ export default function IAExtratoPage() {
   return (
     <div className="min-h-screen bg-surface-page">
       <Sidebar />
-      <main className="md:ml-56 pb-24 md:pb-6">
-        <div className="p-4 md:p-6 max-w-2xl mx-auto space-y-5">
+      <main className="md:ml-60 pb-24 md:pb-6">
+        <div className="p-4 md:p-8 lg:p-10 max-w-4xl mx-auto space-y-5 md:space-y-6">
 
           {/* Header */}
           <div className="flex items-center gap-3">
@@ -189,7 +189,7 @@ export default function IAExtratoPage() {
               </button>
             )}
             <div>
-              <h1 className="text-xl font-bold text-fg flex items-center gap-2">
+              <h1 className="text-xl md:text-2xl font-bold text-fg flex items-center gap-2">
                 <Sparkles size={20} className="text-brand-500" /> IA Extrato
               </h1>
               <p className="text-fg-muted text-sm">Extraia transações de prints bancários com IA</p>

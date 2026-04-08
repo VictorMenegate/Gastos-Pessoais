@@ -65,7 +65,7 @@ a, button, input, select, textarea, .card, [class*="transition"] {
 
   /* Card */
   .card {
-    @apply p-5;
+    @apply p-5 md:p-6;
     background: var(--bg-card);
     border: 1px solid var(--border);
     border-radius: 20px;

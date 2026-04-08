@@ -178,7 +178,7 @@ export default function IAExtratoPage() {
   return (
     <div className="min-h-screen bg-surface-page">
       <Sidebar />
-      <main className="md:ml-60 pb-24 md:pb-6">
+      <main className="md:ml-[220px] lg:ml-[264px] pb-24 md:pb-6">
         <div className="p-4 md:p-8 lg:p-10 max-w-4xl mx-auto space-y-5 md:space-y-6">
 
           {/* Header */}

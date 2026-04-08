@@ -78,7 +78,7 @@ export default function ParceladosPage() {
   return (
     <div className="min-h-screen">
       <Sidebar />
-      <main className="md:ml-60 pb-24 md:pb-6">
+      <main className="md:ml-[220px] lg:ml-[264px] pb-24 md:pb-6">
         <div className="p-4 md:p-8 lg:p-10 space-y-4 md:space-y-6 max-w-6xl mx-auto">
           <div className="flex items-center justify-between">
             <div>

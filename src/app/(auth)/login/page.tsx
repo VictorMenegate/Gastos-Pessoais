@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Image from 'next/image'
 import { createClient } from '@/lib/supabase/client'
 
 export default function LoginPage() {
@@ -39,8 +40,8 @@ export default function LoginPage() {
       <div className="w-full max-w-sm relative z-10 animate-fade-in">
         {/* Logo */}
         <div className="text-center mb-10">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-5 bg-white/20 backdrop-blur-sm">
-            <span className="text-3xl">💰</span>
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-5 bg-white/20 backdrop-blur-sm overflow-hidden">
+            <Image src="/moeda.png" alt="Gastos Pessoais" width={64} height={64} />
           </div>
           <h1 className="text-3xl font-extrabold text-white tracking-tight">Gastos Pessoais</h1>
           <p className="text-white/60 text-sm font-medium mt-2">Sistema financeiro multiusuario</p>

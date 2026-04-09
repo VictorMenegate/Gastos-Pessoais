@@ -55,18 +55,12 @@ export async function POST(request: Request) {
   await markAsRead(msg.id)
 
   try {
-    // Encontra perfil pelo telefone
-    const { data: profiles, error: profileError } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('whatsapp_phone', phone)
-      .limit(1)
+    // Encontra perfil pelo telefone (busca flexível por diferentes formatos)
+    const profile = await findProfileByPhone(phone)
 
-    const profile = profiles?.[0]
-
-    if (!profile || profileError) {
+    if (!profile) {
       await sendMessage(phone, 'Seu numero nao esta vinculado a nenhuma conta. Configure pelo site.')
-      return NextResponse.json({ status: 'unlinked', phone, error: profileError?.message })
+      return NextResponse.json({ status: 'unlinked', phone })
     }
 
     // Busca ou cria sessão
@@ -289,6 +283,33 @@ async function handleResume(phone: string, profile: any) {
 }
 
 // --- Helpers ---
+
+// Normaliza telefone removendo tudo exceto dígitos e pegando os últimos 10-11 dígitos
+function normalizePhone(phone: string): string {
+  const digits = phone.replace(/\D/g, '')
+  // Remove DDI (55) se presente, mantém DDD + número (10-11 dígitos)
+  if (digits.length >= 12 && digits.startsWith('55')) return digits.slice(2)
+  return digits
+}
+
+async function findProfileByPhone(phone: string): Promise<any | null> {
+  // Tenta match exato primeiro
+  const { data: exact } = await supabase
+    .from('profiles')
+    .select('*')
+    .eq('whatsapp_phone', phone)
+    .limit(1)
+  if (exact?.[0]) return exact[0]
+
+  // Busca todos os perfis com whatsapp e compara normalizado
+  const { data: all } = await supabase
+    .from('profiles')
+    .select('*')
+    .not('whatsapp_phone', 'is', null)
+
+  const normalized = normalizePhone(phone)
+  return (all ?? []).find(p => normalizePhone(p.whatsapp_phone) === normalized) || null
+}
 
 function parseTransaction(text: string): { description: string; amount: number; command?: string } | null {
   const lower = text.toLowerCase()

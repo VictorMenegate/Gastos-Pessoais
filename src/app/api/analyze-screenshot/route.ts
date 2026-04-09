@@ -113,11 +113,26 @@ export async function POST(req: NextRequest) {
     let responseText: string
 
     if (pdfBase64) {
-      // PDF base64 mode - parse on server
-      const pdfParse = (await import('pdf-parse')).default
+      // PDF base64 mode - parse on server with unpdf
+      const { extractText, getDocumentProxy } = await import('unpdf')
       const buffer = Buffer.from(pdfBase64, 'base64')
-      const pdf = await pdfParse(buffer)
-      responseText = await callGroqText(pdf.text, bankName)
+      const uint8 = new Uint8Array(buffer)
+
+      let pdf
+      try {
+        pdf = await getDocumentProxy(uint8, { password: body.pdfPassword || undefined })
+      } catch (e: any) {
+        if (e.message?.includes('password') || e.name === 'PasswordException') {
+          return NextResponse.json({ error: 'PDF protegido com senha. Informe a senha para continuar.', needsPassword: true }, { status: 400 })
+        }
+        throw e
+      }
+
+      const { text } = await extractText(pdf, { mergePages: true })
+      if (!text || text.trim().length < 10) {
+        return NextResponse.json({ error: 'Nao foi possivel extrair texto do PDF. Tente enviar como screenshot.' }, { status: 400 })
+      }
+      responseText = await callGroqText(text, bankName)
     } else if (pdfText) {
       // PDF text mode (legacy)
       responseText = await callGroqText(pdfText, bankName)

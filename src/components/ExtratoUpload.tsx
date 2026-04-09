@@ -40,6 +40,8 @@ export default function ExtratoUpload({ onClose, onSaved }: ExtratoUploadProps) 
   const [pdfBase64, setPdfBase64] = useState<string | null>(null)
   const [result, setResult] = useState<AnalysisResult | null>(null)
   const [error, setError] = useState('')
+  const [needsPassword, setNeedsPassword] = useState(false)
+  const [pdfPassword, setPdfPassword] = useState('')
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
   const [profiles, setProfiles] = useState<Profile[]>([])
@@ -97,6 +99,7 @@ export default function ExtratoUpload({ onClose, onSaved }: ExtratoUploadProps) 
       const body: any = {}
       if (pdfBase64) {
         body.pdfBase64 = pdfBase64
+        if (pdfPassword) body.pdfPassword = pdfPassword
       } else if (fileData) {
         body.image = fileData.base64
         body.mimeType = fileData.mimeType
@@ -109,7 +112,16 @@ export default function ExtratoUpload({ onClose, onSaved }: ExtratoUploadProps) 
       })
 
       const data = await res.json()
-      if (!res.ok) throw new Error(data.error || 'Erro na analise')
+      if (!res.ok) {
+        if (data.needsPassword) {
+          setNeedsPassword(true)
+          setStep('upload')
+          setError('PDF protegido com senha. Informe a senha abaixo.')
+          return
+        }
+        throw new Error(data.error || 'Erro na analise')
+      }
+      setNeedsPassword(false)
 
       setResult({
         ...data,
@@ -200,6 +212,8 @@ export default function ExtratoUpload({ onClose, onSaved }: ExtratoUploadProps) 
   }
 
   function reset() {
+    setNeedsPassword(false)
+    setPdfPassword('')
     setStep('upload')
     setPreview(null)
     setPdfName(null)
@@ -280,8 +294,18 @@ export default function ExtratoUpload({ onClose, onSaved }: ExtratoUploadProps) 
             </div>
           )}
 
-          <button onClick={analyze} disabled={!hasFile} className="btn-primary w-full flex items-center justify-center gap-2">
-            <Sparkles size={16} /> Analisar com IA
+          {needsPassword && (
+            <div className="space-y-1.5">
+              <label className="label">Senha do PDF</label>
+              <input type="password" className="input" placeholder="Digite a senha do PDF"
+                value={pdfPassword} onChange={e => setPdfPassword(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && pdfPassword && analyze()} />
+            </div>
+          )}
+
+          <button onClick={analyze} disabled={!hasFile || (needsPassword && !pdfPassword)}
+            className="btn-primary w-full flex items-center justify-center gap-2">
+            <Sparkles size={16} /> {needsPassword ? 'Tentar com senha' : 'Analisar com IA'}
           </button>
         </div>
       )}

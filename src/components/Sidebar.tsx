@@ -125,14 +125,21 @@ export default function Sidebar() {
         </div>
       </aside>
 
-      {/* ═══ MOBILE: Bottom nav ═══ */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 pb-safe"
-        style={{ background: 'rgba(255,255,255,0.96)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', borderTop: '2px solid var(--border)' }}>
+      {/* ═══ MOBILE: Floating bottom nav ═══ */}
+      <nav className="md:hidden fixed bottom-4 left-4 right-4 z-50"
+        style={{
+          background: 'rgba(255,255,255,0.92)',
+          backdropFilter: 'blur(20px)',
+          WebkitBackdropFilter: 'blur(20px)',
+          borderRadius: '22px',
+          border: '1.5px solid rgba(0,0,0,0.06)',
+          boxShadow: '0 4px 24px rgba(0,0,0,0.10), 0 1px 4px rgba(0,0,0,0.06)',
+        }}>
 
         {moreOpen && (
           <div ref={moreRef}
-            className="absolute bottom-full right-3 mb-2 bg-white shadow-xl p-2 min-w-[190px] animate-slide-up"
-            style={{ borderRadius: '20px', border: '2px solid var(--border)' }}>
+            className="absolute bottom-full right-0 mb-3 bg-white shadow-xl p-2 min-w-[190px]"
+            style={{ borderRadius: '20px', border: '1.5px solid rgba(0,0,0,0.06)', boxShadow: '0 8px 32px rgba(0,0,0,0.12)' }}>
             {mobileMoreItems.map(({ href, icon: Icon, label }) => {
               const active = pathname === href || pathname.startsWith(href + '/')
               return (
@@ -161,28 +168,26 @@ export default function Sidebar() {
           </div>
         )}
 
-        <div className="flex justify-around items-end pt-2 px-2">
+        <div className="flex justify-around items-center py-2.5 px-2">
           {mobileMainItems.map(({ href, icon: Icon, label }) => {
             const active = pathname === href || pathname.startsWith(href + '/')
             return (
               <Link key={href} href={href}
-                className={`flex flex-col items-center gap-1 py-1.5 px-2 min-w-[56px] ${
+                className={`flex flex-col items-center gap-0.5 py-1 px-3 min-w-[52px] transition-colors ${
                   active ? 'text-brand-500' : 'text-[#b0b5be]'
                 }`}>
-                <Icon size={22} strokeWidth={active ? 2.5 : 1.8} />
+                <Icon size={21} strokeWidth={active ? 2.5 : 1.8} />
                 <span className={`text-[10px] ${active ? 'font-bold' : 'font-medium'}`}>{label}</span>
-                {active && <div className="w-5 h-[3px] rounded-full bg-brand-500 -mt-0.5" />}
               </Link>
             )
           })}
 
           <button onClick={() => setMoreOpen(!moreOpen)}
-            className={`flex flex-col items-center gap-1 py-1.5 px-2 min-w-[56px] ${
+            className={`flex flex-col items-center gap-0.5 py-1 px-3 min-w-[52px] transition-colors ${
               isMoreActive || moreOpen ? 'text-brand-500' : 'text-[#b0b5be]'
             }`}>
-            {moreOpen ? <X size={22} strokeWidth={2} /> : <MoreHorizontal size={22} strokeWidth={1.8} />}
+            {moreOpen ? <X size={21} strokeWidth={2} /> : <MoreHorizontal size={21} strokeWidth={1.8} />}
             <span className={`text-[10px] ${isMoreActive ? 'font-bold' : 'font-medium'}`}>Mais</span>
-            {isMoreActive && !moreOpen && <div className="w-5 h-[3px] rounded-full bg-brand-500 -mt-0.5" />}
           </button>
         </div>
       </nav>

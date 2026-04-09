@@ -8,7 +8,7 @@ export default function FAB() {
   const [open, setOpen] = useState(false)
 
   return (
-    <div className="md:hidden fixed bottom-20 right-4 z-50">
+    <div className="md:hidden fixed bottom-24 right-5 z-50">
       {/* Backdrop */}
       {open && (
         <div className="fixed inset-0 bg-black/20 backdrop-blur-[2px] -z-10" onClick={() => setOpen(false)} />

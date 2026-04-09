@@ -67,7 +67,7 @@ export default function Sidebar() {
         {/* Logo */}
         <div className="flex items-center gap-3 px-2 mb-8">
           <div className="w-11 h-11 flex items-center justify-center shadow-sm overflow-hidden"
-            style={{ borderRadius: '16px' }}>
+            style={{ background: '#2B4C7E', borderRadius: '16px' }}>
             <Image src="/moeda.png" alt="Gastos" width={44} height={44} />
           </div>
           <div>

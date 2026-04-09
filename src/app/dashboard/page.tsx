@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { format } from 'date-fns'
-import { Wallet, PiggyBank, Bell, ArrowUpRight, ArrowDownRight, ArrowRight, CreditCard, Search, TrendingUp, TrendingDown } from 'lucide-react'
+import { Wallet, PiggyBank, Bell, ArrowUpRight, ArrowDownRight, ArrowRight, CreditCard, Search, TrendingUp, TrendingDown, Target } from 'lucide-react'
 import { getDashboardData, getFinancialGoals } from '@/lib/queries'
 import { formatCurrency, formatPercent } from '@/lib/utils'
 import { useHeroTimeline, useStaggerIn } from '@/lib/useAnime'
@@ -127,7 +127,7 @@ export default function DashboardPage() {
       </div>
 
       {/* ══════ CONTENT ══════ */}
-      <div className="px-4 md:px-10 -mt-8 md:mt-0 md:py-8 space-y-5 md:space-y-6 max-w-[1400px] mx-auto pb-8 relative z-10">
+      <div className="px-4 md:px-10 -mt-14 md:mt-0 md:py-8 space-y-5 md:space-y-6 max-w-[1400px] mx-auto pb-8 relative z-10">
 
         {loading ? <Loading /> : (
           <>
@@ -164,8 +164,35 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            {/* Mobile savings tip */}
-            <div className="md:hidden">
+            {/* Mobile KPI + savings — grouped to avoid extra spacing */}
+            <div className="md:hidden space-y-2">
+              <div ref={kpiRef} className="grid grid-cols-2 gap-3">
+              {(() => {
+                const active = goals.filter(g => g.status === 'active')
+                const totalTarget = active.reduce((sum, g) => sum + g.target_amount, 0)
+                const totalCurrent = active.reduce((sum, g) => sum + g.current_amount, 0)
+                const pct = totalTarget > 0 ? Math.round((totalCurrent / totalTarget) * 100) : 0
+                return (
+                  <div className="card">
+                    <div className="flex items-center gap-2 mb-2.5">
+                      <div className="w-9 h-9 rounded-xl flex items-center justify-center bg-violet-50 text-violet-600">
+                        <Target size={18} />
+                      </div>
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-fg-muted">Metas</span>
+                    </div>
+                    <p className="text-lg font-extrabold text-fg leading-tight">{active.length ? `${pct}%` : '—'}</p>
+                    <div className="w-full h-1.5 rounded-full bg-violet-100 overflow-hidden mt-2">
+                      <div className="h-full rounded-full bg-violet-500 transition-all" style={{ width: `${pct}%` }} />
+                    </div>
+                    <p className="text-[10px] text-fg-muted font-medium mt-1">{active.length ? `faltam ${formatPercent(100 - pct, 0)}` : 'sem metas ativas'}</p>
+                  </div>
+                )
+              })()}
+              <KPICard icon={<PiggyBank size={18} />} label="Economia"
+                value={formatPercent(s?.savingsRate ?? 0, 1)}
+                sub={`${data?.installments.length ?? 0} parcelamentos`}
+                color="purple" />
+              </div>
               {s && s.savingsRate > 0 && (
                 <div className="bg-white rounded-2xl px-4 py-3.5 flex items-center gap-3 shadow-md border border-surface-border">
                   <span className="text-xl">🎉</span>
@@ -175,26 +202,6 @@ export default function DashboardPage() {
                   <ArrowRight size={16} className="text-fg-muted" />
                 </div>
               )}
-            </div>
-
-            {/* KPI Row */}
-            <div ref={kpiRef} className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4">
-              <KPICard icon={<ArrowDownRight size={18} />} label="Entradas"
-                value={formatCurrency(s?.totalIncome ?? 0)}
-                sub={`${data?.transactions.filter(t => t.type === 'income').length ?? 0} transacoes`}
-                color="blue" />
-              <KPICard icon={<ArrowUpRight size={18} />} label="Saidas"
-                value={formatCurrency(s?.totalExpenses ?? 0)}
-                sub={`${data?.transactions.filter(t => t.type === 'expense').length ?? 0} transacoes`}
-                color="red" />
-              <KPICard icon={<Wallet size={18} />} label="Saldo"
-                value={formatCurrency(s?.balance ?? 0)}
-                sub="entradas - compromissos"
-                color={s && s.balance >= 0 ? 'green' : 'red'} />
-              <KPICard icon={<PiggyBank size={18} />} label="Economia"
-                value={formatPercent(s?.savingsRate ?? 0, 1)}
-                sub={`${data?.installments.length ?? 0} parcelamentos`}
-                color="purple" />
             </div>
 
             {/* Charts — 2 cols desktop, stacked mobile */}
@@ -343,7 +350,7 @@ function KPICard({ icon, label, value, sub, color }: {
 }) {
   const c = colorMap[color]
   return (
-    <div className="card opacity-0">
+    <div className="card">
       <div className="flex items-center gap-2 mb-2.5">
         <div className={`w-9 h-9 lg:w-10 lg:h-10 rounded-xl flex items-center justify-center ${c.bg} ${c.text}`}>
           {icon}

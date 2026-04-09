@@ -21,17 +21,17 @@ export default function MonthlyChart({ data }: Props) {
 
   return (
     <ResponsiveContainer width="100%" height={220}>
-      <BarChart data={chartData} barGap={4}>
+      <BarChart data={chartData} barGap={4} barCategoryGap="20%" margin={{ top: 5, right: 5, left: 0, bottom: 0 }}>
         <CartesianGrid strokeDasharray="3 3" stroke="#DCE0E6" />
         <XAxis dataKey="label" stroke="#9ca3af" fontSize={12} />
-        <YAxis stroke="#9ca3af" fontSize={11} tickFormatter={v => `${(v / 1000).toFixed(0)}k`} />
+        <YAxis stroke="#9ca3af" fontSize={11} width={30} tickFormatter={v => v >= 1000 ? `${(v / 1000).toFixed(1).replace('.0', '')}k` : `${v}`} />
         <Tooltip
           formatter={(value: number, name: string) => [formatCurrency(value), name === 'income' ? 'Entradas' : 'Saídas']}
           contentStyle={{ background: '#fff', border: '1px solid #DCE0E6', borderRadius: 10, color: '#1F1F20' }}
           labelStyle={{ color: '#606D80' }}
         />
-        <Bar dataKey="income" fill="#567EBB" radius={[4, 4, 0, 0]} />
-        <Bar dataKey="expenses" fill="#ef4444" radius={[4, 4, 0, 0]} />
+        <Bar dataKey="income" fill="#567EBB" radius={[4, 4, 0, 0]} maxBarSize={40} />
+        <Bar dataKey="expenses" fill="#ef4444" radius={[4, 4, 0, 0]} maxBarSize={40} />
       </BarChart>
     </ResponsiveContainer>
   )

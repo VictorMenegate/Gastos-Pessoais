@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useRef } from 'react'
+import { Suspense, useEffect, useState, useRef } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { format } from 'date-fns'
 import { Plus, Trash2, Pencil, Filter, Search, Sparkles } from 'lucide-react'
@@ -15,6 +15,14 @@ import Sidebar from '@/components/Sidebar'
 import type { Transaction, TransactionFormData, TransactionType, Profile } from '@/types'
 
 export default function TransacoesPage() {
+  return (
+    <Suspense>
+      <TransacoesContent />
+    </Suspense>
+  )
+}
+
+function TransacoesContent() {
   const [month, setMonth] = useState(format(new Date(), 'yyyy-MM'))
   const [transactions, setTransactions] = useState<Transaction[]>([])
   const [profiles, setProfiles] = useState<Profile[]>([])

@@ -284,11 +284,13 @@ async function handleResume(phone: string, profile: any) {
 
 // --- Helpers ---
 
-// Normaliza telefone removendo tudo exceto dígitos e pegando os últimos 10-11 dígitos
+// Normaliza telefone: remove caracteres especiais e garante formato 55 + DDD + número
 function normalizePhone(phone: string): string {
   const digits = phone.replace(/\D/g, '')
-  // Remove DDI (55) se presente, mantém DDD + número (10-11 dígitos)
-  if (digits.length >= 12 && digits.startsWith('55')) return digits.slice(2)
+  // Se já tem DDI 55, retorna como está
+  if (digits.length >= 12 && digits.startsWith('55')) return digits
+  // Se tem 10-11 dígitos (DDD + número), adiciona DDI 55
+  if (digits.length >= 10 && digits.length <= 11) return '55' + digits
   return digits
 }
 

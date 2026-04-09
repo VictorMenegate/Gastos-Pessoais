@@ -288,31 +288,33 @@ export default function ConfiguracoesPage() {
                 <div className="space-y-4">
                   <div className="card space-y-4">
                     <h2 className="text-sm font-semibold text-fg flex items-center gap-2">
-                      <MessageCircle size={16} className="text-brand-500" /> Integração WhatsApp (Evolution API)
+                      <MessageCircle size={16} className="text-brand-500" /> Integração WhatsApp (Meta Cloud API)
                     </h2>
                     <div className="bg-surface-input rounded-lg p-4 space-y-3">
                       <p className="text-sm text-fg">Como configurar:</p>
                       <ol className="text-sm text-fg-secondary space-y-2 list-decimal list-inside">
-                        <li>Instale a <strong>Evolution API</strong> no EasyPanel (Docker)</li>
-                        <li>Crie uma instância e escaneie o <strong>QR Code</strong></li>
-                        <li>Configure o webhook da instância para apontar para este app</li>
+                        <li>Acesse <strong>developers.facebook.com</strong> e crie um App do tipo Business</li>
+                        <li>Adicione o produto <strong>WhatsApp</strong> ao app</li>
+                        <li>Gere um <strong>Token permanente</strong> (System User no Business Manager)</li>
+                        <li>Configure o <strong>Webhook</strong> com a URL abaixo e o verify token</li>
+                        <li>Inscreva-se no campo <strong>messages</strong> do webhook</li>
                         <li>Vincule seu número na aba Perfis</li>
                         <li>Envie mensagens: <code className="text-brand-500">Mercado 120</code></li>
                       </ol>
                     </div>
                     <div className="bg-surface-input rounded-lg p-4">
-                      <p className="text-sm text-fg mb-2">Webhook URL (configurar na Evolution API):</p>
+                      <p className="text-sm text-fg mb-2">Webhook URL (configurar no Meta Developers):</p>
                       <code className="text-xs text-brand-500 bg-surface-input border border-surface-border px-3 py-2 rounded block break-all">
                         {typeof window !== 'undefined' ? `${window.location.origin}/api/whatsapp/webhook` : '/api/whatsapp/webhook'}
                       </code>
-                      <p className="text-xs text-fg-muted mt-2">Evento: <code>messages.upsert</code></p>
+                      <p className="text-xs text-fg-muted mt-2">Verify Token: <code>gastos-verify-token</code> (ou o valor de WHATSAPP_VERIFY_TOKEN)</p>
                     </div>
                     <div className="bg-surface-input rounded-lg p-4">
                       <p className="text-sm text-fg mb-2">Variáveis de ambiente necessárias:</p>
                       <div className="space-y-1 text-xs text-fg-secondary font-mono">
-                        <p><span className="text-amber-600">EVOLUTION_API_URL</span>=http://evolution:8080</p>
-                        <p><span className="text-amber-600">EVOLUTION_API_KEY</span>=sua_api_key</p>
-                        <p><span className="text-amber-600">EVOLUTION_INSTANCE</span>=gastos</p>
+                        <p><span className="text-amber-600">WHATSAPP_TOKEN</span>=seu_token_permanente</p>
+                        <p><span className="text-amber-600">WHATSAPP_PHONE_NUMBER_ID</span>=seu_phone_number_id</p>
+                        <p><span className="text-amber-600">WHATSAPP_VERIFY_TOKEN</span>=gastos-verify-token</p>
                       </div>
                     </div>
                     <div className="bg-surface-input rounded-lg p-4">

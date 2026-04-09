@@ -6,37 +6,53 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 )
 
-const EVOLUTION_API_URL = process.env.EVOLUTION_API_URL // ex: http://evolution:8080
-const EVOLUTION_API_KEY = process.env.EVOLUTION_API_KEY
-const EVOLUTION_INSTANCE = process.env.EVOLUTION_INSTANCE || 'gastos'
+const WHATSAPP_TOKEN = process.env.WHATSAPP_TOKEN
+const WHATSAPP_PHONE_NUMBER_ID = process.env.WHATSAPP_PHONE_NUMBER_ID
+const WHATSAPP_VERIFY_TOKEN = process.env.WHATSAPP_VERIFY_TOKEN || 'gastos-verify-token'
 
-// Evolution API envia POST quando recebe mensagem
+// Meta Webhook Verification (GET)
+export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url)
+  const mode = searchParams.get('hub.mode')
+  const token = searchParams.get('hub.verify_token')
+  const challenge = searchParams.get('hub.challenge')
+
+  if (mode === 'subscribe' && token === WHATSAPP_VERIFY_TOKEN) {
+    return new Response(challenge ?? '', { status: 200 })
+  }
+
+  return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+}
+
+// Meta Webhook - recebe mensagens do WhatsApp
 export async function POST(request: Request) {
   const body = await request.json()
 
-  // Evolution API webhook format
-  const event = body.event
-  if (event !== 'messages.upsert') {
-    return NextResponse.json({ status: 'ignored', event })
-  }
+  // Meta Cloud API webhook format
+  const entry = body.entry?.[0]
+  const changes = entry?.changes?.[0]
+  const value = changes?.value
 
-  const msg = body.data
-  if (!msg || msg.key?.fromMe) {
+  if (!value?.messages?.length) {
     return NextResponse.json({ status: 'ignored' })
   }
 
-  // Extrai número e texto
-  const remoteJid = msg.key?.remoteJid ?? ''
-  const phone = remoteJid.replace('@s.whatsapp.net', '').replace('@g.us', '')
-  const text = msg.message?.conversation
-    ?? msg.message?.extendedTextMessage?.text
-    ?? msg.message?.buttonsResponseMessage?.selectedButtonId
-    ?? msg.message?.listResponseMessage?.singleSelectReply?.selectedRowId
-    ?? ''
+  const msg = value.messages[0]
+  const phone = msg.from // número do remetente (ex: 5511999999999)
+
+  // Extrai texto da mensagem
+  const text =
+    msg.text?.body ??
+    msg.interactive?.button_reply?.id ??
+    msg.interactive?.list_reply?.id ??
+    ''
 
   if (!phone || !text.trim()) {
     return NextResponse.json({ status: 'no content' })
   }
+
+  // Marca mensagem como lida
+  await markAsRead(msg.id)
 
   try {
     // Encontra perfil pelo telefone
@@ -94,9 +110,9 @@ export async function POST(request: Request) {
       await sendButtons(phone,
         `💰 *${parsed.description}* - R$ ${parsed.amount.toFixed(2)}\n\nÉ entrada ou saída?`,
         [
-          { id: 'type_expense', text: '📤 Saída (Gasto)' },
-          { id: 'type_income', text: '📥 Entrada (Receita)' },
-          { id: 'cancel', text: '❌ Cancelar' },
+          { id: 'type_expense', title: '📤 Saída (Gasto)' },
+          { id: 'type_income', title: '📥 Entrada (Receita)' },
+          { id: 'cancel', title: '❌ Cancelar' },
         ]
       )
       return NextResponse.json({ status: 'awaiting_type' })
@@ -307,30 +323,82 @@ async function completeSession(id: string) {
     .eq('id', id)
 }
 
-// --- Evolution API v1.8 ---
+// --- Meta WhatsApp Cloud API ---
 
 async function sendMessage(to: string, text: string) {
-  if (!EVOLUTION_API_URL || !EVOLUTION_API_KEY) return
+  if (!WHATSAPP_TOKEN || !WHATSAPP_PHONE_NUMBER_ID) return
 
   try {
-    await fetch(`${EVOLUTION_API_URL}/message/sendText/${EVOLUTION_INSTANCE}`, {
+    await fetch(`https://graph.facebook.com/v21.0/${WHATSAPP_PHONE_NUMBER_ID}/messages`, {
       method: 'POST',
       headers: {
-        'apikey': EVOLUTION_API_KEY,
+        'Authorization': `Bearer ${WHATSAPP_TOKEN}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        number: to,
-        textMessage: { text },
+        messaging_product: 'whatsapp',
+        to,
+        type: 'text',
+        text: { body: text },
       }),
     })
   } catch (e) {
-    console.error('Evolution API send error:', e)
+    console.error('WhatsApp Cloud API send error:', e)
   }
 }
 
-async function sendButtons(to: string, text: string, buttons: { id: string; text: string }[]) {
-  // Evolution v1.8 - envia como texto com opções numeradas
-  const fallbackText = text + '\n\n' + buttons.map((b, i) => `*${i + 1}.* ${b.text}`).join('\n')
-  await sendMessage(to, fallbackText)
+async function sendButtons(to: string, text: string, buttons: { id: string; title: string }[]) {
+  if (!WHATSAPP_TOKEN || !WHATSAPP_PHONE_NUMBER_ID) {
+    return await sendMessage(to, text + '\n\n' + buttons.map((b, i) => `*${i + 1}.* ${b.title}`).join('\n'))
+  }
+
+  try {
+    await fetch(`https://graph.facebook.com/v21.0/${WHATSAPP_PHONE_NUMBER_ID}/messages`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${WHATSAPP_TOKEN}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        messaging_product: 'whatsapp',
+        to,
+        type: 'interactive',
+        interactive: {
+          type: 'button',
+          body: { text },
+          action: {
+            buttons: buttons.map(b => ({
+              type: 'reply',
+              reply: { id: b.id, title: b.title.slice(0, 20) },
+            })),
+          },
+        },
+      }),
+    })
+  } catch (e) {
+    console.error('WhatsApp Cloud API buttons error:', e)
+    // Fallback para texto
+    await sendMessage(to, text + '\n\n' + buttons.map((b, i) => `*${i + 1}.* ${b.title}`).join('\n'))
+  }
+}
+
+async function markAsRead(messageId: string) {
+  if (!WHATSAPP_TOKEN || !WHATSAPP_PHONE_NUMBER_ID || !messageId) return
+
+  try {
+    await fetch(`https://graph.facebook.com/v21.0/${WHATSAPP_PHONE_NUMBER_ID}/messages`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${WHATSAPP_TOKEN}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        messaging_product: 'whatsapp',
+        status: 'read',
+        message_id: messageId,
+      }),
+    })
+  } catch (e) {
+    // silently ignore read receipt errors
+  }
 }

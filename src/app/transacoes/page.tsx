@@ -101,23 +101,26 @@ function TransacoesContent() {
         <div className="md:bg-white md:min-h-[calc(100vh-24px)] md:overflow-auto" style={{ borderRadius: 'var(--content-radius, 0)' }}>
         <div className="p-4 md:p-8 lg:p-10 space-y-4 md:space-y-6 max-w-6xl mx-auto">
           {/* Header */}
-          <div className="flex items-center justify-between flex-wrap gap-3 md:gap-4">
-            <div>
-              <h1 className="text-xl md:text-2xl font-bold text-fg">Transações</h1>
-              <p className="text-fg-secondary text-sm">
-                <span className="text-brand-500">+{formatCurrency(totalIncome)}</span>
-                {' / '}
-                <span className="text-red-500">-{formatCurrency(totalExpense)}</span>
-              </p>
-            </div>
-            <div className="flex items-center gap-2">
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-xl md:text-2xl font-bold text-fg">Transações</h1>
+                <p className="text-fg-secondary text-sm">
+                  <span className="text-brand-500">+{formatCurrency(totalIncome)}</span>
+                  {' / '}
+                  <span className="text-red-500">-{formatCurrency(totalExpense)}</span>
+                </p>
+              </div>
               <MonthSelector value={month} onChange={m => { setMonth(m); load(m) }} compact />
+            </div>
+            <div className="flex gap-2">
               <button onClick={() => { setShowExtrato(!showExtrato); setShowForm(false) }}
-                className="btn-secondary flex items-center gap-1.5">
-                <Sparkles size={16} /> Extrato
+                className="btn-secondary flex-1 flex items-center justify-center gap-1.5">
+                <Sparkles size={16} /> Extrato IA
               </button>
-              <button onClick={() => { setShowForm(!showForm); setShowExtrato(false) }} className="btn-primary flex items-center gap-1.5">
-                <Plus size={16} /> Nova
+              <button onClick={() => { setShowForm(!showForm); setShowExtrato(false) }}
+                className="btn-primary flex-1 flex items-center justify-center gap-1.5">
+                <Plus size={16} /> Nova transação
               </button>
             </div>
           </div>

@@ -153,41 +153,33 @@ async function handleAwaitingType(phone: string, session: any, input: string, pr
   const type = isIncome ? 'income' : 'expense'
   await updateSession(session.id, 'awaiting_payment', { ...session.temp_data, type })
 
-  // Busca métodos de pagamento
-  const { data: methods } = await supabase
-    .from('payment_methods')
-    .select('id, name, icon')
-    .eq('account_id', profile.account_id)
-    .eq('active', true)
-    .limit(10)
-
-  if (!methods?.length) {
-    // Sem métodos, pula para categoria
-    await updateSession(session.id, 'awaiting_category', { ...session.temp_data, type, payment_method_id: null })
-    return await sendCategoryOptions(phone, session.temp_data.type === 'income' ? 'income' : 'expense')
-  }
-
-  await sendList(phone, '💳 *Método de pagamento:*', 'Escolher', methods.map((m, i) => ({
-    id: `pm_${i}`,
-    title: `${m.icon} ${m.name}`.slice(0, 24),
-  })))
+  await sendButtons(phone, '💳 *Como foi o pagamento?*', [
+    { id: 'pm_pix', title: '⚡ Pix' },
+    { id: 'pm_debito', title: '💳 Débito' },
+    { id: 'pm_credito', title: '💳 Crédito' },
+  ])
   return NextResponse.json({ status: 'awaiting_payment' })
 }
 
+const PAYMENT_OPTIONS: Record<string, string> = {
+  'pm_pix': 'pix', 'pm_debito': 'debit', 'pm_credito': 'credit',
+  '1': 'pix', '2': 'debit', '3': 'credit',
+}
+
 async function handleAwaitingPayment(phone: string, session: any, input: string, profile: any) {
+  const paymentType = PAYMENT_OPTIONS[input.toLowerCase()] || 'pix'
+
+  // Busca o payment_method correspondente no banco
   const { data: methods } = await supabase
     .from('payment_methods')
-    .select('id, name')
+    .select('id, type')
     .eq('account_id', profile.account_id)
-    .eq('active', true)
-    .limit(10)
+    .eq('type', paymentType)
+    .limit(1)
 
-  // Suporta tanto número quanto id do botão (pm_0, pm_1...)
-  const idx = input.startsWith('pm_') ? parseInt(input.replace('pm_', '')) : parseInt(input) - 1
-  const method = methods?.[idx]
-  const pmId = method?.id || null
+  const pmId = methods?.[0]?.id || null
 
-  await updateSession(session.id, 'awaiting_category', { ...session.temp_data, payment_method_id: pmId })
+  await updateSession(session.id, 'awaiting_category', { ...session.temp_data, payment_method_id: pmId, payment_type: paymentType })
   return await sendCategoryOptions(phone, session.temp_data.type === 'income' ? 'income' : 'expense')
 }
 

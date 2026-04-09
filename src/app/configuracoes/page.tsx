@@ -1,20 +1,19 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Plus, Trash2, Save, Users, CreditCard, MessageCircle, Palette } from 'lucide-react'
-import { getProfiles, upsertProfile, getPaymentMethods, createPaymentMethod, getAccount } from '@/lib/queries'
+import { Plus, Trash2, Save, Users, Palette } from 'lucide-react'
+import { getProfiles, upsertProfile, getAccount } from '@/lib/queries'
 import { createClient } from '@/lib/supabase/client'
-import { PROFILE_COLORS, PAYMENT_METHOD_TYPES } from '@/lib/constants'
+import { PROFILE_COLORS } from '@/lib/constants'
 import Sidebar from '@/components/Sidebar'
 import Loading from '@/components/Loading'
-import type { Profile, SalaryEntry, PaymentMethod, Account } from '@/types'
+import type { Profile, SalaryEntry, Account } from '@/types'
 
-type Tab = 'profiles' | 'payments' | 'whatsapp' | 'account'
+type Tab = 'profiles' | 'account'
 
 export default function ConfiguracoesPage() {
   const [tab, setTab] = useState<Tab>('profiles')
   const [profiles, setProfiles] = useState<Profile[]>([])
-  const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([])
   const [account, setAccount] = useState<Account | null>(null)
   const [userId, setUserId] = useState('')
   const [loading, setLoading] = useState(true)
@@ -26,14 +25,13 @@ export default function ConfiguracoesPage() {
     const supabase = createClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (user) setUserId(user.id)
-    const [profs, pms, acc] = await Promise.all([getProfiles(), getPaymentMethods(), getAccount()])
+    const [profs, acc] = await Promise.all([getProfiles(), getAccount()])
     setProfiles(profs.length ? profs : [{
       id: '', user_id: user?.id ?? '', account_id: '', name: '', salary: 0,
       payment_type: 'single', salary_schedule: [{ label: 'Salário', amount: 0, day: 5 }],
       color: PROFILE_COLORS[0], avatar_url: null, role: 'owner', whatsapp_phone: null,
       created_at: '', updated_at: '',
     }])
-    setPaymentMethods(pms)
     setAccount(acc)
     setLoading(false)
   }
@@ -93,22 +91,8 @@ export default function ConfiguracoesPage() {
     } finally { setSaving(false) }
   }
 
-  // --- Payment method ---
-  const [pmForm, setPmForm] = useState({ name: '', type: 'pix' as any, icon: '⚡', color: '#567EBB' })
-
-  async function handleAddPaymentMethod(e: React.FormEvent) {
-    e.preventDefault()
-    const accountId = profiles[0]?.account_id
-    if (!accountId) return
-    await createPaymentMethod({ ...pmForm, account_id: accountId })
-    setPmForm({ name: '', type: 'pix', icon: '⚡', color: '#567EBB' })
-    load()
-  }
-
   const tabs: { key: Tab; label: string; icon: typeof Users }[] = [
     { key: 'profiles', label: 'Perfis', icon: Users },
-    { key: 'payments', label: 'Pagamentos', icon: CreditCard },
-    { key: 'whatsapp', label: 'WhatsApp', icon: MessageCircle },
     { key: 'account', label: 'Conta', icon: Palette },
   ]
 
@@ -247,98 +231,6 @@ export default function ConfiguracoesPage() {
                       <Plus size={16} /> Adicionar perfil
                     </button>
                   )}
-                </div>
-              )}
-
-              {/* ── PAYMENTS TAB ── */}
-              {tab === 'payments' && (
-                <div className="space-y-4">
-                  <div className="card">
-                    <h2 className="text-sm font-semibold text-fg mb-4">Adicionar método</h2>
-                    <form onSubmit={handleAddPaymentMethod} className="flex flex-wrap gap-3">
-                      <input className="input flex-1 min-w-[150px]" placeholder="Nome do método" required
-                        value={pmForm.name} onChange={e => setPmForm(f => ({ ...f, name: e.target.value }))} />
-                      <select className="input w-40" value={pmForm.type}
-                        onChange={e => {
-                          const opt = PAYMENT_METHOD_TYPES.find(o => o.value === e.target.value)
-                          setPmForm(f => ({ ...f, type: e.target.value, icon: opt?.icon ?? '💸' }))
-                        }}>
-                        {PAYMENT_METHOD_TYPES.map(t => <option key={t.value} value={t.value}>{t.icon} {t.label}</option>)}
-                      </select>
-                      <button type="submit" className="btn-primary">Adicionar</button>
-                    </form>
-                  </div>
-                  <div className="space-y-2">
-                    {paymentMethods.map(pm => (
-                      <div key={pm.id} className="card flex items-center gap-3">
-                        <span className="text-xl">{pm.icon}</span>
-                        <div className="flex-1">
-                          <p className="text-sm text-fg">{pm.name}</p>
-                          <p className="text-xs text-fg-secondary">{pm.type}</p>
-                        </div>
-                        {pm.is_default && <span className="badge-paid">Padrão</span>}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* ── WHATSAPP TAB ── */}
-              {tab === 'whatsapp' && (
-                <div className="space-y-4">
-                  <div className="card space-y-4">
-                    <h2 className="text-sm font-semibold text-fg flex items-center gap-2">
-                      <MessageCircle size={16} className="text-brand-500" /> Integração WhatsApp (Meta Cloud API)
-                    </h2>
-                    <div className="bg-surface-input rounded-lg p-4 space-y-3">
-                      <p className="text-sm text-fg">Como configurar:</p>
-                      <ol className="text-sm text-fg-secondary space-y-2 list-decimal list-inside">
-                        <li>Acesse <strong>developers.facebook.com</strong> e crie um App do tipo Business</li>
-                        <li>Adicione o produto <strong>WhatsApp</strong> ao app</li>
-                        <li>Gere um <strong>Token permanente</strong> (System User no Business Manager)</li>
-                        <li>Configure o <strong>Webhook</strong> com a URL abaixo e o verify token</li>
-                        <li>Inscreva-se no campo <strong>messages</strong> do webhook</li>
-                        <li>Vincule seu número na aba Perfis</li>
-                        <li>Envie mensagens: <code className="text-brand-500">Mercado 120</code></li>
-                      </ol>
-                    </div>
-                    <div className="bg-surface-input rounded-lg p-4">
-                      <p className="text-sm text-fg mb-2">Webhook URL (configurar no Meta Developers):</p>
-                      <code className="text-xs text-brand-500 bg-surface-input border border-surface-border px-3 py-2 rounded block break-all">
-                        {typeof window !== 'undefined' ? `${window.location.origin}/api/whatsapp/webhook` : '/api/whatsapp/webhook'}
-                      </code>
-                      <p className="text-xs text-fg-muted mt-2">Verify Token: <code>gastos-verify-token</code> (ou o valor de WHATSAPP_VERIFY_TOKEN)</p>
-                    </div>
-                    <div className="bg-surface-input rounded-lg p-4">
-                      <p className="text-sm text-fg mb-2">Variáveis de ambiente necessárias:</p>
-                      <div className="space-y-1 text-xs text-fg-secondary font-mono">
-                        <p><span className="text-amber-600">WHATSAPP_TOKEN</span>=seu_token_permanente</p>
-                        <p><span className="text-amber-600">WHATSAPP_PHONE_NUMBER_ID</span>=seu_phone_number_id</p>
-                        <p><span className="text-amber-600">WHATSAPP_VERIFY_TOKEN</span>=gastos-verify-token</p>
-                      </div>
-                    </div>
-                    <div className="bg-surface-input rounded-lg p-4">
-                      <p className="text-sm text-fg mb-2">Comandos disponíveis:</p>
-                      <div className="space-y-1 text-sm text-fg-secondary">
-                        <p><code className="text-brand-500">Mercado 120</code> - Registra transação</p>
-                        <p><code className="text-brand-500">Almoço 35.50</code> - Com centavos</p>
-                        <p><code className="text-brand-500">resumo</code> - Resumo do mês</p>
-                      </div>
-                    </div>
-                    <div>
-                      <p className="text-sm text-fg mb-2">Números vinculados:</p>
-                      {profiles.filter(p => p.whatsapp_phone).map(p => (
-                        <div key={p.id} className="flex items-center gap-2 text-sm">
-                          <div className="w-2.5 h-2.5 rounded-full" style={{ background: p.color }} />
-                          <span className="text-fg">{p.name}</span>
-                          <span className="text-fg-secondary">{p.whatsapp_phone}</span>
-                        </div>
-                      ))}
-                      {!profiles.some(p => p.whatsapp_phone) && (
-                        <p className="text-sm text-fg-muted">Nenhum número vinculado. Configure na aba Perfis.</p>
-                      )}
-                    </div>
-                  </div>
                 </div>
               )}
 

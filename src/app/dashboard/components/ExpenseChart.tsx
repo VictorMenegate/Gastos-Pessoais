@@ -10,130 +10,127 @@ interface Props {
 }
 
 const VIBRANT_COLORS = [
-  '#7B2D8E', // purple
+  '#8B3FA0', // purple
   '#2B4C7E', // dark blue
-  '#0E9AA7', // teal
-  '#3D1F7C', // deep purple
-  '#C73E6A', // magenta
-  '#1A6B3C', // forest green
-  '#D4612C', // burnt orange
+  '#0FADA4', // teal
+  '#5C2FC2', // deep violet
+  '#D4456A', // pink
+  '#1E8449', // emerald
+  '#E67E22', // orange
 ]
 
-function darkenColor(hex: string, factor = 0.35): string {
+function darken(hex: string, factor = 0.4): string {
   const r = parseInt(hex.slice(1, 3), 16)
   const g = parseInt(hex.slice(3, 5), 16)
   const b = parseInt(hex.slice(5, 7), 16)
   return `rgb(${Math.round(r * (1 - factor))},${Math.round(g * (1 - factor))},${Math.round(b * (1 - factor))})`
 }
 
-interface SliceData {
+interface Slice {
   startAngle: number
   endAngle: number
   color: string
   percentage: number
-  label: string
-  icon: string
-  value: number
 }
 
-function PieChart3D({ slices, size = 220 }: { slices: SliceData[]; size?: number }) {
+function PieChart3D({ slices, size = 240 }: { slices: Slice[]; size?: number }) {
   const cx = size / 2
-  const cy = size / 2 - 8
-  const rx = size * 0.38
-  const ry = rx * 0.55
-  const depth = 28
+  const cy = size * 0.42
+  const rx = size * 0.40
+  const ry = rx * 0.50
+  const depth = size * 0.13
+  const gap = 1.2 // degrees gap between slices
 
-  function polarToCartesian(angle: number, radiusX: number, radiusY: number, offsetY = 0) {
+  function toXY(angle: number, rX: number, rY: number, dy = 0) {
     const rad = (angle - 90) * (Math.PI / 180)
-    return {
-      x: cx + radiusX * Math.cos(rad),
-      y: cy + radiusY * Math.sin(rad) + offsetY,
+    return { x: cx + rX * Math.cos(rad), y: cy + rY * Math.sin(rad) + dy }
+  }
+
+  function topPath(s: Slice) {
+    const sa = s.startAngle + gap / 2
+    const ea = s.endAngle - gap / 2
+    if (ea - sa < 0.5) return ''
+    const p1 = toXY(sa, rx, ry)
+    const p2 = toXY(ea, rx, ry)
+    const large = ea - sa > 180 ? 1 : 0
+    return `M${cx},${cy} L${p1.x},${p1.y} A${rx},${ry} 0 ${large} 1 ${p2.x},${p2.y} Z`
+  }
+
+  function wallPath(s: Slice) {
+    const sa = s.startAngle + gap / 2
+    const ea = s.endAngle - gap / 2
+    if (ea - sa < 0.5) return ''
+    const n = Math.max(2, Math.ceil((ea - sa) / 3))
+    const top: string[] = []
+    const bot: string[] = []
+    for (let i = 0; i <= n; i++) {
+      const a = sa + (ea - sa) * (i / n)
+      const t = toXY(a, rx, ry, 0)
+      const b = toXY(a, rx, ry, depth)
+      top.push(`${t.x},${t.y}`)
+      bot.push(`${b.x},${b.y}`)
     }
+    return `M${top.join(' L')} L${bot.reverse().join(' L')} Z`
   }
 
-  function arcPath(startAngle: number, endAngle: number, radiusX: number, radiusY: number, offsetY = 0) {
-    const start = polarToCartesian(startAngle, radiusX, radiusY, offsetY)
-    const end = polarToCartesian(endAngle, radiusX, radiusY, offsetY)
-    const largeArc = endAngle - startAngle > 180 ? 1 : 0
-    return `M ${cx} ${cy + offsetY} L ${start.x} ${start.y} A ${radiusX} ${radiusY} 0 ${largeArc} 1 ${end.x} ${end.y} Z`
-  }
-
-  function sidePath(startAngle: number, endAngle: number, radiusX: number, radiusY: number, depth: number) {
-    const steps = Math.max(2, Math.ceil((endAngle - startAngle) / 5))
-    const topPoints: string[] = []
-    const bottomPoints: string[] = []
-    for (let i = 0; i <= steps; i++) {
-      const angle = startAngle + (endAngle - startAngle) * (i / steps)
-      const top = polarToCartesian(angle, radiusX, radiusY, 0)
-      const bot = polarToCartesian(angle, radiusX, radiusY, depth)
-      topPoints.push(`${top.x},${top.y}`)
-      bottomPoints.push(`${bot.x},${bot.y}`)
-    }
-    return `M ${topPoints.join(' L ')} L ${bottomPoints.reverse().join(' L ')} Z`
-  }
-
-  // Sort slices so back ones render first (painter's algorithm)
-  const sortedForSide = [...slices].sort((a, b) => {
-    const midA = (a.startAngle + a.endAngle) / 2
-    const midB = (b.startAngle + b.endAngle) / 2
-    // Slices at bottom (around 180deg) should render first
-    const yA = Math.sin((midA - 90) * Math.PI / 180)
-    const yB = Math.sin((midB - 90) * Math.PI / 180)
-    return yA - yB
-  })
+  // Only draw walls for arcs whose midpoint is in the "front" (visible) half
+  // Sort by Y so back walls render first
+  const wallSlices = slices
+    .filter(s => {
+      const mid = (s.startAngle + s.endAngle) / 2
+      const midY = Math.sin((mid - 90) * Math.PI / 180)
+      // Show wall if any part faces front
+      return midY > -0.6
+    })
+    .sort((a, b) => {
+      const ya = Math.sin(((a.startAngle + a.endAngle) / 2 - 90) * Math.PI / 180)
+      const yb = Math.sin(((b.startAngle + b.endAngle) / 2 - 90) * Math.PI / 180)
+      return ya - yb
+    })
 
   return (
-    <svg viewBox={`0 0 ${size} ${size}`} width="100%" height="100%" style={{ maxWidth: size, maxHeight: size }}>
+    <svg viewBox={`0 0 ${size} ${size}`} className="w-full h-full">
       <defs>
-        <filter id="pie-shadow" x="-20%" y="-10%" width="140%" height="140%">
-          <feDropShadow dx="0" dy="6" stdDeviation="8" floodColor="#000" floodOpacity="0.15" />
+        <filter id="pie3d-shadow">
+          <feDropShadow dx="0" dy="8" stdDeviation="10" floodColor="#000" floodOpacity="0.12" />
         </filter>
       </defs>
+      <g filter="url(#pie3d-shadow)">
+        {/* Bottom ellipse (shadow rim) */}
+        <ellipse cx={cx} cy={cy + depth} rx={rx + 1} ry={ry + 1} fill="rgba(0,0,0,0.06)" />
 
-      <g filter="url(#pie-shadow)">
-        {/* 3D sides - only visible slices */}
-        {sortedForSide.map((s, i) => {
-          // Only render side for slices that have visible sides (bottom half)
-          const clampStart = Math.max(s.startAngle, 0)
-          const clampEnd = Math.min(s.endAngle, 360)
-          if (clampEnd <= clampStart) return null
+        {/* 3D walls */}
+        {wallSlices.map((s, i) => (
+          <path key={`w${i}`} d={wallPath(s)} fill={darken(s.color)} />
+        ))}
 
-          // Check if any part of the arc is in the "visible side" zone (roughly 0-360 but we render all)
+        {/* Front edge lines for depth */}
+        {wallSlices.map((s, i) => {
+          const sa = s.startAngle + gap / 2
+          const ea = s.endAngle - gap / 2
+          const p1t = toXY(sa, rx, ry)
+          const p1b = toXY(sa, rx, ry, depth)
+          const p2t = toXY(ea, rx, ry)
+          const p2b = toXY(ea, rx, ry, depth)
           return (
-            <path
-              key={`side-${i}`}
-              d={sidePath(clampStart, clampEnd, rx, ry, depth)}
-              fill={darkenColor(s.color)}
-            />
+            <g key={`edge${i}`}>
+              <line x1={p1t.x} y1={p1t.y} x2={p1b.x} y2={p1b.y}
+                stroke="rgba(0,0,0,0.08)" strokeWidth={0.5} />
+              <line x1={p2t.x} y1={p2t.y} x2={p2b.x} y2={p2b.y}
+                stroke="rgba(0,0,0,0.08)" strokeWidth={0.5} />
+            </g>
           )
         })}
 
         {/* Top faces */}
         {slices.map((s, i) => (
-          <path
-            key={`top-${i}`}
-            d={arcPath(s.startAngle, s.endAngle, rx, ry)}
-            fill={s.color}
-            stroke="rgba(255,255,255,0.15)"
-            strokeWidth={1.5}
-          />
+          <path key={`t${i}`} d={topPath(s)} fill={s.color}
+            stroke="rgba(255,255,255,0.2)" strokeWidth={1} />
         ))}
 
-        {/* Highlight on top face */}
-        {slices.map((s, i) => {
-          const mid = (s.startAngle + s.endAngle) / 2
-          const pt = polarToCartesian(mid, rx * 0.55, ry * 0.55)
-          return (
-            <ellipse
-              key={`highlight-${i}`}
-              cx={pt.x}
-              cy={pt.y}
-              rx={rx * 0.18}
-              ry={ry * 0.12}
-              fill="rgba(255,255,255,0.08)"
-            />
-          )
-        })}
+        {/* Glossy highlight on top */}
+        <ellipse cx={cx - rx * 0.15} cy={cy - ry * 0.2} rx={rx * 0.5} ry={ry * 0.3}
+          fill="rgba(255,255,255,0.07)" />
       </g>
     </svg>
   )
@@ -157,31 +154,47 @@ export default function ExpenseChart({ data }: Props) {
     )
   }
 
-  // Build slices
-  let currentAngle = -30 // tilt for better 3D perspective
-  const slices: SliceData[] = data.slice(0, 7).map((item, i) => {
-    const angle = Math.max((item.percentage / 100) * 360, 2)
-    const slice: SliceData = {
+  // Build slices with minimum 8deg for visibility
+  const items = data.slice(0, 7)
+  const MIN_DEG = 8
+  let totalDeg = 360
+  let flexItems = items.length
+
+  // First pass: assign minimum to small slices
+  const rawAngles = items.map(item => {
+    const raw = (item.percentage / 100) * 360
+    if (raw < MIN_DEG) {
+      totalDeg -= MIN_DEG
+      flexItems--
+      return MIN_DEG
+    }
+    return raw
+  })
+
+  // Second pass: scale remaining to fill 360
+  const totalRaw = rawAngles.reduce((s, a) => a >= MIN_DEG ? s + a : s, 0)
+  const angles = rawAngles.map(a => a < MIN_DEG ? a : a * (totalDeg / (totalRaw || 1)))
+
+  let currentAngle = 200 // start angle for nice 3D view
+  const slices: Slice[] = items.map((item, i) => {
+    const slice: Slice = {
       startAngle: currentAngle,
-      endAngle: currentAngle + angle,
+      endAngle: currentAngle + angles[i],
       color: VIBRANT_COLORS[i % VIBRANT_COLORS.length],
       percentage: item.percentage,
-      label: item.name,
-      icon: item.icon,
-      value: item.value,
     }
-    currentAngle += angle
+    currentAngle += angles[i]
     return slice
   })
 
   return (
     <div className="flex flex-col md:flex-row items-center gap-5">
-      <div className="w-[200px] h-[200px] flex-shrink-0">
-        <PieChart3D slices={slices} size={200} />
+      <div className="w-[220px] h-[210px] flex-shrink-0">
+        <PieChart3D slices={slices} size={220} />
       </div>
 
       <div className="flex-1 space-y-2 w-full">
-        {data.slice(0, 7).map((item, i) => (
+        {items.map((item, i) => (
           <div key={item.name} className="flex items-center justify-between text-sm">
             <div className="flex items-center gap-2.5">
               <span className="inline-block w-3 h-3 flex-shrink-0"

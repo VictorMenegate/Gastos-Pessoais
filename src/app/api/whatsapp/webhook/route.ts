@@ -40,11 +40,11 @@ export async function POST(request: Request) {
   const msg = value.messages[0]
   const phone = msg.from // número do remetente (ex: 5511999999999)
 
-  // Extrai texto da mensagem
+  // Extrai texto da mensagem (text, botão clicado, ou item de lista)
   const text =
-    msg.text?.body ??
     msg.interactive?.button_reply?.id ??
     msg.interactive?.list_reply?.id ??
+    msg.text?.body ??
     ''
 
   if (!phone || !text.trim()) {
@@ -167,8 +167,10 @@ async function handleAwaitingType(phone: string, session: any, input: string, pr
     return await sendCategoryOptions(phone, session.temp_data.type === 'income' ? 'income' : 'expense')
   }
 
-  const list = methods.map((m, i) => `*${i + 1}.* ${m.icon} ${m.name}`).join('\n')
-  await sendMessage(phone, `💳 *Método de pagamento:*\n\n${list}\n\nResponda com o número`)
+  await sendList(phone, '💳 *Método de pagamento:*', 'Escolher', methods.map((m, i) => ({
+    id: `pm_${i}`,
+    title: `${m.icon} ${m.name}`.slice(0, 24),
+  })))
   return NextResponse.json({ status: 'awaiting_payment' })
 }
 
@@ -180,7 +182,8 @@ async function handleAwaitingPayment(phone: string, session: any, input: string,
     .eq('active', true)
     .limit(10)
 
-  const idx = parseInt(input) - 1
+  // Suporta tanto número quanto id do botão (pm_0, pm_1...)
+  const idx = input.startsWith('pm_') ? parseInt(input.replace('pm_', '')) : parseInt(input) - 1
   const method = methods?.[idx]
   const pmId = method?.id || null
 
@@ -195,8 +198,10 @@ async function sendCategoryOptions(phone: string, type: string) {
     .in('type', [type, 'both'])
     .limit(10)
 
-  const list = (categories ?? []).map((c, i) => `*${i + 1}.* ${c.icon} ${c.name}`).join('\n')
-  await sendMessage(phone, `📁 *Categoria:*\n\n${list}\n\nResponda com o número`)
+  await sendList(phone, '📁 *Categoria:*', 'Escolher', (categories ?? []).map((c, i) => ({
+    id: `cat_${i}`,
+    title: `${c.icon} ${c.name}`.slice(0, 24),
+  })))
   return NextResponse.json({ status: 'awaiting_category' })
 }
 
@@ -208,7 +213,8 @@ async function handleAwaitingCategory(phone: string, session: any, input: string
     .in('type', [categoryType, 'both'])
     .limit(10)
 
-  const idx = parseInt(input) - 1
+  // Suporta tanto número quanto id do botão (cat_0, cat_1...)
+  const idx = input.startsWith('cat_') ? parseInt(input.replace('cat_', '')) : parseInt(input) - 1
   const cat = categories?.[idx]
   const data = { ...session.temp_data, category_id: cat?.id || null }
   await updateSession(session.id, 'awaiting_confirm', data)
@@ -221,22 +227,24 @@ async function handleAwaitingCategory(phone: string, session: any, input: string
     `📝 *${data.description}*`,
     `💰 *R$ ${data.amount.toFixed(2)}*`,
     `📁 ${cat?.icon ?? '📦'} ${cat?.name ?? 'Outros'}`,
-    `\nResponda *sim* para confirmar ou *não* para cancelar`,
   ].join('\n')
 
-  await sendMessage(phone, summary)
+  await sendButtons(phone, summary, [
+    { id: 'confirm_yes', title: 'Sim, salvar' },
+    { id: 'confirm_no', title: 'Cancelar' },
+  ])
   return NextResponse.json({ status: 'awaiting_confirm' })
 }
 
 async function handleAwaitingConfirm(phone: string, session: any, input: string, profile: any) {
   const lower = input.toLowerCase()
-  if (lower === 'nao' || lower === 'não' || lower === 'n' || lower === '2') {
+  if (lower === 'nao' || lower === 'não' || lower === 'n' || lower === '2' || lower === 'confirm_no') {
     await completeSession(session.id)
     await sendMessage(phone, '❌ Cancelado.')
     return NextResponse.json({ status: 'cancelled' })
   }
 
-  if (lower !== 'sim' && lower !== 's' && lower !== '1' && lower !== 'ok') {
+  if (lower !== 'sim' && lower !== 's' && lower !== '1' && lower !== 'ok' && lower !== 'confirm_yes') {
     await sendMessage(phone, 'Responda *sim* ou *não*')
     return NextResponse.json({ status: 'awaiting_confirm' })
   }
@@ -379,6 +387,43 @@ async function sendButtons(to: string, text: string, buttons: { id: string; titl
     console.error('WhatsApp Cloud API buttons error:', e)
     // Fallback para texto
     await sendMessage(to, text + '\n\n' + buttons.map((b, i) => `*${i + 1}.* ${b.title}`).join('\n'))
+  }
+}
+
+async function sendList(to: string, text: string, buttonText: string, rows: { id: string; title: string }[]) {
+  if (!WHATSAPP_TOKEN || !WHATSAPP_PHONE_NUMBER_ID) {
+    const fallback = text + '\n\n' + rows.map((r, i) => `*${i + 1}.* ${r.title}`).join('\n') + '\n\nResponda com o número'
+    return await sendMessage(to, fallback)
+  }
+
+  try {
+    await fetch(`https://graph.facebook.com/v21.0/${WHATSAPP_PHONE_NUMBER_ID}/messages`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${WHATSAPP_TOKEN}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        messaging_product: 'whatsapp',
+        to,
+        type: 'interactive',
+        interactive: {
+          type: 'list',
+          body: { text },
+          action: {
+            button: buttonText,
+            sections: [{
+              title: 'Opções',
+              rows: rows.map(r => ({ id: r.id, title: r.title })),
+            }],
+          },
+        },
+      }),
+    })
+  } catch (e) {
+    console.error('WhatsApp Cloud API list error:', e)
+    const fallback = text + '\n\n' + rows.map((r, i) => `*${i + 1}.* ${r.title}`).join('\n') + '\n\nResponda com o número'
+    await sendMessage(to, fallback)
   }
 }
 

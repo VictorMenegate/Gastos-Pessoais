@@ -127,7 +127,7 @@ export default function Sidebar() {
       </aside>
 
       {/* ═══ MOBILE: Floating bottom nav ═══ */}
-      <nav className="md:hidden fixed bottom-4 left-4 right-4 z-50"
+      <nav className={`md:hidden fixed bottom-4 left-4 right-4 ${moreOpen ? 'z-[60]' : 'z-50'}`}
         style={{
           background: 'rgba(255,255,255,0.92)',
           backdropFilter: 'blur(20px)',

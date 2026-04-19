@@ -25,7 +25,7 @@ const bottomItems = [
   { href: '/configuracoes', icon: Settings, label: 'Config' },
 ]
 
-const mobileMainHrefs = ['/dashboard', '/transacoes', '/metas', '/orcamentos']
+const mobileMainHrefs = ['/dashboard', '/transacoes']
 const mobileMainItems = mobileMainHrefs
   .map(h => navItems.find(i => i.href === h)!)
   .filter(Boolean)

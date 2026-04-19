@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { format } from 'date-fns'
-import { Wallet, PiggyBank, Bell, ArrowUpRight, ArrowDownRight, ArrowRight, CreditCard, Search, TrendingUp, TrendingDown, Target } from 'lucide-react'
+import { PiggyBank, Bell, ArrowUpRight, ArrowDownRight, ArrowRight, CreditCard, Search, TrendingUp, TrendingDown, Target } from 'lucide-react'
 import { getDashboardData, getFinancialGoals } from '@/lib/queries'
 import { formatCurrency, formatPercent } from '@/lib/utils'
 import { useHeroTimeline, useStaggerIn } from '@/lib/useAnime'
@@ -37,6 +37,24 @@ export default function DashboardPage() {
   const s = data?.summary
   const h = new Date().getHours()
   const greeting = h < 12 ? 'Bom dia' : h < 18 ? 'Boa tarde' : 'Boa noite'
+
+  const mc = data?.monthlyComparison ?? []
+  const last = mc[mc.length - 1], prev = mc[mc.length - 2]
+  const pctDelta = (cur?: number, prv?: number) => (!prv || prv === 0) ? 0 : (((cur ?? 0) - prv) / prv) * 100
+  const trendIncome = pctDelta(last?.income, prev?.income)
+  const trendExpense = pctDelta(last?.expenses, prev?.expenses)
+  const prevSavingsRate = prev && prev.income > 0 ? ((prev.income - prev.expenses) / prev.income) * 100 : 0
+  const trendSavings = (s?.savingsRate ?? 0) - prevSavingsRate
+  const trendBalance = pctDelta(last?.balance, prev?.balance)
+  const incomeSpark = mc.map(m => m.income)
+  const expenseSpark = mc.map(m => m.expenses)
+  const balanceSpark = mc.map(m => m.balance)
+
+  const activeGoals = goals.filter(g => g.status === 'active')
+  const goalTotalTarget = activeGoals.reduce((sum, g) => sum + g.target_amount, 0)
+  const goalTotalCurrent = activeGoals.reduce((sum, g) => sum + g.current_amount, 0)
+  const goalPct = goalTotalTarget > 0 ? Math.round((goalTotalCurrent / goalTotalTarget) * 100) : 0
+  const goalSpark = activeGoals.slice(0, 6).map(g => g.target_amount > 0 ? (g.current_amount / g.target_amount) * 100 : 0)
 
   const heroRef = useHeroTimeline(loading)
   const kpiRef = useStaggerIn([loading])
@@ -76,6 +94,15 @@ export default function DashboardPage() {
           <p data-anim="balance-value" className="text-[42px] font-extrabold text-white tracking-tight leading-none opacity-0">
             {loading ? '—' : formatCurrency(s?.balance ?? 0)}
           </p>
+          {!loading && mc.length >= 2 && trendBalance !== 0 && (
+            <div className="flex items-center justify-center gap-1.5 mt-3">
+              <span className={`inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-lg ${trendBalance >= 0 ? 'bg-emerald-400/20 text-emerald-200' : 'bg-red-400/20 text-red-200'}`}>
+                {trendBalance >= 0 ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
+                {trendBalance >= 0 ? '+' : ''}{trendBalance.toFixed(1).replace('.', ',')}%
+              </span>
+              <span className="text-white/50 text-[10px] font-medium">vs. mes anterior</span>
+            </div>
+          )}
         </div>
 
         {!loading && s && (
@@ -131,78 +158,73 @@ export default function DashboardPage() {
 
         {loading ? <Loading /> : (
           <>
-            {/* ── Desktop: Revenue row (like reference) ── */}
+            {/* ── Desktop: Revenue row ── */}
             <div className="hidden md:block">
-              <div className="flex items-end justify-between mb-6">
-                <div>
-                  <p className="text-fg-muted text-sm font-medium mb-1">Saldo do periodo</p>
-                  <div className="flex items-baseline gap-4">
-                    <p className="text-[52px] font-extrabold text-fg tracking-tight leading-none">
-                      {formatCurrency(s?.balance ?? 0)}
-                    </p>
-                    {s && s.savingsRate > 0 && (
-                      <span className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-bold text-emerald-600"
-                        style={{ background: '#dcfce7', borderRadius: '12px', border: '1.5px solid #bbf7d0' }}>
-                        <TrendingUp size={14} /> {formatPercent(s.savingsRate, 1)}
-                      </span>
-                    )}
-                    {s && s.savingsRate < 0 && (
-                      <span className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-bold text-red-500"
-                        style={{ background: '#fef2f2', borderRadius: '12px', border: '1.5px solid #fecaca' }}>
-                        <TrendingDown size={14} /> {formatPercent(s.savingsRate, 1)}
-                      </span>
-                    )}
-                  </div>
-                </div>
-
-                {/* Quick stat cards — horizontal row */}
-                <div className="flex gap-3">
-                  <StatPill icon={<ArrowDownRight size={16} />} label="Entradas" value={formatCurrency(s?.totalIncome ?? 0)} color="green" />
-                  <StatPill icon={<ArrowUpRight size={16} />} label="Saidas" value={formatCurrency(s?.totalExpenses ?? 0)} color="red" />
-                  <StatPill icon={<PiggyBank size={16} />} label="Economia" value={formatPercent(s?.savingsRate ?? 0, 1)} color="blue" />
+              <div>
+                <p className="text-fg-muted text-sm font-medium mb-1">Saldo do periodo</p>
+                <div className="flex items-baseline gap-4 flex-wrap">
+                  <p className="text-[52px] font-extrabold text-fg tracking-tight leading-none">
+                    {formatCurrency(s?.balance ?? 0)}
+                  </p>
+                  {s && s.savingsRate > 0 && (
+                    <span className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-bold text-emerald-600"
+                      style={{ background: '#dcfce7', borderRadius: '12px', border: '1.5px solid #bbf7d0' }}>
+                      <TrendingUp size={14} /> {formatPercent(s.savingsRate, 1)}
+                    </span>
+                  )}
+                  {s && s.savingsRate < 0 && (
+                    <span className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-bold text-red-500"
+                      style={{ background: '#fef2f2', borderRadius: '12px', border: '1.5px solid #fecaca' }}>
+                      <TrendingDown size={14} /> {formatPercent(s.savingsRate, 1)}
+                    </span>
+                  )}
                 </div>
               </div>
             </div>
 
-            {/* Mobile KPI + savings — grouped to avoid extra spacing */}
-            <div className="md:hidden space-y-2">
-              <div ref={kpiRef} className="grid grid-cols-2 gap-3">
-              {(() => {
-                const active = goals.filter(g => g.status === 'active')
-                const totalTarget = active.reduce((sum, g) => sum + g.target_amount, 0)
-                const totalCurrent = active.reduce((sum, g) => sum + g.current_amount, 0)
-                const pct = totalTarget > 0 ? Math.round((totalCurrent / totalTarget) * 100) : 0
-                return (
-                  <div className="card">
-                    <div className="flex items-center gap-2 mb-2.5">
-                      <div className="w-9 h-9 rounded-xl flex items-center justify-center bg-violet-50 text-violet-600">
-                        <Target size={18} />
-                      </div>
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-fg-muted">Metas</span>
-                    </div>
-                    <p className="text-lg font-extrabold text-fg leading-tight">{active.length ? `${pct}%` : '—'}</p>
-                    <div className="w-full h-1.5 rounded-full bg-violet-100 overflow-hidden mt-2">
-                      <div className="h-full rounded-full bg-violet-500 transition-all" style={{ width: `${pct}%` }} />
-                    </div>
-                    <p className="text-[10px] text-fg-muted font-medium mt-1">{active.length ? `faltam ${formatPercent(100 - pct, 0)}` : 'sem metas ativas'}</p>
-                  </div>
-                )
-              })()}
-              <KPICard icon={<PiggyBank size={18} />} label="Economia"
+            {/* 4-KPI grid (Entradas, Saidas, Economia, Metas) — trends + sparklines */}
+            <div ref={kpiRef} className="grid grid-cols-2 min-[900px]:grid-cols-2 min-[1100px]:grid-cols-4 gap-3 md:gap-4">
+              <KPICard
+                icon={<ArrowDownRight size={18} />} label="Entradas" color="green"
+                value={formatCurrency(s?.totalIncome ?? 0)}
+                sub={mc.length >= 2 ? 'vs. mes anterior' : `${data?.transactions.filter(t => t.type === 'income').length ?? 0} transacoes`}
+                trendPct={mc.length >= 2 ? trendIncome : undefined}
+                sparkline={incomeSpark}
+              />
+              <KPICard
+                icon={<ArrowUpRight size={18} />} label="Saidas" color="red"
+                value={formatCurrency(s?.totalExpenses ?? 0)}
+                sub={mc.length >= 2 ? 'vs. mes anterior' : `${data?.transactions.filter(t => t.type === 'expense').length ?? 0} transacoes`}
+                trendPct={mc.length >= 2 ? trendExpense : undefined}
+                trendInverted
+                sparkline={expenseSpark}
+              />
+              <KPICard
+                icon={<PiggyBank size={18} />} label="Economia" color="blue"
                 value={formatPercent(s?.savingsRate ?? 0, 1)}
                 sub={`${data?.installments.length ?? 0} parcelamentos`}
-                color="purple" />
-              </div>
-              {s && s.savingsRate > 0 && (
-                <div className="bg-white rounded-2xl px-4 py-3.5 flex items-center gap-3 shadow-md border border-surface-border">
-                  <span className="text-xl">🎉</span>
-                  <p className="text-fg-secondary text-sm font-medium flex-1">
-                    Economizou <span className="text-brand-500 font-bold">{formatPercent(s.savingsRate, 0)}</span> este mes
-                  </p>
-                  <ArrowRight size={16} className="text-fg-muted" />
-                </div>
-              )}
+                trendPct={mc.length >= 2 ? trendSavings : undefined}
+                sparkline={balanceSpark}
+              />
+              <KPICard
+                icon={<Target size={18} />} label="Metas" color="purple"
+                value={activeGoals.length ? `${goalPct}%` : '—'}
+                sub={activeGoals.length ? `faltam ${formatPercent(100 - goalPct, 0)}` : 'sem metas ativas'}
+                bar={activeGoals.length ? goalPct : undefined}
+                sparkline={goalSpark}
+              />
             </div>
+
+            {/* Mobile savings celebration banner */}
+            {s && s.savingsRate > 0 && (
+              <div className="md:hidden bg-white rounded-2xl px-4 py-3.5 flex items-center gap-3 shadow-md border border-surface-border">
+                <span className="text-xl">🎉</span>
+                <p className="text-fg-secondary text-sm font-medium flex-1">
+                  Economizou <span className="text-brand-500 font-bold">{formatPercent(s.savingsRate, 0)}</span> este mes
+                </p>
+                <ArrowRight size={16} className="text-fg-muted" />
+              </div>
+            )}
 
             {/* Charts — 2 cols desktop, stacked mobile */}
             <div ref={contentRef} className="grid lg:grid-cols-2 gap-4 lg:gap-5">
@@ -315,50 +337,71 @@ export default function DashboardPage() {
   )
 }
 
-/* ── Stat pill for desktop revenue row ── */
-function StatPill({ icon, label, value, color }: {
-  icon: React.ReactNode; label: string; value: string; color: 'green' | 'red' | 'blue'
-}) {
-  const styles = {
-    green: { bg: '#f0fdf4', text: '#16a34a', border: '#bbf7d0' },
-    red:   { bg: '#fef2f2', text: '#dc2626', border: '#fecaca' },
-    blue:  { bg: '#eff6ff', text: '#2B4C7E', border: '#bfdbfe' },
+const colorMap = {
+  blue:   { bg: 'bg-blue-50',    text: 'text-brand-500',    stroke: '#2B4C7E' },
+  red:    { bg: 'bg-red-50',     text: 'text-red-500',      stroke: '#EF4444' },
+  green:  { bg: 'bg-emerald-50', text: 'text-emerald-600',  stroke: '#16a34a' },
+  purple: { bg: 'bg-violet-50',  text: 'text-violet-600',   stroke: '#8b5cf6' },
+}
+
+function Sparkline({ values, color }: { values: number[]; color: string }) {
+  if (values.length < 2 || values.every(v => v === 0)) {
+    return <div className="h-6 w-full" />
   }
-  const s = styles[color]
+  const max = Math.max(...values), min = Math.min(...values)
+  const range = max - min || 1
+  const points = values.map((v, i) => {
+    const x = (i / (values.length - 1)) * 100
+    const y = 100 - ((v - min) / range) * 90 - 5
+    return `${x},${y}`
+  }).join(' ')
   return (
-    <div className="flex items-center gap-3 px-5 py-3.5"
-      style={{ background: s.bg, color: s.text, border: `2px solid ${s.border}`, borderRadius: '20px' }}>
-      <div className="w-9 h-9 rounded-xl bg-white flex items-center justify-center" style={{ border: `1.5px solid ${s.border}` }}>{icon}</div>
-      <div>
-        <p className="text-[10px] font-bold uppercase opacity-60">{label}</p>
-        <p className="text-base font-extrabold">{value}</p>
-      </div>
-    </div>
+    <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="w-full h-6 mt-1" aria-hidden>
+      <polyline points={points} fill="none" stroke={color} strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke" opacity="0.85" />
+    </svg>
   )
 }
 
-const colorMap = {
-  blue:   { bg: 'bg-blue-50',   text: 'text-brand-500' },
-  red:    { bg: 'bg-red-50',    text: 'text-red-500' },
-  green:  { bg: 'bg-emerald-50', text: 'text-emerald-600' },
-  purple: { bg: 'bg-violet-50', text: 'text-violet-600' },
+function TrendChip({ pct, inverted }: { pct: number; inverted?: boolean }) {
+  if (!isFinite(pct) || Math.abs(pct) < 0.05) return null
+  const up = pct > 0
+  const positive = inverted ? !up : up
+  const Icon = up ? TrendingUp : TrendingDown
+  return (
+    <span className={`inline-flex items-center gap-0.5 text-[10px] font-bold px-1.5 py-0.5 rounded-md ${positive ? 'text-emerald-600 bg-emerald-50' : 'text-red-500 bg-red-50'}`}>
+      <Icon size={10} /> {up ? '+' : ''}{pct.toFixed(1).replace('.', ',')}%
+    </span>
+  )
 }
 
-function KPICard({ icon, label, value, sub, color }: {
+function KPICard({ icon, label, value, sub, color, trendPct, trendInverted, sparkline, bar }: {
   icon: React.ReactNode; label: string; value: string; sub: string
   color: keyof typeof colorMap
+  trendPct?: number
+  trendInverted?: boolean
+  sparkline?: number[]
+  bar?: number
 }) {
   const c = colorMap[color]
   return (
     <div className="card">
-      <div className="flex items-center gap-2 mb-2.5">
-        <div className={`w-9 h-9 lg:w-10 lg:h-10 rounded-xl flex items-center justify-center ${c.bg} ${c.text}`}>
-          {icon}
+      <div className="flex items-center justify-between gap-2 mb-2.5">
+        <div className="flex items-center gap-2 min-w-0">
+          <div className={`w-9 h-9 lg:w-10 lg:h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${c.bg} ${c.text}`}>
+            {icon}
+          </div>
+          <span className="text-[10px] lg:text-[11px] font-bold uppercase tracking-wider text-fg-muted truncate">{label}</span>
         </div>
-        <span className="text-[10px] lg:text-[11px] font-bold uppercase tracking-wider text-fg-muted">{label}</span>
+        {trendPct !== undefined && <TrendChip pct={trendPct} inverted={trendInverted} />}
       </div>
-      <p className="text-lg lg:text-xl font-extrabold text-fg leading-tight">{value}</p>
-      <p className="text-[10px] lg:text-xs text-fg-muted font-medium mt-0.5">{sub}</p>
+      <p className="text-lg lg:text-xl font-extrabold text-fg leading-tight tabular-nums">{value}</p>
+      {bar !== undefined && (
+        <div className="w-full h-1.5 rounded-full bg-[var(--bg-input)] overflow-hidden mt-2">
+          <div className="h-full rounded-full transition-all duration-700" style={{ width: `${Math.min(100, bar)}%`, background: c.stroke }} />
+        </div>
+      )}
+      {sparkline && sparkline.length >= 2 && bar === undefined && <Sparkline values={sparkline} color={c.stroke} />}
+      <p className="text-[10px] lg:text-xs text-fg-muted font-medium mt-1">{sub}</p>
     </div>
   )
 }

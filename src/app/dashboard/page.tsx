@@ -63,7 +63,7 @@ export default function DashboardPage() {
   return (
     <div>
       {/* ══════ MOBILE HERO (hidden on lg+) ══════ */}
-      <div ref={heroRef} className="md:hidden px-5 pt-6 pb-16 relative overflow-hidden"
+      <div ref={heroRef} className="md:hidden px-5 pt-6 pb-10 relative overflow-hidden"
         style={{
           background: 'linear-gradient(160deg, #1e3a6e 0%, #2B4C7E 30%, #567EBB 70%, #4a72ab 100%)',
           borderRadius: '0 0 32px 32px',
@@ -105,24 +105,6 @@ export default function DashboardPage() {
           )}
         </div>
 
-        {!loading && s && (
-          <div className="flex justify-center gap-3 mt-7 relative z-10">
-            <div data-anim="pill" className="flex items-center gap-2.5 bg-white/10 backdrop-blur-sm rounded-2xl px-4 py-3 min-w-[140px] opacity-0">
-              <div className="w-8 h-8 rounded-xl bg-white/15 flex items-center justify-center"><ArrowDownRight size={16} className="text-green-300" /></div>
-              <div>
-                <p className="text-white/45 text-[10px] font-bold uppercase">Entradas</p>
-                <p className="text-white text-sm font-extrabold">{formatCurrency(s.totalIncome)}</p>
-              </div>
-            </div>
-            <div data-anim="pill" className="flex items-center gap-2.5 bg-white/10 backdrop-blur-sm rounded-2xl px-4 py-3 min-w-[140px] opacity-0">
-              <div className="w-8 h-8 rounded-xl bg-white/15 flex items-center justify-center"><ArrowUpRight size={16} className="text-red-300" /></div>
-              <div>
-                <p className="text-white/45 text-[10px] font-bold uppercase">Saidas</p>
-                <p className="text-white text-sm font-extrabold">{formatCurrency(s.totalExpenses)}</p>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
 
       {/* ══════ DESKTOP TOP BAR (hidden on mobile) ══════ */}

@@ -10,13 +10,13 @@ interface Props {
 }
 
 const COLORS = [
-  '#8B3FA0',
-  '#2B4C7E',
-  '#0FADA4',
-  '#5C2FC2',
-  '#D4456A',
-  '#1E8449',
-  '#E67E22',
+  '#1B9E77',
+  '#D95F02',
+  '#7570B3',
+  '#E7298A',
+  '#66A61E',
+  '#E6AB02',
+  '#A6761D',
 ]
 
 function darken(hex: string, f = 0.4): string {
@@ -34,81 +34,64 @@ interface Slice {
 
 function Pie3D({ slices, w = 240, h = 200 }: { slices: Slice[]; w?: number; h?: number }) {
   const cx = w / 2
-  const cy = h * 0.40
-  const rx = w * 0.42
+  const cy = h * 0.42
+  const rx = w * 0.34
   const ry = rx * 0.48
-  const depth = 24
-  const GAP = 1.5
+  const depth = 22
+  const explode = 10
 
-  function pt(a: number, ofsY = 0) {
+  function offset(start: number, end: number): [number, number] {
+    const mid = (start + end) / 2
+    const r = (mid - 90) * Math.PI / 180
+    return [Math.cos(r) * explode, Math.sin(r) * explode * (ry / rx)]
+  }
+
+  function pt(a: number, dy: number, dx: number, dyOff: number) {
     const r = (a - 90) * Math.PI / 180
-    return [cx + rx * Math.cos(r), cy + ry * Math.sin(r) + ofsY] as const
+    return [cx + dx + rx * Math.cos(r), cy + dyOff + ry * Math.sin(r) + dy] as const
   }
 
-  // Arc path for a pie face (from center)
-  function face(s: number, e: number, dy = 0) {
-    const sa = s + GAP / 2
-    const ea = e - GAP / 2
-    if (ea - sa < 0.3) return ''
-    const [x1, y1] = pt(sa, dy)
-    const [x2, y2] = pt(ea, dy)
-    const lg = ea - sa > 180 ? 1 : 0
-    return `M${cx},${cy + dy} L${x1},${y1} A${rx},${ry} 0 ${lg} 1 ${x2},${y2} Z`
+  function face(s: number, e: number, dx: number, dyOff: number, dy = 0) {
+    const [x1, y1] = pt(s, dy, dx, dyOff)
+    const [x2, y2] = pt(e, dy, dx, dyOff)
+    const lg = e - s > 180 ? 1 : 0
+    return `M${cx + dx},${cy + dyOff + dy} L${x1},${y1} A${rx},${ry} 0 ${lg} 1 ${x2},${y2} Z`
   }
 
-  // Outer curved wall between top and bottom arc
-  function outerWall(s: number, e: number) {
-    const sa = s + GAP / 2
-    const ea = e - GAP / 2
-    if (ea - sa < 0.3) return ''
-    const steps = Math.max(2, Math.ceil((ea - sa) / 3))
+  function outerWall(s: number, e: number, dx: number, dyOff: number) {
+    const steps = Math.max(2, Math.ceil((e - s) / 3))
     const pts: string[] = []
-    // Top arc left to right
     for (let i = 0; i <= steps; i++) {
-      const a = sa + (ea - sa) * (i / steps)
-      const [x, y] = pt(a, 0)
+      const a = s + (e - s) * (i / steps)
+      const [x, y] = pt(a, 0, dx, dyOff)
       pts.push(`${x},${y}`)
     }
-    // Bottom arc right to left
     for (let i = steps; i >= 0; i--) {
-      const a = sa + (ea - sa) * (i / steps)
-      const [x, y] = pt(a, depth)
+      const a = s + (e - s) * (i / steps)
+      const [x, y] = pt(a, depth, dx, dyOff)
       pts.push(`${x},${y}`)
     }
     return `M${pts.join(' L')} Z`
   }
 
-  // Flat radial wall (side cut face from center to rim)
-  function radialWall(angle: number) {
-    const [tx, ty] = pt(angle, 0)
-    const [bx, by] = pt(angle, depth)
-    return `M${cx},${cy} L${tx},${ty} L${bx},${by} L${cx},${cy + depth} Z`
+  function radialWall(angle: number, dx: number, dyOff: number) {
+    const [tx, ty] = pt(angle, 0, dx, dyOff)
+    const [bx, by] = pt(angle, depth, dx, dyOff)
+    return `M${cx + dx},${cy + dyOff} L${tx},${ty} L${bx},${by} L${cx + dx},${cy + dyOff + depth} Z`
   }
 
-  // Determine if an angle's wall faces the viewer
-  // Front-facing = the normal points toward us (positive Y in screen space)
   function isOuterVisible(start: number, end: number) {
-    // Outer wall is visible if any part of arc is in bottom half of ellipse (facing viewer)
-    // Normalized: angles 0-180 are right side, 180-360 are left side
-    // "Front" in our tilted view is roughly 0 to 180 (bottom of ellipse)
     const mid = ((start + end) / 2) % 360
     const normMid = mid < 0 ? mid + 360 : mid
-    // Visible if mid is between ~350 and ~190 (front-facing arc)
     return normMid > 340 || normMid < 200
   }
 
   function isRadialVisible(angle: number) {
     const a = ((angle % 360) + 360) % 360
-    // Radial wall visible when it faces camera
-    // Right side walls visible: roughly 0-180
-    // Left side walls visible: roughly 180-360
-    // Simplified: always show, let z-order handle it
     const nx = -Math.sin((a - 90) * Math.PI / 180)
-    return nx > -0.3 // facing somewhat toward viewer
+    return nx > -0.3
   }
 
-  // Rendering order: back walls first, then front walls, then all top faces
-  // Sort slices by midpoint Y (back to front)
   const indexed = slices.map((s, i) => ({ ...s, i }))
   const byDepth = [...indexed].sort((a, b) => {
     const midA = ((a.start + a.end) / 2 - 90) * Math.PI / 180
@@ -120,37 +103,34 @@ function Pie3D({ slices, w = 240, h = 200 }: { slices: Slice[]; w?: number; h?: 
     <svg viewBox={`0 0 ${w} ${h}`} className="w-full h-full">
       <defs>
         <filter id="pie3d-sh">
-          <feDropShadow dx="0" dy="4" stdDeviation="6" floodColor="#000" floodOpacity="0.10" />
+          <feDropShadow dx="0" dy="4" stdDeviation="6" floodColor="#000" floodOpacity="0.12" />
         </filter>
       </defs>
       <g filter="url(#pie3d-sh)">
-        {/* Layer 1: All outer curved walls (back to front) */}
         {byDepth.map(s => {
-          if (!isOuterVisible(s.start, s.end)) return null
-          return <path key={`ow${s.i}`} d={outerWall(s.start, s.end)} fill={darken(s.color, 0.45)} />
+          const [dx, dyOff] = offset(s.start, s.end)
+          return (
+            <g key={`slice${s.i}`}>
+              {isOuterVisible(s.start, s.end) && (
+                <path d={outerWall(s.start, s.end, dx, dyOff)} fill={darken(s.color, 0.45)} />
+              )}
+              {isRadialVisible(s.start) && (
+                <path d={radialWall(s.start, dx, dyOff)} fill={darken(s.color, 0.3)} />
+              )}
+              {isRadialVisible(s.end) && (
+                <path d={radialWall(s.end, dx, dyOff)} fill={darken(s.color, 0.3)} />
+              )}
+            </g>
+          )
         })}
 
-        {/* Layer 2: Radial side walls (the flat cut faces) */}
-        {byDepth.map(s => (
-          <g key={`rw${s.i}`}>
-            {isRadialVisible(s.start) && (
-              <path d={radialWall(s.start + GAP / 2)} fill={darken(s.color, 0.3)} />
-            )}
-            {isRadialVisible(s.end) && (
-              <path d={radialWall(s.end - GAP / 2)} fill={darken(s.color, 0.3)} />
-            )}
-          </g>
-        ))}
-
-        {/* Layer 3: All top faces (always on top) */}
-        {slices.map((s, i) => (
-          <path key={`tf${i}`} d={face(s.start, s.end)} fill={s.color}
-            stroke="rgba(255,255,255,0.25)" strokeWidth={0.8} />
-        ))}
-
-        {/* Subtle gloss */}
-        <ellipse cx={cx - rx * 0.1} cy={cy - ry * 0.25} rx={rx * 0.45} ry={ry * 0.25}
-          fill="rgba(255,255,255,0.06)" />
+        {slices.map((s, i) => {
+          const [dx, dyOff] = offset(s.start, s.end)
+          return (
+            <path key={`tf${i}`} d={face(s.start, s.end, dx, dyOff)} fill={s.color}
+              stroke="rgba(255,255,255,0.35)" strokeWidth={1} />
+          )
+        })}
       </g>
     </svg>
   )
@@ -194,8 +174,8 @@ export default function ExpenseChart({ data }: Props) {
 
   return (
     <div className="flex flex-col md:flex-row items-center gap-5">
-      <div className="w-[220px] h-[185px] flex-shrink-0">
-        <Pie3D slices={slices} w={220} h={185} />
+      <div className="w-[240px] h-[195px] flex-shrink-0">
+        <Pie3D slices={slices} w={240} h={195} />
       </div>
 
       <div className="flex-1 space-y-2 w-full">

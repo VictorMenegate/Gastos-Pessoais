@@ -25,8 +25,14 @@ const bottomItems = [
   { href: '/configuracoes', icon: Settings, label: 'Config' },
 ]
 
-const mobileMainItems = navItems.slice(0, 4)
-const mobileMoreItems = [...navItems.slice(4), ...bottomItems]
+const mobileMainHrefs = ['/dashboard', '/transacoes', '/metas', '/orcamentos']
+const mobileMainItems = mobileMainHrefs
+  .map(h => navItems.find(i => i.href === h)!)
+  .filter(Boolean)
+const mobileMoreItems = [
+  ...navItems.filter(i => !mobileMainHrefs.includes(i.href)),
+  ...bottomItems,
+]
 
 export default function Sidebar() {
   const pathname = usePathname()

@@ -41,6 +41,7 @@ function Pie3D({ slices, w = 240, h = 200 }: { slices: Slice[]; w?: number; h?: 
   const explode = 10
 
   function offset(start: number, end: number): [number, number] {
+    if (end - start >= 359.5) return [0, 0]
     const mid = (start + end) / 2
     const r = (mid - 90) * Math.PI / 180
     return [Math.cos(r) * explode, Math.sin(r) * explode * (ry / rx)]
@@ -52,6 +53,11 @@ function Pie3D({ slices, w = 240, h = 200 }: { slices: Slice[]; w?: number; h?: 
   }
 
   function face(s: number, e: number, dx: number, dyOff: number, dy = 0) {
+    if (e - s >= 359.5) {
+      const [xt, yt] = pt(0, dy, dx, dyOff)
+      const [xb, yb] = pt(180, dy, dx, dyOff)
+      return `M${xt},${yt} A${rx},${ry} 0 1 1 ${xb},${yb} A${rx},${ry} 0 1 1 ${xt},${yt} Z`
+    }
     const [x1, y1] = pt(s, dy, dx, dyOff)
     const [x2, y2] = pt(e, dy, dx, dyOff)
     const lg = e - s > 180 ? 1 : 0
@@ -59,15 +65,18 @@ function Pie3D({ slices, w = 240, h = 200 }: { slices: Slice[]; w?: number; h?: 
   }
 
   function outerWall(s: number, e: number, dx: number, dyOff: number) {
-    const steps = Math.max(2, Math.ceil((e - s) / 3))
+    const sweep = e - s
+    const range = sweep >= 359.5 ? 180 : sweep
+    const from = sweep >= 359.5 ? 0 : s
+    const steps = Math.max(2, Math.ceil(range / 3))
     const pts: string[] = []
     for (let i = 0; i <= steps; i++) {
-      const a = s + (e - s) * (i / steps)
+      const a = from + range * (i / steps)
       const [x, y] = pt(a, 0, dx, dyOff)
       pts.push(`${x},${y}`)
     }
     for (let i = steps; i >= 0; i--) {
-      const a = s + (e - s) * (i / steps)
+      const a = from + range * (i / steps)
       const [x, y] = pt(a, depth, dx, dyOff)
       pts.push(`${x},${y}`)
     }
@@ -109,15 +118,16 @@ function Pie3D({ slices, w = 240, h = 200 }: { slices: Slice[]; w?: number; h?: 
       <g filter="url(#pie3d-sh)">
         {byDepth.map(s => {
           const [dx, dyOff] = offset(s.start, s.end)
+          const isFull = s.end - s.start >= 359.5
           return (
             <g key={`slice${s.i}`}>
-              {isOuterVisible(s.start, s.end) && (
+              {(isFull || isOuterVisible(s.start, s.end)) && (
                 <path d={outerWall(s.start, s.end, dx, dyOff)} fill={darken(s.color, 0.45)} />
               )}
-              {isRadialVisible(s.start) && (
+              {!isFull && isRadialVisible(s.start) && (
                 <path d={radialWall(s.start, dx, dyOff)} fill={darken(s.color, 0.3)} />
               )}
-              {isRadialVisible(s.end) && (
+              {!isFull && isRadialVisible(s.end) && (
                 <path d={radialWall(s.end, dx, dyOff)} fill={darken(s.color, 0.3)} />
               )}
             </g>

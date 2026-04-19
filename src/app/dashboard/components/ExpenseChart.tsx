@@ -67,7 +67,7 @@ function Pie3D({ slices, w = 240, h = 200 }: { slices: Slice[]; w?: number; h?: 
   function outerWall(s: number, e: number, dx: number, dyOff: number) {
     const sweep = e - s
     const range = sweep >= 359.5 ? 180 : sweep
-    const from = sweep >= 359.5 ? 0 : s
+    const from = sweep >= 359.5 ? 90 : s
     const steps = Math.max(2, Math.ceil(range / 3))
     const pts: string[] = []
     for (let i = 0; i <= steps; i++) {

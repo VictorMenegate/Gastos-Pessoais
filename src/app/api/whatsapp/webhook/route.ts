@@ -6,45 +6,48 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 )
 
-const WHATSAPP_TOKEN = process.env.WHATSAPP_TOKEN
-const WHATSAPP_PHONE_NUMBER_ID = process.env.WHATSAPP_PHONE_NUMBER_ID
-const WHATSAPP_VERIFY_TOKEN = process.env.WHATSAPP_VERIFY_TOKEN || 'gastos-verify-token'
+// Evolution API (gateway WhatsApp self-hosted)
+const EVOLUTION_API_URL = (process.env.EVOLUTION_API_URL || '').replace(/\/+$/, '')
+const EVOLUTION_API_KEY = process.env.EVOLUTION_API_KEY || ''
+const EVOLUTION_INSTANCE = process.env.EVOLUTION_INSTANCE || ''
 
-// Meta Webhook Verification (GET)
-export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url)
-  const mode = searchParams.get('hub.mode')
-  const token = searchParams.get('hub.verify_token')
-  const challenge = searchParams.get('hub.challenge')
-
-  if (mode === 'subscribe' && token === WHATSAPP_VERIFY_TOKEN) {
-    return new Response(challenge ?? '', { status: 200 })
-  }
-
-  return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+// Health check (Evolution não usa verificação por challenge como a Meta)
+export async function GET() {
+  return NextResponse.json({ status: 'ok', provider: 'evolution' })
 }
 
-// Meta Webhook - recebe mensagens do WhatsApp
+// Webhook - recebe mensagens da Evolution API
 export async function POST(request: Request) {
   const body = await request.json()
 
-  // Meta Cloud API webhook format
-  const entry = body.entry?.[0]
-  const changes = entry?.changes?.[0]
-  const value = changes?.value
-
-  if (!value?.messages?.length) {
-    return NextResponse.json({ status: 'ignored' })
+  // Evolution envia vários eventos; só nos interessa mensagem recebida
+  if (body.event && body.event !== 'messages.upsert') {
+    return NextResponse.json({ status: 'ignored', event: body.event })
   }
 
-  const msg = value.messages[0]
-  const phone = msg.from // número do remetente (ex: 5511999999999)
+  // data pode vir como objeto único ou array (varia por versão)
+  const data = Array.isArray(body.data) ? body.data[0] : body.data
+  const key = data?.key
 
-  // Extrai texto da mensagem (text, botão clicado, ou item de lista)
-  const text =
-    msg.interactive?.button_reply?.id ??
-    msg.interactive?.list_reply?.id ??
-    msg.text?.body ??
+  // Ignora mensagens enviadas por nós mesmos, status e grupos
+  if (!key || key.fromMe) {
+    return NextResponse.json({ status: 'ignored' })
+  }
+  const remoteJid: string = key.remoteJid || ''
+  if (remoteJid.endsWith('@g.us') || remoteJid === 'status@broadcast') {
+    return NextResponse.json({ status: 'ignored', reason: 'group/status' })
+  }
+
+  const phone = remoteJid.split('@')[0] // número do remetente (ex: 5511999999999)
+
+  // Extrai texto da mensagem (texto, botão clicado, ou item de lista)
+  const m = data?.message ?? {}
+  const text: string =
+    m.buttonsResponseMessage?.selectedButtonId ??
+    m.listResponseMessage?.singleSelectReply?.selectedRowId ??
+    m.templateButtonReplyMessage?.selectedId ??
+    m.extendedTextMessage?.text ??
+    m.conversation ??
     ''
 
   if (!phone || !text.trim()) {
@@ -52,7 +55,7 @@ export async function POST(request: Request) {
   }
 
   // Marca mensagem como lida
-  await markAsRead(msg.id)
+  await markAsRead(key)
 
   try {
     // Encontra perfil pelo telefone (busca flexível por diferentes formatos)
@@ -346,119 +349,56 @@ async function completeSession(id: string) {
     .eq('id', id)
 }
 
-// --- Meta WhatsApp Cloud API ---
+// --- Evolution API ---
+// Botões/listas interativos são instáveis no WhatsApp via Evolution, então
+// renderizamos as opções como texto numerado (o fluxo já aceita resposta por número).
 
-async function sendMessage(to: string, text: string) {
-  if (!WHATSAPP_TOKEN || !WHATSAPP_PHONE_NUMBER_ID) return
+function evolutionConfigured() {
+  return Boolean(EVOLUTION_API_URL && EVOLUTION_API_KEY && EVOLUTION_INSTANCE)
+}
 
+async function evolutionPost(path: string, payload: Record<string, unknown>) {
+  if (!evolutionConfigured()) return
   try {
-    await fetch(`https://graph.facebook.com/v21.0/${WHATSAPP_PHONE_NUMBER_ID}/messages`, {
+    const res = await fetch(`${EVOLUTION_API_URL}/${path}/${EVOLUTION_INSTANCE}`, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${WHATSAPP_TOKEN}`,
         'Content-Type': 'application/json',
+        'apikey': EVOLUTION_API_KEY,
       },
-      body: JSON.stringify({
-        messaging_product: 'whatsapp',
-        to,
-        type: 'text',
-        text: { body: text },
-      }),
+      body: JSON.stringify(payload),
     })
+    if (!res.ok) {
+      console.error(`Evolution ${path} error ${res.status}:`, await res.text().catch(() => ''))
+    }
   } catch (e) {
-    console.error('WhatsApp Cloud API send error:', e)
+    console.error(`Evolution ${path} fetch error:`, e)
   }
+}
+
+async function sendMessage(to: string, text: string) {
+  // Evolution v2: POST /message/sendText/{instance} { number, text }
+  await evolutionPost('message/sendText', { number: to, text })
 }
 
 async function sendButtons(to: string, text: string, buttons: { id: string; title: string }[]) {
-  if (!WHATSAPP_TOKEN || !WHATSAPP_PHONE_NUMBER_ID) {
-    return await sendMessage(to, text + '\n\n' + buttons.map((b, i) => `*${i + 1}.* ${b.title}`).join('\n'))
-  }
-
-  try {
-    await fetch(`https://graph.facebook.com/v21.0/${WHATSAPP_PHONE_NUMBER_ID}/messages`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${WHATSAPP_TOKEN}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        messaging_product: 'whatsapp',
-        to,
-        type: 'interactive',
-        interactive: {
-          type: 'button',
-          body: { text },
-          action: {
-            buttons: buttons.map(b => ({
-              type: 'reply',
-              reply: { id: b.id, title: b.title.slice(0, 20) },
-            })),
-          },
-        },
-      }),
-    })
-  } catch (e) {
-    console.error('WhatsApp Cloud API buttons error:', e)
-    // Fallback para texto
-    await sendMessage(to, text + '\n\n' + buttons.map((b, i) => `*${i + 1}.* ${b.title}`).join('\n'))
-  }
+  const body = text + '\n\n' +
+    buttons.map((b, i) => `*${i + 1}.* ${b.title}`).join('\n') +
+    '\n\n_Responda com o número da opção._'
+  await sendMessage(to, body)
 }
 
-async function sendList(to: string, text: string, buttonText: string, rows: { id: string; title: string }[]) {
-  if (!WHATSAPP_TOKEN || !WHATSAPP_PHONE_NUMBER_ID) {
-    const fallback = text + '\n\n' + rows.map((r, i) => `*${i + 1}.* ${r.title}`).join('\n') + '\n\nResponda com o número'
-    return await sendMessage(to, fallback)
-  }
-
-  try {
-    await fetch(`https://graph.facebook.com/v21.0/${WHATSAPP_PHONE_NUMBER_ID}/messages`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${WHATSAPP_TOKEN}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        messaging_product: 'whatsapp',
-        to,
-        type: 'interactive',
-        interactive: {
-          type: 'list',
-          body: { text },
-          action: {
-            button: buttonText,
-            sections: [{
-              title: 'Opções',
-              rows: rows.map(r => ({ id: r.id, title: r.title })),
-            }],
-          },
-        },
-      }),
-    })
-  } catch (e) {
-    console.error('WhatsApp Cloud API list error:', e)
-    const fallback = text + '\n\n' + rows.map((r, i) => `*${i + 1}.* ${r.title}`).join('\n') + '\n\nResponda com o número'
-    await sendMessage(to, fallback)
-  }
+async function sendList(to: string, text: string, _buttonText: string, rows: { id: string; title: string }[]) {
+  const body = text + '\n\n' +
+    rows.map((r, i) => `*${i + 1}.* ${r.title}`).join('\n') +
+    '\n\n_Responda com o número da opção._'
+  await sendMessage(to, body)
 }
 
-async function markAsRead(messageId: string) {
-  if (!WHATSAPP_TOKEN || !WHATSAPP_PHONE_NUMBER_ID || !messageId) return
-
-  try {
-    await fetch(`https://graph.facebook.com/v21.0/${WHATSAPP_PHONE_NUMBER_ID}/messages`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${WHATSAPP_TOKEN}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        messaging_product: 'whatsapp',
-        status: 'read',
-        message_id: messageId,
-      }),
-    })
-  } catch (e) {
-    // silently ignore read receipt errors
-  }
+async function markAsRead(key: { remoteJid?: string; fromMe?: boolean; id?: string }) {
+  if (!evolutionConfigured() || !key?.id) return
+  // Evolution v2: POST /chat/markMessageAsRead/{instance} { readMessages: [key] }
+  await evolutionPost('chat/markMessageAsRead', {
+    readMessages: [{ remoteJid: key.remoteJid, fromMe: key.fromMe ?? false, id: key.id }],
+  })
 }

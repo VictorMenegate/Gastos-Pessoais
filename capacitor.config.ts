@@ -1,7 +1,7 @@
 import type { CapacitorConfig } from '@capacitor/cli'
 
 const config: CapacitorConfig = {
-  appId: 'br.com.eitacasaperfeita.gastos',
+  appId: 'com.gastospessoais.app',
   appName: 'Gastos',
   // Exigido pelo CLI, mas não usado em modo remoto (o conteúdo vem de server.url)
   webDir: 'public',

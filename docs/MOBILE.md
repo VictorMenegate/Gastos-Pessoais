@@ -50,7 +50,7 @@ faça **deploy no Coolify** para o APK enxergar as mudanças.
 O backend já está implementado — falta só plugar as credenciais do Firebase:
 
 1. **App Android no Firebase:** criar projeto no [Firebase Console](https://console.firebase.google.com)
-   e adicionar um app Android com package `br.com.eitacasaperfeita.gastos`.
+   e adicionar um app Android com package `com.gastospessoais.app`.
 2. **google-services.json:** baixar e colocar em `android/app/google-services.json`,
    depois rebuild do APK. (O `build.gradle` aplica o plugin automaticamente quando o
    arquivo existe.) A partir daí o token FCM é obtido e salvo via `PushInit`/`NativeSettings`.

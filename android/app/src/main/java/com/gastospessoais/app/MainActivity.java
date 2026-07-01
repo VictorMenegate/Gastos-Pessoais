@@ -1,4 +1,4 @@
-package br.com.eitacasaperfeita.gastos;
+package com.gastospessoais.app;
 
 import com.getcapacitor.BridgeActivity;
 

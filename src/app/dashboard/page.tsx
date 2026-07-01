@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { format } from 'date-fns'
-import { PiggyBank, Bell, ArrowUpRight, ArrowDownRight, CreditCard, Search, TrendingUp, TrendingDown, Target, Sparkles } from 'lucide-react'
+import { PiggyBank, Bell, ArrowUpRight, ArrowDownRight, CreditCard, Search, TrendingUp, TrendingDown, Target } from 'lucide-react'
 import { getDashboardData, getFinancialGoals } from '@/lib/queries'
 import { formatCurrency, formatPercent } from '@/lib/utils'
 import { useHeroTimeline, useStaggerIn } from '@/lib/useAnime'
@@ -153,31 +153,6 @@ export default function DashboardPage() {
       {/* ══════ CONTENT ══════ */}
       {/* Mobile: flex + order-* controla a ordem das seções; desktop volta a bloco normal */}
       <div className="px-4 md:px-10 -mt-14 md:mt-0 md:py-8 flex flex-col gap-5 md:block md:space-y-6 max-w-[1400px] mx-auto pb-8 relative z-10">
-
-        {/* Ações rápidas (mobile) */}
-        <div className="md:hidden order-1">
-          <div className="flex items-center justify-between mb-3 px-1">
-            <h2 className="text-base font-bold text-fg">Ações rápidas</h2>
-            <Link href="/transacoes" className="text-xs font-semibold text-fg-muted">Ver mais</Link>
-          </div>
-          <div className="grid grid-cols-3 gap-3">
-            <Link href="/transacoes?action=gasto" className="quick-action"
-              style={{ background: 'rgba(254, 226, 226, 0.60)' }}>
-              <span className="quick-action-icon"><ArrowUpRight size={18} className="text-red-500" /></span>
-              <span className="text-xs font-semibold text-fg">Gasto</span>
-            </Link>
-            <Link href="/transacoes?action=entrada" className="quick-action"
-              style={{ background: 'rgba(209, 250, 229, 0.60)' }}>
-              <span className="quick-action-icon"><ArrowDownRight size={18} className="text-emerald-600" /></span>
-              <span className="text-xs font-semibold text-fg">Entrada</span>
-            </Link>
-            <Link href="/transacoes?action=extrato" className="quick-action"
-              style={{ background: 'rgba(237, 233, 254, 0.60)' }}>
-              <span className="quick-action-icon"><Sparkles size={18} className="text-violet-500" /></span>
-              <span className="text-xs font-semibold text-fg">Extrato IA</span>
-            </Link>
-          </div>
-        </div>
 
         {loading ? <Loading /> : (
           <>

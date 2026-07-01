@@ -58,7 +58,7 @@ src/
 │   ├── api/                  # ver abaixo
 │   ├── layout.tsx            # layout raiz (config PWA)
 │   ├── page.tsx              # redireciona p/ /dashboard
-│   └── globals.css           # Tailwind + design tokens (.card, .btn-primary, .input, .label, .pill-btn, .quick-action)
+│   └── globals.css           # Tailwind + design tokens (.card, .btn-primary, .input, .label, .pill-btn)
 ├── components/               # UI reutilizável (Sidebar, MonthSelector, TransactionForm, ExtratoUpload, ...)
 ├── lib/
 │   ├── queries.ts            # TODA operação de banco (Supabase)
@@ -70,7 +70,7 @@ src/
 ├── types/index.ts            # interfaces TypeScript
 └── middleware.ts             # guard de auth (protege rotas)
 
-supabase/migrations/          # 001_initial_schema.sql, 002_full_restructure.sql
+supabase/migrations/          # 001..006 (schema, multi-tenant, push, aprovação, convite)
 public/                       # manifest.json, sw.js (gerado), ícones
 ```
 
@@ -99,7 +99,7 @@ public/                       # manifest.json, sw.js (gerado), ícones
 - **Commits semânticos**: `feat(escopo): descrição`, `fix(escopo): descrição` (ex.: `feat(whatsapp): migrar webhook ...`).
 - Páginas e componentes são **`'use client'`** com `useState`/`useEffect`. **Não há lib de estado global** (sem Redux/Zustand/Context global) — estado é local e dados vêm de `queries.ts`.
 - Estilo: **Tailwind + classes de componente** do `globals.css`. Sem CSS Modules.
-- **Design mobile (`<768px`)**: visual "glass" — fundo em gradiente pastel (media query no `body`), `.card` translúcido com blur, botões `.pill-btn` no hero e grid `.quick-action`. As ações rápidas (gasto/entrada/extrato IA) ficam no **botão central do bottom nav** (`Sidebar.tsx`) — não existe mais componente FAB. Desktop mantém o visual sólido original.
+- **Design mobile (`<768px`)**: visual "glass" — fundo em gradiente pastel (media query no `body`), `.card` translúcido com blur e botões `.pill-btn` no hero. As ações rápidas (gasto/entrada/extrato IA) ficam no **botão central do bottom nav** (`Sidebar.tsx`) — não existe mais componente FAB. Desktop mantém o visual sólido original.
 - **Cor do app (tema)**: a cor de destaque vem das CSS vars `--accent*` (`globals.css` = padrão Azul). O usuário troca em **Configurações → Aparência**; `src/lib/theme.ts` grava em `localStorage` (por aparelho) e um script inline no `layout.tsx` reaplica antes do paint. A paleta `brand` do Tailwind aponta para essas vars. **Nunca hardcode `#2B4C7E`/`#567EBB`** em componentes — use `var(--accent)`/`var(--accent-light)`/`rgba(var(--accent-rgb), α)` ou classes `brand-*`; para atributos SVG (ex.: `fill` do Recharts), leia a cor computada com `corDaVar()` de `theme.ts`.
 - TypeScript é **frouxo** (`strict: false`); ainda assim, prefira tipar via `src/types`.
 
@@ -110,10 +110,18 @@ Supabase Postgres com **RLS multi-tenant por `account_id`**. Uma `account` agrup
 Migrations em `supabase/migrations/`:
 - `001_initial_schema.sql` — schema original.
 - `002_full_restructure.sql` — reestruturação multi-tenant (modelo atual).
+- `003_push_tokens.sql` — tokens de push (FCM).
+- `004_access_approval.sql` — aprovação de cadastro (`access_requests`, gate `/pendente`).
+- `005_fix_access_functions.sql` — corrige `search_path` das funções de aprovação.
+- `006_convite_membros.sql` — convite de membros: RLS de `profiles` por account + RPCs `garantir_conta`, `convite_valido`, `entrar_com_convite`.
+
+> ⚠️ Neste Supabase, funções `SECURITY DEFINER` **precisam de `SET search_path = public`** e tabelas qualificadas (`public.tabela`) — sem isso quebram em runtime (ver 005).
 
 Tabelas centrais: `accounts`, `profiles`, `transactions`, `recurring_transactions`, `installments`, `categories`, `payment_methods`, `budgets`, `financial_goals`, `goal_contributions`, `alerts`, `whatsapp_sessions`.
 
-RPCs usadas: `generate_recurring_for_month`, `check_budget_alerts`.
+RPCs usadas: `generate_recurring_for_month`, `check_budget_alerts`, `is_approved`, `is_admin`, `garantir_conta`, `convite_valido`, `entrar_com_convite`.
+
+**Convite de membros**: a aba Conta em `/configuracoes` copia o link `/login?convite=<invite_code>`. O convidado cria login próprio por esse link; `entrar_com_convite` cria o perfil dele na account e já aprova o acesso (pula o gate `/pendente`). A primeira account de um usuário sem convite é criada por `garantir_conta` (RPC) — o INSERT direto em `accounts` é bloqueado pela RLS.
 
 > Ao mudar o schema, crie **nova migration numerada** (não edite as antigas) e atualize `src/types/index.ts` + `src/lib/queries.ts`.
 

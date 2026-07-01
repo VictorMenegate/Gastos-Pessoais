@@ -217,25 +217,6 @@ a, button, input, select, textarea, .card, [class*="transition"] {
     transform: scale(0.97);
   }
 
-  /* Ações rápidas (mobile): card com tint pastel + ícone em tile branco */
-  .quick-action {
-    @apply flex flex-col items-center gap-2 py-4 px-2;
-    border-radius: 22px;
-    border: 1px solid rgba(255, 255, 255, 0.75);
-    -webkit-backdrop-filter: blur(18px);
-    backdrop-filter: blur(18px);
-    box-shadow: 0 4px 16px rgba(var(--accent-rgb), 0.06);
-  }
-  .quick-action:active {
-    transform: scale(0.97);
-  }
-  .quick-action-icon {
-    @apply w-11 h-11 flex items-center justify-center;
-    background: #ffffff;
-    border-radius: 16px;
-    box-shadow: 0 2px 8px rgba(31, 31, 32, 0.08);
-  }
-
   /* Section title */
   .section-title {
     @apply text-xs font-bold uppercase tracking-wider;

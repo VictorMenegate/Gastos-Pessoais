@@ -7,3 +7,21 @@ out/
 .env.development
 *.tsbuildinfo
 next-env.d.ts
+
+# MCP — contém token do Coolify, não comitar
+.mcp.json
+
+# Capacitor / Android
+android/app/build/
+android/build/
+android/.gradle/
+android/captures/
+android/local.properties
+android/.idea/
+android/app/release/
+*.keystore
+*.jks
+keystore.properties
+*.apk
+*.aab
+.DS_Store

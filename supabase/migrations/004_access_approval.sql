@@ -62,3 +62,7 @@ CREATE OR REPLACE FUNCTION is_admin()
 RETURNS BOOLEAN AS $$
   SELECT COALESCE((SELECT is_admin FROM access_requests WHERE user_id = auth.uid()), FALSE);
 $$ LANGUAGE sql SECURITY DEFINER STABLE;
+
+-- garante que os papéis do Supabase possam chamar via RPC
+GRANT EXECUTE ON FUNCTION is_approved() TO anon, authenticated, service_role;
+GRANT EXECUTE ON FUNCTION is_admin() TO anon, authenticated, service_role;

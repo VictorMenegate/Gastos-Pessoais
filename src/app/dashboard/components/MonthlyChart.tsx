@@ -1,7 +1,9 @@
 'use client'
 
+import { useEffect, useState } from 'react'
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts'
 import { formatCurrency } from '@/lib/utils'
+import { corDaVar } from '@/lib/theme'
 import type { MonthlyComparison } from '@/types'
 
 interface Props {
@@ -9,6 +11,10 @@ interface Props {
 }
 
 export default function MonthlyChart({ data }: Props) {
+  // fill do Recharts é atributo SVG e não resolve var(); lê a cor computada do tema
+  const [corEntrada, setCorEntrada] = useState('#567EBB')
+  useEffect(() => { setCorEntrada(corDaVar('--accent-light', '#567EBB')) }, [])
+
   if (!data.length) {
     return (
       <div className="h-48 flex items-center justify-center text-fg-muted text-sm">
@@ -30,7 +36,7 @@ export default function MonthlyChart({ data }: Props) {
           contentStyle={{ background: '#fff', border: '1px solid #DCE0E6', borderRadius: 10, color: '#1F1F20' }}
           labelStyle={{ color: '#606D80' }}
         />
-        <Bar dataKey="income" fill="#567EBB" radius={[4, 4, 0, 0]} maxBarSize={40} />
+        <Bar dataKey="income" fill={corEntrada} radius={[4, 4, 0, 0]} maxBarSize={40} />
         <Bar dataKey="expenses" fill="#ef4444" radius={[4, 4, 0, 0]} maxBarSize={40} />
       </BarChart>
     </ResponsiveContainer>

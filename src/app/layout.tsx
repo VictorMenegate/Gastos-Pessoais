@@ -15,7 +15,7 @@ export const metadata: Metadata = {
 }
 
 export const viewport: Viewport = {
-  themeColor: '#16a34a',
+  themeColor: '#2B4C7E',
   width: 'device-width',
   initialScale: 1,
   maximumScale: 1,
@@ -30,6 +30,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="apple-touch-icon" href="/icon-192.png" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        {/* Aplica a cor do app salva no aparelho antes do primeiro paint (evita flash do tema padrão) */}
+        <script dangerouslySetInnerHTML={{ __html:
+          `try{var v=JSON.parse(localStorage.getItem('gastos-tema-vars'));if(v)for(var k in v)document.documentElement.style.setProperty(k,v[k])}catch(e){}`
+        }} />
       </head>
       <body className="antialiased">
         <BiometricGate>{children}</BiometricGate>

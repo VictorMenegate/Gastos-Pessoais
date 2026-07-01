@@ -58,11 +58,12 @@ src/
 │   ├── api/                  # ver abaixo
 │   ├── layout.tsx            # layout raiz (config PWA)
 │   ├── page.tsx              # redireciona p/ /dashboard
-│   └── globals.css           # Tailwind + design tokens (.card, .btn-primary, .input, .label)
-├── components/               # UI reutilizável (Sidebar, MonthSelector, TransactionForm, FAB, ExtratoUpload, ...)
+│   └── globals.css           # Tailwind + design tokens (.card, .btn-primary, .input, .label, .pill-btn, .quick-action)
+├── components/               # UI reutilizável (Sidebar, MonthSelector, TransactionForm, ExtratoUpload, ...)
 ├── lib/
 │   ├── queries.ts            # TODA operação de banco (Supabase)
 │   ├── utils.ts              # formatação e cálculos
+│   ├── theme.ts              # temas de cor do app (CSS vars + localStorage)
 │   ├── constants.ts          # cores, ícones, enums, opções
 │   ├── useAnime.ts           # hooks de animação (anime.js)
 │   └── supabase/{client,server}.ts  # clients browser e server (SSR)
@@ -98,6 +99,8 @@ public/                       # manifest.json, sw.js (gerado), ícones
 - **Commits semânticos**: `feat(escopo): descrição`, `fix(escopo): descrição` (ex.: `feat(whatsapp): migrar webhook ...`).
 - Páginas e componentes são **`'use client'`** com `useState`/`useEffect`. **Não há lib de estado global** (sem Redux/Zustand/Context global) — estado é local e dados vêm de `queries.ts`.
 - Estilo: **Tailwind + classes de componente** do `globals.css`. Sem CSS Modules.
+- **Design mobile (`<768px`)**: visual "glass" — fundo em gradiente pastel (media query no `body`), `.card` translúcido com blur, botões `.pill-btn` no hero e grid `.quick-action`. As ações rápidas (gasto/entrada/extrato IA) ficam no **botão central do bottom nav** (`Sidebar.tsx`) — não existe mais componente FAB. Desktop mantém o visual sólido original.
+- **Cor do app (tema)**: a cor de destaque vem das CSS vars `--accent*` (`globals.css` = padrão Azul). O usuário troca em **Configurações → Aparência**; `src/lib/theme.ts` grava em `localStorage` (por aparelho) e um script inline no `layout.tsx` reaplica antes do paint. A paleta `brand` do Tailwind aponta para essas vars. **Nunca hardcode `#2B4C7E`/`#567EBB`** em componentes — use `var(--accent)`/`var(--accent-light)`/`rgba(var(--accent-rgb), α)` ou classes `brand-*`; para atributos SVG (ex.: `fill` do Recharts), leia a cor computada com `corDaVar()` de `theme.ts`.
 - TypeScript é **frouxo** (`strict: false`); ainda assim, prefira tipar via `src/types`.
 
 ## 7. Banco de dados

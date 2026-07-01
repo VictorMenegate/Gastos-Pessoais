@@ -2,13 +2,12 @@
 
 import { useEffect, useState } from 'react'
 import { format } from 'date-fns'
-import { PiggyBank, Bell, ArrowUpRight, ArrowDownRight, ArrowRight, CreditCard, Search, TrendingUp, TrendingDown, Target } from 'lucide-react'
+import { PiggyBank, Bell, ArrowUpRight, ArrowDownRight, ArrowRight, CreditCard, Search, TrendingUp, TrendingDown, Target, Sparkles } from 'lucide-react'
 import { getDashboardData, getFinancialGoals } from '@/lib/queries'
 import { formatCurrency, formatPercent } from '@/lib/utils'
 import { useHeroTimeline, useStaggerIn } from '@/lib/useAnime'
 import MonthSelector from '@/components/MonthSelector'
 import Loading from '@/components/Loading'
-import FAB from '@/components/FAB'
 import ExpenseChart from './components/ExpenseChart'
 import MonthlyChart from './components/MonthlyChart'
 import BudgetOverview from './components/BudgetOverview'
@@ -63,9 +62,9 @@ export default function DashboardPage() {
   return (
     <div>
       {/* ══════ MOBILE HERO (hidden on lg+) ══════ */}
-      <div ref={heroRef} className="md:hidden px-5 pt-6 pb-10 relative overflow-hidden"
+      <div ref={heroRef} className="md:hidden px-5 pt-6 pb-16 relative overflow-hidden"
         style={{
-          background: 'linear-gradient(160deg, #1e3a6e 0%, #2B4C7E 30%, #567EBB 70%, #4a72ab 100%)',
+          background: 'linear-gradient(160deg, var(--accent-dark) 0%, var(--accent) 30%, var(--accent-light) 100%)',
           borderRadius: '0 0 32px 32px',
         }}>
         <div className="absolute -top-20 -right-20 w-60 h-60 rounded-full bg-white/[0.04]" />
@@ -105,6 +104,16 @@ export default function DashboardPage() {
           )}
         </div>
 
+        {/* Botões pill (estilo Send/Request) */}
+        <div className="flex justify-center gap-3 mt-7 relative z-10">
+          <Link href="/transacoes?action=gasto" className="pill-btn flex-1 max-w-[170px]">
+            <ArrowUpRight size={16} /> Gasto
+          </Link>
+          <Link href="/transacoes?action=entrada" className="pill-btn flex-1 max-w-[170px]">
+            <ArrowDownRight size={16} /> Entrada
+          </Link>
+        </div>
+
       </div>
 
       {/* ══════ DESKTOP TOP BAR (hidden on mobile) ══════ */}
@@ -137,6 +146,31 @@ export default function DashboardPage() {
 
       {/* ══════ CONTENT ══════ */}
       <div className="px-4 md:px-10 -mt-14 md:mt-0 md:py-8 space-y-5 md:space-y-6 max-w-[1400px] mx-auto pb-8 relative z-10">
+
+        {/* Ações rápidas (mobile) */}
+        <div className="md:hidden">
+          <div className="flex items-center justify-between mb-3 px-1">
+            <h2 className="text-base font-bold text-fg">Ações rápidas</h2>
+            <Link href="/transacoes" className="text-xs font-semibold text-fg-muted">Ver mais</Link>
+          </div>
+          <div className="grid grid-cols-3 gap-3">
+            <Link href="/transacoes?action=gasto" className="quick-action"
+              style={{ background: 'rgba(254, 226, 226, 0.60)' }}>
+              <span className="quick-action-icon"><ArrowUpRight size={18} className="text-red-500" /></span>
+              <span className="text-xs font-semibold text-fg">Gasto</span>
+            </Link>
+            <Link href="/transacoes?action=entrada" className="quick-action"
+              style={{ background: 'rgba(209, 250, 229, 0.60)' }}>
+              <span className="quick-action-icon"><ArrowDownRight size={18} className="text-emerald-600" /></span>
+              <span className="text-xs font-semibold text-fg">Entrada</span>
+            </Link>
+            <Link href="/transacoes?action=extrato" className="quick-action"
+              style={{ background: 'rgba(237, 233, 254, 0.60)' }}>
+              <span className="quick-action-icon"><Sparkles size={18} className="text-violet-500" /></span>
+              <span className="text-xs font-semibold text-fg">Extrato IA</span>
+            </Link>
+          </div>
+        </div>
 
         {loading ? <Loading /> : (
           <>
@@ -199,7 +233,7 @@ export default function DashboardPage() {
 
             {/* Mobile savings celebration banner */}
             {s && s.savingsRate > 0 && (
-              <div className="md:hidden bg-white rounded-2xl px-4 py-3.5 flex items-center gap-3 shadow-md border border-surface-border">
+              <div className="md:hidden card px-4 py-3.5 flex items-center gap-3">
                 <span className="text-xl">🎉</span>
                 <p className="text-fg-secondary text-sm font-medium flex-1">
                   Economizou <span className="text-brand-500 font-bold">{formatPercent(s.savingsRate, 0)}</span> este mes
@@ -265,7 +299,7 @@ export default function DashboardPage() {
                         const pct = Math.round((inst.paid_installments / inst.total_installments) * 100)
                         return (
                           <div key={inst.id} className="flex items-center gap-3 py-2 border-b border-surface-border last:border-0">
-                            <div className="w-9 h-9 lg:w-10 lg:h-10 rounded-xl bg-blue-50 flex items-center justify-center flex-shrink-0">
+                            <div className="w-9 h-9 lg:w-10 lg:h-10 rounded-xl bg-brand-50 flex items-center justify-center flex-shrink-0">
                               <CreditCard size={16} className="text-brand-500" />
                             </div>
                             <div className="flex-1 min-w-0">
@@ -274,7 +308,7 @@ export default function DashboardPage() {
                                 <div className="flex-1 h-1.5 rounded-full overflow-hidden bg-surface-input">
                                   <div className="h-full rounded-full" style={{
                                     width: `${pct}%`,
-                                    background: 'linear-gradient(90deg, #2B4C7E, #567EBB)',
+                                    background: 'linear-gradient(90deg, var(--accent), var(--accent-light))',
                                     transition: 'width 700ms ease',
                                   }} />
                                 </div>
@@ -313,14 +347,12 @@ export default function DashboardPage() {
         )}
       </div>
 
-      {/* FAB mobile */}
-      <FAB />
     </div>
   )
 }
 
 const colorMap = {
-  blue:   { bg: 'bg-blue-50',    text: 'text-brand-500',    stroke: '#2B4C7E' },
+  blue:   { bg: 'bg-brand-50',   text: 'text-brand-500',    stroke: 'var(--accent)' },
   red:    { bg: 'bg-red-50',     text: 'text-red-500',      stroke: '#EF4444' },
   green:  { bg: 'bg-emerald-50', text: 'text-emerald-600',  stroke: '#16a34a' },
   purple: { bg: 'bg-violet-50',  text: 'text-violet-600',   stroke: '#8b5cf6' },
@@ -339,7 +371,8 @@ function Sparkline({ values, color }: { values: number[]; color: string }) {
   }).join(' ')
   return (
     <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="w-full h-6 mt-1" aria-hidden>
-      <polyline points={points} fill="none" stroke={color} strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke" opacity="0.85" />
+      {/* stroke via style: atributo SVG não resolve var() */}
+      <polyline points={points} fill="none" style={{ stroke: color }} strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke" opacity="0.85" />
     </svg>
   )
 }

@@ -11,15 +11,16 @@ module.exports = {
         sans: ['DM Sans', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
       },
       colors: {
+        // Segue a cor do app escolhida nas configurações (CSS vars de globals.css/theme.ts)
         brand: {
-          50:  '#eef3fa',
-          100: '#dce6f5',
-          200: '#b4c9e8',
-          300: '#7a9ac8',
-          400: '#567EBB',
-          500: '#2B4C7E',
-          600: '#223d65',
-          700: '#1a2f4d',
+          50:  'rgba(var(--accent-rgb), 0.06)',
+          100: 'rgba(var(--accent-rgb), 0.12)',
+          200: 'rgba(var(--accent-rgb), 0.24)',
+          300: 'var(--accent-light)',
+          400: 'var(--accent-light)',
+          500: 'var(--accent)',
+          600: 'var(--accent-dark)',
+          700: 'var(--accent-dark)',
           800: '#122035',
           900: '#1F1F20',
         },
@@ -43,11 +44,11 @@ module.exports = {
       boxShadow: {
         'card': '0 1px 3px rgba(0, 0, 0, 0.04), 0 4px 12px rgba(0, 0, 0, 0.03)',
         'card-hover': '0 2px 8px rgba(0, 0, 0, 0.06), 0 8px 24px rgba(0, 0, 0, 0.05)',
-        'blue': '0 4px 16px rgba(43, 76, 126, 0.2)',
+        'blue': '0 4px 16px rgba(var(--accent-rgb), 0.2)',
       },
       backgroundImage: {
-        'gradient-blue': 'linear-gradient(135deg, #2B4C7E 0%, #567EBB 100%)',
-        'gradient-sidebar': 'linear-gradient(180deg, #2B4C7E 0%, #1F1F20 100%)',
+        'gradient-blue': 'linear-gradient(135deg, var(--accent) 0%, var(--accent-light) 100%)',
+        'gradient-sidebar': 'linear-gradient(180deg, var(--accent) 0%, #1F1F20 100%)',
       },
       animation: {
         'fade-in': 'fadeIn 0.5s ease-out',

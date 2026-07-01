@@ -93,7 +93,7 @@ export default function OrcamentosPage() {
               <ProgressBar
                 value={totalSpent}
                 max={totalBudget}
-                color={totalSpent / totalBudget >= 1 ? '#ef4444' : totalSpent / totalBudget >= 0.8 ? '#f59e0b' : '#2B4C7E'}
+                color={totalSpent / totalBudget >= 1 ? '#ef4444' : totalSpent / totalBudget >= 0.8 ? '#f59e0b' : 'var(--accent)'}
                 size="md"
               />
             </div>
@@ -170,7 +170,7 @@ export default function OrcamentosPage() {
                     <ProgressBar
                       value={b.spent_amount}
                       max={b.budget_amount}
-                      color={pct >= 100 ? '#ef4444' : pct >= 80 ? '#f59e0b' : '#2B4C7E'}
+                      color={pct >= 100 ? '#ef4444' : pct >= 80 ? '#f59e0b' : 'var(--accent)'}
                       showLabel={false}
                       size="md"
                     />

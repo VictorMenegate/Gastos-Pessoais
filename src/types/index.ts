@@ -11,7 +11,6 @@ export type AlertSeverity = 'info' | 'warning' | 'danger' | 'success'
 export type AlertType = 'budget_warning' | 'budget_exceeded' | 'bill_due' | 'bill_overdue' | 'goal_milestone' | 'spending_spike' | 'income_received' | 'custom'
 export type TransactionSource = 'manual' | 'whatsapp' | 'bank_sync' | 'recurring' | 'installment'
 export type ProfileRole = 'owner' | 'admin' | 'member'
-export type PaymentType = 'split' | 'single'
 export type CategoryType = 'expense' | 'income' | 'both'
 export type WhatsAppSessionState = 'pending' | 'awaiting_type' | 'awaiting_payment' | 'awaiting_category' | 'awaiting_confirm' | 'completed'
 
@@ -36,8 +35,6 @@ export interface Profile {
   user_id: string
   account_id: string
   name: string
-  salary: number
-  payment_type: PaymentType
   salary_schedule: SalaryEntry[]
   color: string
   avatar_url: string | null

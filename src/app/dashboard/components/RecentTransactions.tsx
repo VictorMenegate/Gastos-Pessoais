@@ -15,7 +15,7 @@ export default function RecentTransactions({ transactions }: Props) {
   if (!recent.length) {
     return (
       <div className="text-center py-6 space-y-3">
-        <div className="w-12 h-12 rounded-2xl bg-blue-50 flex items-center justify-center mx-auto">
+        <div className="w-12 h-12 rounded-2xl bg-brand-50 flex items-center justify-center mx-auto">
           <ArrowUpDown size={22} className="text-brand-500" />
         </div>
         <div>
@@ -33,19 +33,27 @@ export default function RecentTransactions({ transactions }: Props) {
     <div>
       <div className="space-y-1">
         {recent.map(t => (
-          <div key={t.id} className="flex items-center gap-3 py-2 border-b border-surface-border last:border-0">
-            <span className="text-lg flex-shrink-0">{t.categories?.icon ?? '💸'}</span>
+          <div key={t.id} className="flex items-center gap-3 py-2.5 border-b border-surface-border last:border-0">
+            <div className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 text-lg"
+              style={{ background: t.type === 'income' ? 'rgba(var(--accent-rgb), 0.08)' : 'rgba(239, 68, 68, 0.07)' }}>
+              {t.categories?.icon ?? '💸'}
+            </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm text-fg truncate">{t.description}</p>
-              <p className="text-xs text-fg-muted">
-                {t.categories?.name ?? 'Sem categoria'} • {t.profiles?.name} • {formatDate(t.date)}
+              <p className="text-sm font-semibold text-fg truncate">{t.description}</p>
+              <p className="text-xs text-fg-muted mt-0.5">
+                {formatDate(t.date)} • {t.profiles?.name}
               </p>
             </div>
-            <p className={`text-sm font-semibold flex-shrink-0 ${
-              t.type === 'income' ? 'text-brand-500' : 'text-red-500'
-            }`}>
-              {t.type === 'income' ? '+' : '-'}{formatCurrency(t.amount)}
-            </p>
+            <div className="text-right flex-shrink-0">
+              <p className={`text-sm font-bold tabular-nums ${
+                t.type === 'income' ? 'text-brand-500' : 'text-red-500'
+              }`}>
+                {t.type === 'income' ? '+' : '-'}{formatCurrency(t.amount)}
+              </p>
+              <p className="text-[10px] text-fg-muted font-medium mt-0.5">
+                {t.categories?.name ?? (t.type === 'income' ? 'Entrada' : 'Gasto')}
+              </p>
+            </div>
           </div>
         ))}
       </div>

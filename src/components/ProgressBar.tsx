@@ -8,7 +8,7 @@ interface Props {
   size?: 'sm' | 'md'
 }
 
-export default function ProgressBar({ value, max = 100, color = '#567EBB', showLabel = true, size = 'sm' }: Props) {
+export default function ProgressBar({ value, max = 100, color = 'var(--accent-light)', showLabel = true, size = 'sm' }: Props) {
   const percentage = Math.min(Math.round((value / max) * 100), 100)
   const heights = { sm: 'h-1.5', md: 'h-2.5' }
   const overBudget = percentage >= 100
@@ -28,7 +28,8 @@ export default function ProgressBar({ value, max = 100, color = '#567EBB', showL
             width: `${percentage}%`,
             background: overBudget
               ? 'linear-gradient(90deg, #dc2626, #ef4444)'
-              : `linear-gradient(90deg, ${color}, ${color}cc)`,
+              // sufixo de alpha só funciona em cor hex; var(--...) fica sólida
+              : `linear-gradient(90deg, ${color}, ${color.startsWith('#') ? `${color}cc` : color})`,
             transition: 'width 700ms ease',
           }}
         />

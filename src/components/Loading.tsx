@@ -5,7 +5,7 @@ export default function Loading({ size = 'md' }: { size?: 'sm' | 'md' | 'lg' }) 
   return (
     <div className="flex items-center justify-center py-16">
       <div className={`animate-spin rounded-full border-2 border-surface-border ${sizes[size]}`}
-        style={{ borderTopColor: '#2B4C7E' }} />
+        style={{ borderTopColor: 'var(--accent)' }} />
     </div>
   )
 }

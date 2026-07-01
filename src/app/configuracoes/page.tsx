@@ -1,16 +1,17 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Plus, Trash2, Save, Users, Palette } from 'lucide-react'
+import { Plus, Trash2, Save, Users, Palette, Home, Check } from 'lucide-react'
 import { getProfiles, upsertProfile, getAccount } from '@/lib/queries'
 import { createClient } from '@/lib/supabase/client'
 import { PROFILE_COLORS } from '@/lib/constants'
+import { TEMAS, TEMA_PADRAO, temaSalvo, salvarTema, type TemaApp } from '@/lib/theme'
 import Sidebar from '@/components/Sidebar'
 import Loading from '@/components/Loading'
 import NativeSettings from '@/components/NativeSettings'
 import type { Profile, SalaryEntry, Account } from '@/types'
 
-type Tab = 'profiles' | 'account'
+type Tab = 'profiles' | 'account' | 'appearance'
 
 export default function ConfiguracoesPage() {
   const [tab, setTab] = useState<Tab>('profiles')
@@ -20,6 +21,14 @@ export default function ConfiguracoesPage() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
+  const [temaAtual, setTemaAtual] = useState(TEMA_PADRAO.id)
+
+  useEffect(() => { setTemaAtual(temaSalvo().id) }, [])
+
+  function escolherTema(tema: TemaApp) {
+    salvarTema(tema)
+    setTemaAtual(tema.id)
+  }
 
   async function load() {
     setLoading(true)
@@ -28,8 +37,8 @@ export default function ConfiguracoesPage() {
     if (user) setUserId(user.id)
     const [profs, acc] = await Promise.all([getProfiles(), getAccount()])
     setProfiles(profs.length ? profs : [{
-      id: '', user_id: user?.id ?? '', account_id: '', name: '', salary: 0,
-      payment_type: 'single', salary_schedule: [{ label: 'Salário', amount: 0, day: 5 }],
+      id: '', user_id: user?.id ?? '', account_id: '', name: '',
+      salary_schedule: [{ label: 'Salário', amount: 0, day: 5 }],
       color: PROFILE_COLORS[0], avatar_url: null, role: 'owner', whatsapp_phone: null,
       created_at: '', updated_at: '',
     }])
@@ -67,8 +76,8 @@ export default function ConfiguracoesPage() {
 
   function addProfile() {
     setProfiles(prev => [...prev, {
-      id: '', user_id: userId, account_id: profiles[0]?.account_id ?? '', name: '', salary: 0,
-      payment_type: 'single', salary_schedule: [{ label: 'Salário', amount: 0, day: 5 }],
+      id: '', user_id: userId, account_id: profiles[0]?.account_id ?? '', name: '',
+      salary_schedule: [{ label: 'Salário', amount: 0, day: 5 }],
       color: PROFILE_COLORS[prev.length % PROFILE_COLORS.length], avatar_url: null, role: 'member',
       whatsapp_phone: null, created_at: '', updated_at: '',
     }])
@@ -94,7 +103,8 @@ export default function ConfiguracoesPage() {
 
   const tabs: { key: Tab; label: string; icon: typeof Users }[] = [
     { key: 'profiles', label: 'Perfis', icon: Users },
-    { key: 'account', label: 'Conta', icon: Palette },
+    { key: 'account', label: 'Conta', icon: Home },
+    { key: 'appearance', label: 'Aparência', icon: Palette },
   ]
 
   const fmt = (v: number) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v)
@@ -139,17 +149,10 @@ export default function ConfiguracoesPage() {
                         <h2 className="text-sm font-semibold text-fg">{profile.name || `Perfil ${profIdx + 1}`}</h2>
                       </div>
 
-                      <div className="grid grid-cols-2 gap-3">
-                        <div>
-                          <label className="label">Nome</label>
-                          <input className="input" placeholder="Victor, Ana..."
-                            value={profile.name} onChange={e => updateProfile(profIdx, 'name', e.target.value)} />
-                        </div>
-                        <div>
-                          <label className="label">Salário</label>
-                          <input className="input" type="number" step="0.01"
-                            value={profile.salary || ''} onChange={e => updateProfile(profIdx, 'salary', Number(e.target.value))} />
-                        </div>
+                      <div>
+                        <label className="label">Nome</label>
+                        <input className="input" placeholder="Victor, Ana..."
+                          value={profile.name} onChange={e => updateProfile(profIdx, 'name', e.target.value)} />
                       </div>
 
                       <div>
@@ -167,21 +170,6 @@ export default function ConfiguracoesPage() {
                               className={`w-7 h-7 rounded-full border-2 transition-all ${
                                 profile.color === color ? 'border-white scale-110' : 'border-transparent'
                               }`} style={{ background: color }} />
-                          ))}
-                        </div>
-                      </div>
-
-                      <div>
-                        <label className="label">Tipo de pagamento</label>
-                        <div className="flex gap-2 mt-1">
-                          {(['single', 'split'] as const).map(pt => (
-                            <button key={pt} type="button" onClick={() => updateProfile(profIdx, 'payment_type', pt)}
-                              className={`px-4 py-2 rounded-lg text-sm font-medium border transition-colors ${
-                                profile.payment_type === pt
-                                  ? 'bg-brand-500 border-brand-500 text-white'
-                                  : 'bg-surface-input border border-surface-border text-fg-secondary hover:bg-surface-hover'
-                              }`}
-                            >{pt === 'single' ? 'Tudo junto' : 'Vale + Salário'}</button>
                           ))}
                         </div>
                       </div>
@@ -268,6 +256,41 @@ export default function ConfiguracoesPage() {
                   </div>
 
                   <NativeSettings />
+                </div>
+              )}
+
+              {/* ── APPEARANCE TAB ── */}
+              {tab === 'appearance' && (
+                <div className="card space-y-4">
+                  <div>
+                    <h2 className="text-sm font-semibold text-fg">Cor do app</h2>
+                    <p className="text-xs text-fg-muted mt-1">
+                      Muda a cor principal de toda a interface. A escolha fica salva neste aparelho.
+                    </p>
+                  </div>
+                  <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
+                    {TEMAS.map(tema => {
+                      const selecionado = temaAtual === tema.id
+                      return (
+                        <button key={tema.id} type="button" onClick={() => escolherTema(tema)}
+                          className={`flex flex-col items-center gap-2 py-3 rounded-xl transition-colors ${
+                            selecionado ? 'bg-surface-input' : 'hover:bg-surface-input/60'
+                          }`}>
+                          <span className="w-10 h-10 rounded-full flex items-center justify-center transition-transform"
+                            style={{
+                              background: `linear-gradient(135deg, ${tema.accent} 0%, ${tema.accentLight} 100%)`,
+                              boxShadow: selecionado ? `0 0 0 2px var(--bg-card), 0 0 0 4px ${tema.accent}` : 'none',
+                              transform: selecionado ? 'scale(1.05)' : 'scale(1)',
+                            }}>
+                            {selecionado && <Check size={18} className="text-white" strokeWidth={3} />}
+                          </span>
+                          <span className={`text-xs ${selecionado ? 'font-bold text-fg' : 'font-medium text-fg-secondary'}`}>
+                            {tema.nome}
+                          </span>
+                        </button>
+                      )
+                    })}
+                  </div>
                 </div>
               )}
             </>

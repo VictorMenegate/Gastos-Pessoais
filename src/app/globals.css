@@ -13,9 +13,13 @@
   --text-muted: #9ca3af;
   --border: #e0e4ea;
   --border-hover: #c8cdd6;
+  /* Cor do app — tema padrão Azul; sobrescrita em runtime por src/lib/theme.ts */
   --accent: #2B4C7E;
   --accent-light: #567EBB;
-  --accent-glow: rgba(43, 76, 126, 0.12);
+  --accent-dark: #1e3a6e;
+  --accent-rgb: 43, 76, 126;
+  --accent-light-rgb: 86, 126, 187;
+  --accent-glow: rgba(var(--accent-rgb), 0.12);
   --red: #EF4444;
   --green: #22c55e;
   --amber: #F59E0B;
@@ -45,6 +49,18 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* Mobile: fundo em gradiente pastel suave (wash na paleta da marca) */
+@media (max-width: 767px) {
+  body {
+    background:
+      radial-gradient(120% 90% at 85% -10%, rgba(var(--accent-light-rgb), 0.20), transparent 60%),
+      radial-gradient(90% 70% at -10% 40%, rgba(var(--accent-rgb), 0.10), transparent 55%),
+      radial-gradient(90% 70% at 110% 90%, rgba(var(--accent-light-rgb), 0.16), transparent 60%),
+      linear-gradient(180deg, #eef2f8 0%, #e8ecf4 100%);
+    background-attachment: fixed;
+  }
+}
+
 /* Scrollbar */
 ::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
@@ -53,7 +69,7 @@ body {
 
 /* Selection */
 ::selection {
-  background: rgba(86, 126, 187, 0.2);
+  background: rgba(var(--accent-light-rgb), 0.2);
   color: #1F1F20;
 }
 
@@ -73,6 +89,18 @@ a, button, input, select, textarea, .card, [class*="transition"] {
     background: var(--bg-card);
     border: 1.5px solid var(--border);
     border-radius: 20px;
+  }
+
+  /* Mobile: card glass (translúcido + blur, sombra difusa) */
+  @media (max-width: 767px) {
+    .card {
+      background: rgba(255, 255, 255, 0.78);
+      -webkit-backdrop-filter: blur(18px);
+      backdrop-filter: blur(18px);
+      border: 1px solid rgba(255, 255, 255, 0.75);
+      border-radius: 24px;
+      box-shadow: 0 8px 24px rgba(var(--accent-rgb), 0.07), 0 2px 6px rgba(var(--accent-rgb), 0.05);
+    }
   }
 
   @media (min-width: 1024px) {
@@ -175,6 +203,37 @@ a, button, input, select, textarea, .card, [class*="transition"] {
     background: rgba(239, 68, 68, 0.1);
     color: #dc2626;
     border: 1px solid rgba(239, 68, 68, 0.2);
+  }
+
+  /* Botões pill do hero (mobile) */
+  .pill-btn {
+    @apply inline-flex items-center justify-center gap-1.5 text-sm font-bold py-3 px-5;
+    background: #ffffff;
+    color: var(--accent);
+    border-radius: 9999px;
+    box-shadow: 0 4px 14px rgba(18, 32, 53, 0.18);
+  }
+  .pill-btn:active {
+    transform: scale(0.97);
+  }
+
+  /* Ações rápidas (mobile): card com tint pastel + ícone em tile branco */
+  .quick-action {
+    @apply flex flex-col items-center gap-2 py-4 px-2;
+    border-radius: 22px;
+    border: 1px solid rgba(255, 255, 255, 0.75);
+    -webkit-backdrop-filter: blur(18px);
+    backdrop-filter: blur(18px);
+    box-shadow: 0 4px 16px rgba(var(--accent-rgb), 0.06);
+  }
+  .quick-action:active {
+    transform: scale(0.97);
+  }
+  .quick-action-icon {
+    @apply w-11 h-11 flex items-center justify-center;
+    background: #ffffff;
+    border-radius: 16px;
+    box-shadow: 0 2px 8px rgba(31, 31, 32, 0.08);
   }
 
   /* Section title */

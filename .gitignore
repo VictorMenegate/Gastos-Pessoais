@@ -24,4 +24,5 @@ android/app/release/
 keystore.properties
 *.apk
 *.aab
+*.ipa
 .DS_Store

@@ -7,6 +7,7 @@ import { createClient } from '@/lib/supabase/client'
 import { PROFILE_COLORS } from '@/lib/constants'
 import Sidebar from '@/components/Sidebar'
 import Loading from '@/components/Loading'
+import NativeSettings from '@/components/NativeSettings'
 import type { Profile, SalaryEntry, Account } from '@/types'
 
 type Tab = 'profiles' | 'account'
@@ -265,6 +266,8 @@ export default function ConfiguracoesPage() {
                       </div>
                     </div>
                   </div>
+
+                  <NativeSettings />
                 </div>
               )}
             </>

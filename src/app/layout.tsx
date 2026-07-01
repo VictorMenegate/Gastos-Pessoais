@@ -1,5 +1,7 @@
 import type { Metadata, Viewport } from 'next'
 import './globals.css'
+import BiometricGate from '@/components/BiometricGate'
+import PushInit from '@/components/PushInit'
 
 export const metadata: Metadata = {
   title: 'Gastos Pessoais',
@@ -29,7 +31,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
       </head>
-      <body className="antialiased">{children}</body>
+      <body className="antialiased">
+        <BiometricGate>{children}</BiometricGate>
+        <PushInit />
+      </body>
     </html>
   )
 }

@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react'
 import { Camera, X, Check, Loader2, Sparkles, FileText, Upload } from 'lucide-react'
 import { createTransaction, getProfiles, getCategories } from '@/lib/queries'
 import { formatCurrency, monthRefFromDate } from '@/lib/utils'
+import { isNative, takePhoto } from '@/lib/native'
 import type { Profile, Category } from '@/types'
 
 interface ExtractedTx {
@@ -47,15 +48,31 @@ export default function ExtratoUpload({ onClose, onSaved }: ExtratoUploadProps) 
   const [profiles, setProfiles] = useState<Profile[]>([])
   const [categories, setCategories] = useState<Category[]>([])
   const [selectedProfile, setSelectedProfile] = useState('')
+  const [showCamera, setShowCamera] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
+    setShowCamera(isNative())
     Promise.all([getProfiles(), getCategories()]).then(([p, c]) => {
       setProfiles(p)
       setCategories(c)
       if (p.length) setSelectedProfile(p[0].id)
     })
   }, [])
+
+  async function handleTakePhoto() {
+    try {
+      const photo = await takePhoto()
+      if (!photo) return
+      setPdfName(null)
+      setPdfBase64(null)
+      setPreview(`data:${photo.mimeType};base64,${photo.base64}`)
+      setFileData({ base64: photo.base64, mimeType: photo.mimeType })
+      setError('')
+    } catch {
+      setError('Nao foi possivel abrir a camera')
+    }
+  }
 
   async function handleFile(file: File) {
     const mimeType = file.type || 'image/jpeg'
@@ -282,6 +299,13 @@ export default function ExtratoUpload({ onClose, onSaved }: ExtratoUploadProps) 
               </div>
               <span className="text-sm font-bold text-fg">Escolher arquivo</span>
               <span className="text-xs text-fg-muted">Imagem (PNG, JPG) ou PDF</span>
+            </button>
+          )}
+
+          {showCamera && !preview && !pdfName && (
+            <button onClick={handleTakePhoto}
+              className="btn-secondary w-full flex items-center justify-center gap-2">
+              <Camera size={16} /> Tirar foto
             </button>
           )}
 

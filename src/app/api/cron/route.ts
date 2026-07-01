@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js'
 import { NextResponse } from 'next/server'
+import { sendPushToAccount, pushConfigured } from '@/lib/push'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -64,7 +65,25 @@ export async function POST(request: Request) {
     }
 
     // 3. Verificar alertas de orçamento
+    // Marca o início para identificar alertas criados neste run (buffer de 5s).
+    const sinceIso = new Date(Date.now() - 5000).toISOString()
     const { data: budgetResult } = await supabase.rpc('check_budget_alerts')
+
+    // 4. Enviar push para os alertas recém-criados (no-op se Firebase não configurado)
+    let pushSent = 0
+    if (pushConfigured()) {
+      const { data: newAlerts } = await supabase
+        .from('alerts')
+        .select('account_id, title, message')
+        .gte('created_at', sinceIso)
+      for (const alert of newAlerts ?? []) {
+        await sendPushToAccount(supabase, alert.account_id, {
+          title: alert.title,
+          body: alert.message,
+        })
+        pushSent++
+      }
+    }
 
     return NextResponse.json({
       success: true,
@@ -72,6 +91,7 @@ export async function POST(request: Request) {
       recurring: recurringResult,
       income_generated: incomeCount,
       budget_alerts: budgetResult,
+      push_sent: pushSent,
     })
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 })

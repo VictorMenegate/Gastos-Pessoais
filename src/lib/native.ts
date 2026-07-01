@@ -7,6 +7,7 @@
 import { Capacitor } from '@capacitor/core'
 
 export const isNative = (): boolean => Capacitor.isNativePlatform()
+export const getPlatform = (): string => Capacitor.getPlatform()
 
 export const BIOMETRIC_LOCK_KEY = 'gastos:biometric_lock'
 export const PUSH_ENABLED_KEY = 'gastos:push_enabled'

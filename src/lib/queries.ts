@@ -416,6 +416,30 @@ export async function markAllAlertsRead() {
   if (error) throw error
 }
 
+// ─── PUSH TOKENS ────────────────────────────────────────────
+
+/** Salva/atualiza o token de push do dispositivo, associado à conta atual. */
+export async function savePushToken(token: string, platform: string) {
+  const supabase = createClient()
+  const { data: profiles } = await supabase
+    .from('profiles')
+    .select('id, account_id')
+    .not('account_id', 'is', null)
+    .limit(1)
+  const accountId = profiles?.[0]?.account_id
+  if (!accountId) return
+  await supabase.from('push_tokens').upsert(
+    {
+      account_id: accountId,
+      profile_id: profiles![0].id,
+      token,
+      platform,
+      updated_at: new Date().toISOString(),
+    },
+    { onConflict: 'token' },
+  )
+}
+
 // ─── DASHBOARD ──────────────────────────────────────────────
 
 export async function getDashboardData(month?: string): Promise<DashboardData> {

@@ -47,12 +47,20 @@ faça **deploy no Coolify** para o APK enxergar as mudanças.
 
 ### Configurar Push (Firebase Cloud Messaging)
 
-1. Criar projeto no [Firebase Console](https://console.firebase.google.com) e adicionar
-   um app Android com package `br.com.eitacasaperfeita.gastos`.
-2. Baixar o `google-services.json` e colocar em `android/app/google-services.json`.
-   (O `android/app/build.gradle` já aplica o plugin `com.google.gms.google-services`
-   automaticamente quando o arquivo existe.)
-3. Rebuild do APK. O token FCM passa a ser obtido em `PushInit`/`NativeSettings`.
-4. **Backend (pendente):** persistir o token (ex.: tabela `push_tokens` no Supabase)
-   e disparar mensagens FCM a partir de `src/app/api/cron/route.ts`, junto da criação
-   de alertas (`check_budget_alerts`). Hoje o token é apenas salvo em `localStorage`.
+O backend já está implementado — falta só plugar as credenciais do Firebase:
+
+1. **App Android no Firebase:** criar projeto no [Firebase Console](https://console.firebase.google.com)
+   e adicionar um app Android com package `br.com.eitacasaperfeita.gastos`.
+2. **google-services.json:** baixar e colocar em `android/app/google-services.json`,
+   depois rebuild do APK. (O `build.gradle` aplica o plugin automaticamente quando o
+   arquivo existe.) A partir daí o token FCM é obtido e salvo via `PushInit`/`NativeSettings`.
+3. **Service account (envio):** em Configurações do projeto → Contas de serviço, gerar
+   uma chave privada (JSON) e preencher no `.env` do servidor:
+   `FCM_PROJECT_ID`, `FCM_CLIENT_EMAIL`, `FCM_PRIVATE_KEY`.
+
+Com isso o fluxo fica completo:
+- Cliente registra e salva o token na tabela **`push_tokens`** (migration `003_push_tokens.sql`).
+- `/api/cron` (após `check_budget_alerts`) envia push dos alertas recém-criados via
+  **FCM HTTP v1** (`src/lib/push.ts`). Sem as env vars, tudo faz **no-op seguro**.
+
+> Rodar a migration `supabase/migrations/003_push_tokens.sql` no Supabase antes de usar.

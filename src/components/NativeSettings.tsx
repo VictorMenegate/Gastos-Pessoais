@@ -7,9 +7,11 @@ import {
   biometricAvailable,
   biometricVerify,
   registerPush,
+  getPlatform,
   BIOMETRIC_LOCK_KEY,
   PUSH_ENABLED_KEY,
 } from '@/lib/native'
+import { savePushToken } from '@/lib/queries'
 
 /**
  * Configurações que só fazem sentido no app (APK). Renderiza null na web.
@@ -53,6 +55,7 @@ export default function NativeSettings() {
         try {
           localStorage.setItem('gastos:push_token', token)
         } catch {}
+        savePushToken(token, getPlatform()).catch(() => {})
       })
     }
   }

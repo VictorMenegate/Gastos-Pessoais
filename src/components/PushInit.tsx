@@ -1,7 +1,8 @@
 'use client'
 
 import { useEffect } from 'react'
-import { isNative, registerPush, PUSH_ENABLED_KEY } from '@/lib/native'
+import { isNative, registerPush, getPlatform, PUSH_ENABLED_KEY } from '@/lib/native'
+import { savePushToken } from '@/lib/queries'
 
 /**
  * Inicializa push notifications no APK quando o usuário ativou nas Configurações.
@@ -21,8 +22,7 @@ export default function PushInit() {
       try {
         localStorage.setItem('gastos:push_token', token)
       } catch {}
-      // TODO(backend): enviar o token para o Supabase (tabela push_tokens)
-      // para permitir disparo de push a partir de /api/cron. Ver docs/MOBILE.md.
+      savePushToken(token, getPlatform()).catch(() => {})
     })
   }, [])
 

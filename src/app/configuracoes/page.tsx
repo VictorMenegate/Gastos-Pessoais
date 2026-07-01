@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Plus, Trash2, Save, Users, Palette, Home, Check } from 'lucide-react'
+import { Plus, Trash2, Save, Users, Palette, Home, Check, Copy } from 'lucide-react'
 import { getProfiles, upsertProfile, getAccount } from '@/lib/queries'
 import { createClient } from '@/lib/supabase/client'
 import { PROFILE_COLORS } from '@/lib/constants'
@@ -21,6 +21,8 @@ export default function ConfiguracoesPage() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
+  const [erroSalvar, setErroSalvar] = useState('')
+  const [linkCopiado, setLinkCopiado] = useState(false)
   const [temaAtual, setTemaAtual] = useState(TEMA_PADRAO.id)
 
   useEffect(() => { setTemaAtual(temaSalvo().id) }, [])
@@ -85,11 +87,13 @@ export default function ConfiguracoesPage() {
 
   async function handleSaveProfiles() {
     setSaving(true)
+    setErroSalvar('')
     try {
       for (const profile of profiles) {
         if (!profile.name.trim()) continue
         await upsertProfile({
-          ...profile, user_id: userId,
+          // preserva o dono original do perfil (membros convidados têm login próprio)
+          ...profile, user_id: profile.user_id || userId,
           salary_schedule: profile.salary_schedule.map(e => ({
             label: e.label, amount: Number(e.amount), day: Number(e.day),
           })),
@@ -98,7 +102,27 @@ export default function ConfiguracoesPage() {
       setSaved(true)
       setTimeout(() => setSaved(false), 2000)
       load()
+    } catch (err: any) {
+      setErroSalvar(err?.message ?? 'Erro ao salvar o perfil. Tente novamente.')
     } finally { setSaving(false) }
+  }
+
+  async function copiarLinkConvite() {
+    if (!account?.invite_code) return
+    const link = `${window.location.origin}/login?convite=${account.invite_code}`
+    try {
+      await navigator.clipboard.writeText(link)
+    } catch {
+      // fallback p/ WebView sem clipboard API
+      const ta = document.createElement('textarea')
+      ta.value = link
+      document.body.appendChild(ta)
+      ta.select()
+      document.execCommand('copy')
+      document.body.removeChild(ta)
+    }
+    setLinkCopiado(true)
+    setTimeout(() => setLinkCopiado(false), 2000)
   }
 
   const tabs: { key: Tab; label: string; icon: typeof Users }[] = [
@@ -142,6 +166,11 @@ export default function ConfiguracoesPage() {
               {/* ── PROFILES TAB ── */}
               {tab === 'profiles' && (
                 <div className="space-y-4">
+                  {erroSalvar && (
+                    <div className="text-sm font-medium p-3 rounded-xl bg-red-50 text-red-600 border border-red-200">
+                      Erro ao salvar: {erroSalvar}
+                    </div>
+                  )}
                   {profiles.map((profile, profIdx) => (
                     <div key={profIdx} className="card space-y-4">
                       <div className="flex items-center gap-2">
@@ -233,13 +262,20 @@ export default function ConfiguracoesPage() {
                       <p className="text-fg">{account?.name ?? 'Minha Conta'}</p>
                     </div>
                     <div>
-                      <label className="label">Código de convite</label>
+                      <label className="label">Link de convite</label>
                       <p className="text-sm text-fg">
-                        Compartilhe para adicionar familiares à conta:
+                        Envie para um familiar: ele cria o próprio login e já entra nesta conta.
                       </p>
                       <code className="text-lg font-mono text-brand-500 bg-surface-input px-4 py-2 rounded-lg block text-center mt-2">
                         {account?.invite_code ?? '---'}
                       </code>
+                      {account?.invite_code && (
+                        <button type="button" onClick={copiarLinkConvite}
+                          className="btn-primary w-full mt-2 flex items-center justify-center gap-2">
+                          {linkCopiado ? <Check size={16} /> : <Copy size={16} />}
+                          {linkCopiado ? 'Link copiado!' : 'Copiar link de convite'}
+                        </button>
+                      )}
                     </div>
                     <div>
                       <label className="label">Membros</label>

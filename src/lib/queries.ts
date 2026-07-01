@@ -27,17 +27,6 @@ export async function getAccount(): Promise<Account | null> {
   return data
 }
 
-export async function createAccount(name: string): Promise<Account> {
-  const supabase = createClient()
-  const { data, error } = await supabase
-    .from('accounts')
-    .insert({ name })
-    .select()
-    .single()
-  if (error) throw error
-  return data
-}
-
 // ─── PROFILES ───────────────────────────────────────────────
 
 export async function getProfiles(): Promise<Profile[]> {
@@ -53,29 +42,13 @@ export async function getProfiles(): Promise<Profile[]> {
 export async function upsertProfile(profile: Partial<Profile>) {
   const supabase = createClient()
 
-  // Garante que existe uma account
+  // Garante que existe uma account (RPC SECURITY DEFINER: a RLS de
+  // accounts impede o próprio usuário de inserir a primeira conta)
   let accountId = profile.account_id
   if (!accountId) {
-    // Verifica se já existe uma account para este usuário
-    const { data: existingProfiles } = await supabase
-      .from('profiles')
-      .select('account_id')
-      .eq('user_id', profile.user_id!)
-      .not('account_id', 'is', null)
-      .limit(1)
-
-    if (existingProfiles?.length && existingProfiles[0].account_id) {
-      accountId = existingProfiles[0].account_id
-    } else {
-      // Cria uma nova account
-      const { data: newAccount, error: accError } = await supabase
-        .from('accounts')
-        .insert({ name: 'Minha Conta' })
-        .select()
-        .single()
-      if (accError) throw accError
-      accountId = newAccount.id
-    }
+    const { data: contaId, error: contaError } = await supabase.rpc('garantir_conta')
+    if (contaError) throw contaError
+    accountId = contaId
   }
 
   const payload = {

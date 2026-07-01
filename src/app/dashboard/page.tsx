@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { format } from 'date-fns'
-import { PiggyBank, Bell, ArrowUpRight, ArrowDownRight, ArrowRight, CreditCard, Search, TrendingUp, TrendingDown, Target, Sparkles } from 'lucide-react'
+import { PiggyBank, Bell, ArrowUpRight, ArrowDownRight, CreditCard, Search, TrendingUp, TrendingDown, Target, Sparkles } from 'lucide-react'
 import { getDashboardData, getFinancialGoals } from '@/lib/queries'
 import { formatCurrency, formatPercent } from '@/lib/utils'
 import { useHeroTimeline, useStaggerIn } from '@/lib/useAnime'
@@ -48,6 +48,12 @@ export default function DashboardPage() {
   const incomeSpark = mc.map(m => m.income)
   const expenseSpark = mc.map(m => m.expenses)
   const balanceSpark = mc.map(m => m.balance)
+
+  const insts = data?.installments ?? []
+  const parcMensal = insts.reduce((sum, i) => sum + i.installment_value, 0)
+  const parcTotalParcelas = insts.reduce((sum, i) => sum + i.total_installments, 0)
+  const parcPagas = insts.reduce((sum, i) => sum + i.paid_installments, 0)
+  const parcPct = parcTotalParcelas > 0 ? Math.round((parcPagas / parcTotalParcelas) * 100) : 0
 
   const activeGoals = goals.filter(g => g.status === 'active')
   const goalTotalTarget = activeGoals.reduce((sum, g) => sum + g.target_amount, 0)
@@ -145,10 +151,11 @@ export default function DashboardPage() {
       </div>
 
       {/* ══════ CONTENT ══════ */}
-      <div className="px-4 md:px-10 -mt-14 md:mt-0 md:py-8 space-y-5 md:space-y-6 max-w-[1400px] mx-auto pb-8 relative z-10">
+      {/* Mobile: flex + order-* controla a ordem das seções; desktop volta a bloco normal */}
+      <div className="px-4 md:px-10 -mt-14 md:mt-0 md:py-8 flex flex-col gap-5 md:block md:space-y-6 max-w-[1400px] mx-auto pb-8 relative z-10">
 
         {/* Ações rápidas (mobile) */}
-        <div className="md:hidden">
+        <div className="md:hidden order-1">
           <div className="flex items-center justify-between mb-3 px-1">
             <h2 className="text-base font-bold text-fg">Ações rápidas</h2>
             <Link href="/transacoes" className="text-xs font-semibold text-fg-muted">Ver mais</Link>
@@ -174,6 +181,99 @@ export default function DashboardPage() {
 
         {loading ? <Loading /> : (
           <>
+            {/* ── Mobile: Estatística (donut entradas × saídas) ── */}
+            <div className="card md:hidden order-2">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-base font-bold text-fg">Estatística</h2>
+                <Link href="/transacoes" className="text-xs font-semibold text-brand-500">Ver tudo</Link>
+              </div>
+              <div className="flex items-center gap-5">
+                <DonutResumo income={s?.totalIncome ?? 0} expenses={s?.totalExpenses ?? 0} savings={s?.savingsRate ?? 0} />
+                <div className="flex-1 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="flex items-center gap-2 text-xs font-medium text-fg-secondary">
+                      <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ background: 'var(--accent-light)' }} />
+                      Entradas
+                    </span>
+                    <span className="text-sm font-bold text-fg tabular-nums">{formatCurrency(s?.totalIncome ?? 0)}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="flex items-center gap-2 text-xs font-medium text-fg-secondary">
+                      <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ background: 'var(--red)' }} />
+                      Saídas
+                    </span>
+                    <span className="text-sm font-bold text-fg tabular-nums">{formatCurrency(s?.totalExpenses ?? 0)}</span>
+                  </div>
+                  <div className="flex items-center justify-between pt-2.5" style={{ borderTop: '1px solid var(--border)' }}>
+                    <span className="text-xs font-semibold text-fg-secondary">Saldo</span>
+                    <span className={`text-sm font-extrabold tabular-nums ${(s?.balance ?? 0) >= 0 ? 'text-brand-500' : 'text-red-500'}`}>
+                      {formatCurrency(s?.balance ?? 0)}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* ── Mobile: chips Economia / Metas ── */}
+            <div className="md:hidden order-3 grid grid-cols-2 gap-3">
+              <div className="card p-4">
+                <div className="flex items-center gap-2 mb-1.5">
+                  <div className="w-8 h-8 rounded-xl bg-brand-50 text-brand-500 flex items-center justify-center flex-shrink-0">
+                    <PiggyBank size={15} />
+                  </div>
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-fg-muted">Economia</span>
+                </div>
+                <p className="text-lg font-extrabold text-fg tabular-nums">{formatPercent(s?.savingsRate ?? 0, 1)}</p>
+                <p className="text-[10px] text-fg-muted font-medium mt-0.5">do que entrou no mês</p>
+              </div>
+              <div className="card p-4">
+                <div className="flex items-center gap-2 mb-1.5">
+                  <div className="w-8 h-8 rounded-xl bg-violet-50 text-violet-600 flex items-center justify-center flex-shrink-0">
+                    <Target size={15} />
+                  </div>
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-fg-muted">Metas</span>
+                </div>
+                <p className="text-lg font-extrabold text-fg tabular-nums">{activeGoals.length ? `${goalPct}%` : '—'}</p>
+                {activeGoals.length > 0 ? (
+                  <div className="w-full h-1.5 rounded-full bg-[var(--bg-input)] overflow-hidden mt-2">
+                    <div className="h-full rounded-full transition-all duration-700"
+                      style={{ width: `${Math.min(100, goalPct)}%`, background: '#8b5cf6' }} />
+                  </div>
+                ) : (
+                  <p className="text-[10px] text-fg-muted font-medium mt-0.5">sem metas ativas</p>
+                )}
+              </div>
+            </div>
+
+            {/* ── Mobile: cartão de parcelamentos (estilo cartão de crédito) ── */}
+            {insts.length > 0 && (
+              <Link href="/parcelados" className="md:hidden order-4 relative overflow-hidden block p-5"
+                style={{
+                  borderRadius: '24px',
+                  background: 'linear-gradient(135deg, var(--accent) 0%, var(--accent-light) 100%)',
+                  boxShadow: '0 8px 24px rgba(var(--accent-rgb), 0.25)',
+                }}>
+                <div className="absolute -top-10 -right-10 w-36 h-36 rounded-full bg-white/10" />
+                <div className="absolute -bottom-12 -left-6 w-32 h-32 rounded-full bg-white/[0.06]" />
+                <div className="relative z-10">
+                  <div className="flex items-center justify-between">
+                    <p className="text-white/70 text-xs font-semibold uppercase tracking-wider">Parcelamentos</p>
+                    <span className="text-[10px] font-bold text-white bg-white/20 px-2.5 py-1 rounded-full">
+                      {insts.length} {insts.length === 1 ? 'ativo' : 'ativos'}
+                    </span>
+                  </div>
+                  <p className="text-white text-[30px] font-extrabold tracking-tight mt-2 leading-none">{formatCurrency(parcMensal)}</p>
+                  <p className="text-white/60 text-xs font-medium mt-1">por mês em parcelas</p>
+                  <div className="flex items-center gap-2 mt-4">
+                    <div className="flex-1 h-1.5 rounded-full bg-white/20 overflow-hidden">
+                      <div className="h-full rounded-full bg-white" style={{ width: `${parcPct}%`, transition: 'width 700ms ease' }} />
+                    </div>
+                    <span className="text-white/80 text-[10px] font-bold">{parcPct}% pago</span>
+                  </div>
+                </div>
+              </Link>
+            )}
+
             {/* ── Desktop: Revenue row ── */}
             <div className="hidden md:block">
               <div>
@@ -199,7 +299,7 @@ export default function DashboardPage() {
             </div>
 
             {/* 4-KPI grid (Entradas, Saidas, Economia, Metas) — trends + sparklines */}
-            <div ref={kpiRef} className="grid grid-cols-2 min-[900px]:grid-cols-2 min-[1100px]:grid-cols-4 gap-3 md:gap-4">
+            <div ref={kpiRef} className="hidden md:grid grid-cols-2 min-[1100px]:grid-cols-4 gap-4">
               <KPICard
                 icon={<ArrowDownRight size={18} />} label="Entradas" color="green"
                 value={formatCurrency(s?.totalIncome ?? 0)}
@@ -231,19 +331,8 @@ export default function DashboardPage() {
               />
             </div>
 
-            {/* Mobile savings celebration banner */}
-            {s && s.savingsRate > 0 && (
-              <div className="md:hidden card px-4 py-3.5 flex items-center gap-3">
-                <span className="text-xl">🎉</span>
-                <p className="text-fg-secondary text-sm font-medium flex-1">
-                  Economizou <span className="text-brand-500 font-bold">{formatPercent(s.savingsRate, 0)}</span> este mes
-                </p>
-                <ArrowRight size={16} className="text-fg-muted" />
-              </div>
-            )}
-
             {/* Charts — 2 cols desktop, stacked mobile */}
-            <div ref={contentRef} className="grid lg:grid-cols-2 gap-4 lg:gap-5">
+            <div ref={contentRef} className="order-7 grid lg:grid-cols-2 gap-4 lg:gap-5">
               <div className="card opacity-0">
                 <div className="flex items-center justify-between mb-4">
                   <h2 className="text-base lg:text-lg font-bold text-fg">Gastos por categoria</h2>
@@ -259,7 +348,7 @@ export default function DashboardPage() {
             </div>
 
             {/* Metas row */}
-            <div className="grid lg:grid-cols-2 gap-4 lg:gap-5">
+            <div className="order-6 grid lg:grid-cols-2 gap-4 lg:gap-5">
               <div className="card">
                 <div className="flex items-center justify-between mb-4">
                   <h2 className="text-base lg:text-lg font-bold text-fg">Metas</h2>
@@ -276,8 +365,8 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            {/* Desktop: 3-col layout | Mobile: stacked */}
-            <div className="grid lg:grid-cols-3 gap-4 lg:gap-5">
+            {/* Desktop: 3-col layout | Mobile: stacked (atividade sobe na ordem) */}
+            <div className="order-5 grid lg:grid-cols-3 gap-4 lg:gap-5">
               <div className="card lg:col-span-2">
                 <div className="flex items-center justify-between mb-4">
                   <h2 className="text-base lg:text-lg font-bold text-fg">Atividade recente</h2>
@@ -289,7 +378,7 @@ export default function DashboardPage() {
               {/* Installments or Alerts */}
               <div className="space-y-5">
                 {(data?.installments?.length ?? 0) > 0 && (
-                  <div className="card">
+                  <div className="card hidden md:block">
                     <div className="flex items-center justify-between mb-4">
                       <h2 className="text-base lg:text-lg font-bold text-fg">Parcelamentos</h2>
                       <Link href="/parcelados" className="text-xs font-semibold text-brand-500 hover:text-brand-400">Ver tudo</Link>
@@ -347,6 +436,31 @@ export default function DashboardPage() {
         )}
       </div>
 
+    </div>
+  )
+}
+
+// Donut Entradas × Saídas com a taxa de economia no centro (estilo "Statistic")
+function DonutResumo({ income, expenses, savings }: { income: number; expenses: number; savings: number }) {
+  const total = income + expenses
+  const r = 34
+  const c = 2 * Math.PI * r
+  const frac = total > 0 ? income / total : 0
+  return (
+    <div className="relative w-[96px] h-[96px] flex-shrink-0">
+      {/* stroke via style: atributo SVG não resolve var() */}
+      <svg width="96" height="96" viewBox="0 0 96 96" className="-rotate-90" aria-hidden>
+        <circle cx="48" cy="48" r={r} fill="none" strokeWidth="11"
+          style={{ stroke: total > 0 ? 'var(--red)' : 'var(--bg-input)' }} />
+        {frac > 0 && (
+          <circle cx="48" cy="48" r={r} fill="none" strokeWidth="11" strokeLinecap="round"
+            strokeDasharray={`${frac * c} ${c}`} style={{ stroke: 'var(--accent-light)', transition: 'stroke-dasharray 700ms ease' }} />
+        )}
+      </svg>
+      <div className="absolute inset-0 flex flex-col items-center justify-center">
+        <span className="text-sm font-extrabold text-fg tabular-nums leading-none">{formatPercent(savings, 0)}</span>
+        <span className="text-[9px] font-semibold text-fg-muted uppercase tracking-wider mt-0.5">econ.</span>
+      </div>
     </div>
   )
 }

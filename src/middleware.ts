@@ -41,6 +41,26 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(url)
   }
 
+  // Gate de aprovação: usuário logado mas ainda não aprovado vai para /pendente
+  const path = request.nextUrl.pathname
+  if (user && !path.startsWith('/login') && !path.startsWith('/api/') && !path.startsWith('/pendente')) {
+    const { data: approved } = await supabase.rpc('is_approved')
+    if (approved !== true) {
+      const url = request.nextUrl.clone()
+      url.pathname = '/pendente'
+      return NextResponse.redirect(url)
+    }
+  }
+  // Se já foi aprovado e ainda está na tela de pendente, manda pro dashboard
+  if (user && path.startsWith('/pendente')) {
+    const { data: approved } = await supabase.rpc('is_approved')
+    if (approved === true) {
+      const url = request.nextUrl.clone()
+      url.pathname = '/dashboard'
+      return NextResponse.redirect(url)
+    }
+  }
+
   return supabaseResponse
 }
 

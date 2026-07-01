@@ -284,13 +284,17 @@ async function handleResume(phone: string, profile: any) {
 
 // --- Helpers ---
 
-// Normaliza telefone: remove caracteres especiais e garante formato 55 + DDD + número
+// Normaliza telefone para uma forma canônica comparável.
+// A Meta pode enviar números BR com ou sem o 9º dígito de celular
+// (ex: 5518998245651 vs 551898245651). Removemos o 9 para casar ambos.
 function normalizePhone(phone: string): string {
-  const digits = phone.replace(/\D/g, '')
-  // Se já tem DDI 55, retorna como está
-  if (digits.length >= 12 && digits.startsWith('55')) return digits
-  // Se tem 10-11 dígitos (DDD + número), adiciona DDI 55
-  if (digits.length >= 10 && digits.length <= 11) return '55' + digits
+  let digits = phone.replace(/\D/g, '')
+  // Se tem 10-11 dígitos (DDD + número, sem DDI), adiciona DDI 55
+  if (digits.length >= 10 && digits.length <= 11) digits = '55' + digits
+  // Brasil: 55 + DDD(2) + 9 + 8 dígitos (13) -> remove o 9 -> 12 dígitos
+  if (digits.startsWith('55') && digits.length === 13 && digits[4] === '9') {
+    digits = digits.slice(0, 4) + digits.slice(5)
+  }
   return digits
 }
 

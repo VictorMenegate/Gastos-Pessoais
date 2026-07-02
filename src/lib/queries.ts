@@ -73,6 +73,12 @@ export async function upsertProfile(profile: Partial<Profile>) {
   return data
 }
 
+export async function deleteProfile(id: string) {
+  const supabase = createClient()
+  const { error } = await supabase.from('profiles').delete().eq('id', id)
+  if (error) throw error
+}
+
 export async function getCurrentUserId(): Promise<string | null> {
   const supabase = createClient()
   const { data: { user } } = await supabase.auth.getUser()

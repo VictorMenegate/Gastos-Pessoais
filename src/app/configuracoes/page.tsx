@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { Plus, Trash2, Save, Users, Palette, Home, Check, Copy } from 'lucide-react'
-import { getProfiles, upsertProfile, getAccount } from '@/lib/queries'
+import { getProfiles, upsertProfile, deleteProfile, getAccount } from '@/lib/queries'
 import { createClient } from '@/lib/supabase/client'
 import { PROFILE_COLORS } from '@/lib/constants'
 import { TEMAS, TEMA_PADRAO, temaSalvo, salvarTema, type TemaApp } from '@/lib/theme'
@@ -107,6 +107,23 @@ export default function ConfiguracoesPage() {
     } finally { setSaving(false) }
   }
 
+  async function removerPerfil(profIdx: number) {
+    const profile = profiles[profIdx]
+    if (profile.id) {
+      const ok = window.confirm(
+        `Apagar o perfil "${profile.name || 'sem nome'}"? As transações e dados dele também serão apagados. Isso não pode ser desfeito.`
+      )
+      if (!ok) return
+      try {
+        await deleteProfile(profile.id)
+      } catch (err: any) {
+        setErroSalvar(err?.message ?? 'Erro ao apagar o perfil.')
+        return
+      }
+    }
+    setProfiles(prev => prev.filter((_, i) => i !== profIdx))
+  }
+
   async function copiarLinkConvite() {
     if (!account?.invite_code) return
     const link = `${window.location.origin}/login?convite=${account.invite_code}`
@@ -176,6 +193,13 @@ export default function ConfiguracoesPage() {
                       <div className="flex items-center gap-2">
                         <div className="w-3 h-3 rounded-full" style={{ background: profile.color }} />
                         <h2 className="text-sm font-semibold text-fg">{profile.name || `Perfil ${profIdx + 1}`}</h2>
+                        {profiles.length > 1 && (
+                          <button type="button" onClick={() => removerPerfil(profIdx)}
+                            className="ml-auto text-fg-muted hover:text-red-500 transition-colors"
+                            title="Apagar perfil">
+                            <Trash2 size={16} />
+                          </button>
+                        )}
                       </div>
 
                       <div>

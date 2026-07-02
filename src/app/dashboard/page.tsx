@@ -175,28 +175,37 @@ export default function DashboardPage() {
               </div>
               <div className="flex items-center gap-5">
                 <DonutResumo income={s?.totalIncome ?? 0} expenses={s?.totalExpenses ?? 0} savings={s?.savingsRate ?? 0} />
-                <div className="flex-1 space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="flex items-center gap-2 text-xs font-medium text-fg-secondary">
-                      <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ background: 'var(--accent-light)' }} />
-                      Entradas
-                    </span>
-                    <span className="text-sm font-bold text-fg tabular-nums">{formatCurrency(s?.totalIncome ?? 0)}</span>
+                <div className="flex-1 space-y-3 min-w-0">
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
+                      style={{ background: 'rgba(var(--accent-light-rgb), 0.14)' }}>
+                      <ArrowDownRight size={15} style={{ color: 'var(--accent-light)' }} />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-[10px] font-bold uppercase tracking-wider text-fg-muted">Entradas</p>
+                      <p className="text-sm font-bold text-fg tabular-nums leading-tight">{formatCurrency(s?.totalIncome ?? 0)}</p>
+                    </div>
                   </div>
-                  <div className="flex items-center justify-between">
-                    <span className="flex items-center gap-2 text-xs font-medium text-fg-secondary">
-                      <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ background: 'var(--red)' }} />
-                      Saídas
-                    </span>
-                    <span className="text-sm font-bold text-fg tabular-nums">{formatCurrency(s?.totalExpenses ?? 0)}</span>
-                  </div>
-                  <div className="flex items-center justify-between pt-2.5" style={{ borderTop: '1px solid var(--border)' }}>
-                    <span className="text-xs font-semibold text-fg-secondary">Saldo</span>
-                    <span className={`text-sm font-extrabold tabular-nums ${(s?.balance ?? 0) >= 0 ? 'text-brand-500' : 'text-red-500'}`}>
-                      {formatCurrency(s?.balance ?? 0)}
-                    </span>
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
+                      style={{ background: 'rgba(239, 68, 68, 0.10)' }}>
+                      <ArrowUpRight size={15} style={{ color: 'var(--red)' }} />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-[10px] font-bold uppercase tracking-wider text-fg-muted">Saídas</p>
+                      <p className="text-sm font-bold text-fg tabular-nums leading-tight">{formatCurrency(s?.totalExpenses ?? 0)}</p>
+                    </div>
                   </div>
                 </div>
+              </div>
+              <div className="flex items-center justify-between mt-4 pt-3.5" style={{ borderTop: '1px solid var(--border)' }}>
+                <span className="text-xs font-semibold text-fg-secondary">Saldo do mês</span>
+                <span className="flex items-center gap-2">
+                  {mc.length >= 2 && <TrendChip pct={trendBalance} />}
+                  <span className={`text-base font-extrabold tabular-nums ${(s?.balance ?? 0) >= 0 ? 'text-brand-500' : 'text-red-500'}`}>
+                    {formatCurrency(s?.balance ?? 0)}
+                  </span>
+                </span>
               </div>
             </div>
 
@@ -426,26 +435,40 @@ export default function DashboardPage() {
   )
 }
 
-// Donut Entradas × Saídas com a taxa de economia no centro (estilo "Statistic")
+// Donut Entradas × Saídas segmentado, com a taxa de economia no centro (estilo "Statistic")
 function DonutResumo({ income, expenses, savings }: { income: number; expenses: number; savings: number }) {
   const total = income + expenses
-  const r = 34
+  const r = 40
   const c = 2 * Math.PI * r
   const frac = total > 0 ? income / total : 0
+  // Respiro angular entre os segmentos (só quando os dois existem);
+  // precisa ser maior que a extensão das pontas arredondadas (strokeWidth/2 de cada lado)
+  const gap = frac > 0 && frac < 1 ? 0.055 : 0
+  const arcoEntrada = Math.max(frac - gap, 0) * c
+  const arcoSaida = Math.max(1 - frac - gap, 0) * c
   return (
-    <div className="relative w-[96px] h-[96px] flex-shrink-0">
+    <div className="relative w-[112px] h-[112px] flex-shrink-0">
       {/* stroke via style: atributo SVG não resolve var() */}
-      <svg width="96" height="96" viewBox="0 0 96 96" className="-rotate-90" aria-hidden>
-        <circle cx="48" cy="48" r={r} fill="none" strokeWidth="11"
-          style={{ stroke: total > 0 ? 'var(--red)' : 'var(--bg-input)' }} />
-        {frac > 0 && (
-          <circle cx="48" cy="48" r={r} fill="none" strokeWidth="11" strokeLinecap="round"
-            strokeDasharray={`${frac * c} ${c}`} style={{ stroke: 'var(--accent-light)', transition: 'stroke-dasharray 700ms ease' }} />
+      <svg width="112" height="112" viewBox="0 0 112 112" className="-rotate-90" aria-hidden>
+        <circle cx="56" cy="56" r={r} fill="none" strokeWidth="12" style={{ stroke: 'var(--bg-input)' }} />
+        {arcoEntrada > 0 && (
+          <circle cx="56" cy="56" r={r} fill="none" strokeWidth="12" strokeLinecap="round"
+            strokeDasharray={`${arcoEntrada} ${c}`}
+            strokeDashoffset={-(gap / 2) * c}
+            style={{ stroke: 'var(--accent-light)', transition: 'stroke-dasharray 700ms ease, stroke-dashoffset 700ms ease' }} />
+        )}
+        {arcoSaida > 0 && (
+          <circle cx="56" cy="56" r={r} fill="none" strokeWidth="12" strokeLinecap="round"
+            strokeDasharray={`${arcoSaida} ${c}`}
+            strokeDashoffset={-(frac + gap / 2) * c}
+            style={{ stroke: 'var(--red)', transition: 'stroke-dasharray 700ms ease, stroke-dashoffset 700ms ease' }} />
         )}
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className="text-sm font-extrabold text-fg tabular-nums leading-none">{formatPercent(savings, 0)}</span>
-        <span className="text-[9px] font-semibold text-fg-muted uppercase tracking-wider mt-0.5">econ.</span>
+        <span className={`text-lg font-extrabold tabular-nums leading-none ${savings < 0 ? 'text-red-500' : 'text-fg'}`}>
+          {formatPercent(savings, 0)}
+        </span>
+        <span className="text-[9px] font-semibold text-fg-muted uppercase tracking-wider mt-1">economia</span>
       </div>
     </div>
   )

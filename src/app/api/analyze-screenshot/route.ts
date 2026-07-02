@@ -2,6 +2,11 @@ import { NextRequest, NextResponse } from 'next/server'
 
 const GROQ_API_KEY = process.env.GROQ_API_KEY || ''
 
+// Scout tem limite de 30k tokens/min no tier gratuito da Groq (70B só 12k),
+// então é o modelo principal; o 70B fica como reserva com resposta menor.
+const MODELO_TEXTO = 'meta-llama/llama-4-scout-17b-16e-instruct'
+const MODELO_TEXTO_RESERVA = 'llama-3.3-70b-versatile'
+
 const PROMPT_BASE = `Você é um especialista em finanças pessoais brasileiras.
 
 Analise com MÁXIMA PRECISÃO e extraia todos os dados financeiros visíveis.
@@ -66,11 +71,13 @@ async function callGroqVision(base64: string, mimeType: string, bankName?: strin
   return data.choices?.[0]?.message?.content || ''
 }
 
-async function callGroqText(text: string, bankName?: string) {
-  const prompt = bankName
-    ? `Este é o texto extraído de um PDF do banco "${bankName}".\n\n${PROMPT_BASE}\n\nTexto do PDF:\n\n${text}`
-    : `${PROMPT_BASE}\n\nTexto do extrato/fatura:\n\n${text}`
+// Compacta o texto do PDF (espaços e linhas repetidas) para gastar menos tokens
+function prepararTextoPDF(texto: string): string {
+  const compacto = texto.replace(/[ \t]+/g, ' ').replace(/\n\s*\n+/g, '\n').trim()
+  return compacto.length > 24000 ? compacto.slice(0, 24000) : compacto
+}
 
+async function chamarGroqTexto(model: string, prompt: string, maxTokens: number) {
   const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
     method: 'POST',
     headers: {
@@ -78,8 +85,8 @@ async function callGroqText(text: string, bankName?: string) {
       'content-type': 'application/json',
     },
     body: JSON.stringify({
-      model: 'llama-3.3-70b-versatile',
-      max_tokens: 8000,
+      model,
+      max_tokens: maxTokens,
       temperature: 0.1,
       messages: [{ role: 'user', content: prompt }],
     }),
@@ -92,6 +99,29 @@ async function callGroqText(text: string, bankName?: string) {
 
   const data = await res.json()
   return data.choices?.[0]?.message?.content || ''
+}
+
+async function callGroqText(text: string, bankName?: string) {
+  const textoCompacto = prepararTextoPDF(text)
+  const prompt = bankName
+    ? `Este é o texto extraído de um PDF do banco "${bankName}".\n\n${PROMPT_BASE}\n\nTexto do PDF:\n\n${textoCompacto}`
+    : `${PROMPT_BASE}\n\nTexto do extrato/fatura:\n\n${textoCompacto}`
+
+  try {
+    return await chamarGroqTexto(MODELO_TEXTO, prompt, 8000)
+  } catch (e: any) {
+    // Se o Scout falhar (limite de tokens/minuto, indisponibilidade), tenta o
+    // 70B com resposta menor para caber no limite de 12k tokens/min dele
+    try {
+      return await chamarGroqTexto(MODELO_TEXTO_RESERVA, prompt, 3500)
+    } catch (e2: any) {
+      const msg = `${e.message} / ${e2.message}`
+      if (msg.includes('tokens per minute') || msg.includes('Request too large') || msg.includes('rate_limit')) {
+        throw new Error('O extrato é grande demais para o limite gratuito da IA. Aguarde 1 minuto e tente de novo, ou envie um período menor do extrato.')
+      }
+      throw e2
+    }
+  }
 }
 
 function parseAIResponse(text: string) {

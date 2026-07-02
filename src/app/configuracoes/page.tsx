@@ -266,15 +266,22 @@ export default function ConfiguracoesPage() {
                       <p className="text-sm text-fg">
                         Envie para um familiar: ele cria o próprio login e já entra nesta conta.
                       </p>
-                      <code className="text-lg font-mono text-brand-500 bg-surface-input px-4 py-2 rounded-lg block text-center mt-2">
-                        {account?.invite_code ?? '---'}
-                      </code>
-                      {account?.invite_code && (
-                        <button type="button" onClick={copiarLinkConvite}
-                          className="btn-primary w-full mt-2 flex items-center justify-center gap-2">
-                          {linkCopiado ? <Check size={16} /> : <Copy size={16} />}
-                          {linkCopiado ? 'Link copiado!' : 'Copiar link de convite'}
-                        </button>
+                      {account?.invite_code ? (
+                        <>
+                          <code className="text-lg font-mono text-brand-500 bg-surface-input px-4 py-2 rounded-lg block text-center mt-2">
+                            {account.invite_code}
+                          </code>
+                          <button type="button" onClick={copiarLinkConvite}
+                            className="btn-primary w-full mt-2 flex items-center justify-center gap-2">
+                            {linkCopiado ? <Check size={16} /> : <Copy size={16} />}
+                            {linkCopiado ? 'Link copiado!' : 'Copiar link de convite'}
+                          </button>
+                        </>
+                      ) : (
+                        <p className="text-sm text-fg-muted mt-2 p-3 rounded-xl bg-surface-input">
+                          Salve seu perfil na aba <span className="font-semibold">Perfis</span> para
+                          criar a conta e gerar o código de convite.
+                        </p>
                       )}
                     </div>
                     <div>

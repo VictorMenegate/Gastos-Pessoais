@@ -27,7 +27,7 @@ export default function ProgressBar({ value, max = 100, color = 'var(--accent-li
           style={{
             width: `${percentage}%`,
             background: overBudget
-              ? 'linear-gradient(90deg, #dc2626, #ef4444)'
+              ? 'var(--red)'
               // sufixo de alpha só funciona em cor hex; var(--...) fica sólida
               : `linear-gradient(90deg, ${color}, ${color.startsWith('#') ? `${color}cc` : color})`,
             transition: 'width 700ms ease',

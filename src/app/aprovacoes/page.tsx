@@ -2,7 +2,9 @@
 
 import { useEffect, useState } from 'react'
 import { Check, X, ShieldCheck, Clock } from 'lucide-react'
-import Sidebar from '@/components/Sidebar'
+import PageShell from '@/components/PageShell'
+import PageHero from '@/components/PageHero'
+import { SkeletonList } from '@/components/Skeleton'
 
 type AccessRequest = {
   user_id: string
@@ -44,18 +46,20 @@ export default function AprovacoesPage() {
   const aprovados = requests.filter(r => r.approved)
 
   const inner = forbidden ? (
-    <div className="p-6 md:p-8 max-w-2xl">
+    <div className="max-w-2xl">
       <div className="card p-6 text-center text-text-secondary">
         Você não tem permissão para acessar esta página.
       </div>
     </div>
   ) : (
-    <div className="p-6 md:p-8 max-w-2xl">
-      <h1 className="text-2xl font-extrabold mb-1">Aprovações de acesso</h1>
-      <p className="text-text-secondary text-sm mb-6">Aprove ou bloqueie quem pode usar o app.</p>
+    <div className="max-w-2xl">
+      <div className="hidden md:block mb-6">
+        <h1 className="text-2xl font-extrabold mb-1">Aprovações de acesso</h1>
+        <p className="text-text-secondary text-sm">Aprove ou bloqueie quem pode usar o app.</p>
+      </div>
 
       {loading ? (
-        <div className="card p-6 text-text-secondary">Carregando…</div>
+        <SkeletonList rows={3} />
       ) : (
         <>
           <section className="mb-8">
@@ -93,7 +97,7 @@ export default function AprovacoesPage() {
                 </div>
                 {!r.is_admin && (
                   <button onClick={() => setApproved(r.user_id, false)} disabled={saving === r.user_id}
-                    className="flex items-center gap-2 whitespace-nowrap px-4 py-2 rounded-xl text-sm font-medium text-red-600 bg-red-50 hover:bg-red-100 transition-colors">
+                    className="severity-danger flex items-center gap-2 whitespace-nowrap px-4 py-2 rounded-xl text-sm font-medium transition-colors">
                     <X className="w-4 h-4" /> Bloquear
                   </button>
                 )}
@@ -106,13 +110,18 @@ export default function AprovacoesPage() {
   )
 
   return (
-    <div className="min-h-screen" style={{ background: '#e8ebf0' }}>
-      <Sidebar />
-      <main className="md:ml-[240px] pb-24 md:pb-6 md:py-3 md:pr-3">
-        <div className="min-h-full md:bg-white md:min-h-[calc(100vh-24px)] md:overflow-auto">
-          {inner}
-        </div>
-      </main>
-    </div>
+    <PageShell
+      hero={
+        <PageHero
+          title="Aprovações"
+          subtitle="Aprove ou bloqueie quem pode usar o app"
+          value={loading ? '—' : pendentes.length}
+          valueLabel="pendentes"
+          loading={loading}
+        />
+      }
+    >
+      {inner}
+    </PageShell>
   )
 }

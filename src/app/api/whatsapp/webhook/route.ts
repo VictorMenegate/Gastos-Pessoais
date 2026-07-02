@@ -59,7 +59,7 @@ export async function POST(request: Request) {
     const profile = await findProfileByPhone(phone)
 
     if (!profile) {
-      await sendMessage(phone, 'Seu numero nao esta vinculado a nenhuma conta. Configure pelo site.')
+      await sendMessage(phone, '🔒 *Ops!* Seu número ainda não está vinculado a nenhuma conta.\n\nAcesse *Configurações → WhatsApp* no app para vincular. 😉')
       return NextResponse.json({ status: 'unlinked', phone })
     }
 
@@ -80,7 +80,19 @@ export async function POST(request: Request) {
       const parsed = parseTransaction(text.trim())
       if (!parsed) {
         await sendMessage(phone,
-          '📊 *Gastos Pessoais*\n\nEnvie no formato:\n*nome valor*\n\nExemplos:\n_Mercado 120_\n_Almoço 35.50_\n_Uber 18_\n\nComandos:\n*resumo* - ver resumo do mês')
+          [
+            `👋 ${profile.name ? `Olá, *${profile.name}*!` : 'Olá!'} Sou o assistente do *Gastos Pessoais* 💙`,
+            '',
+            'Para registrar uma transação, envie:',
+            '👉 *nome valor*',
+            '',
+            '_Por exemplo:_',
+            '  • Mercado 120',
+            '  • Almoço 35,50',
+            '  • Uber 18',
+            '',
+            '📊 Digite *resumo* para ver como está o mês',
+          ].join('\n'))
         return NextResponse.json({ status: 'help' })
       }
 
@@ -102,11 +114,11 @@ export async function POST(request: Request) {
       session = newSession
 
       await sendButtons(phone,
-        `💰 *${parsed.description}* - R$ ${parsed.amount.toFixed(2)}\n\nÉ entrada ou saída?`,
+        `📝 *${parsed.description}*\n💵 ${formatarBRL(parsed.amount)}\n\nIsso foi um gasto ou uma receita? 👇`,
         [
-          { id: 'type_expense', title: '📤 Saída (Gasto)' },
-          { id: 'type_income', title: '📥 Entrada (Receita)' },
-          { id: 'cancel', title: '❌ Cancelar' },
+          { id: 'type_expense', title: '📤 Gasto (Saída)' },
+          { id: 'type_income', title: '📥 Receita (Entrada)' },
+          { id: 'cancel', title: '✖️ Cancelar' },
         ]
       )
       return NextResponse.json({ status: 'awaiting_type' })
@@ -125,7 +137,7 @@ export async function POST(request: Request) {
         return await handleAwaitingConfirm(phone, session, input, profile)
       default:
         await completeSession(session.id)
-        await sendMessage(phone, 'Sessão reiniciada. Envie uma nova transação.')
+        await sendMessage(phone, '🔄 Recomeçamos! Envie uma nova transação quando quiser. 😊')
         return NextResponse.json({ status: 'reset' })
     }
   } catch (error: any) {
@@ -139,7 +151,7 @@ export async function POST(request: Request) {
 async function handleAwaitingType(phone: string, session: any, input: string, profile: any) {
   if (input.includes('cancel') || input === '3' || input.toLowerCase() === 'cancelar') {
     await completeSession(session.id)
-    await sendMessage(phone, '❌ Cancelado.')
+    await sendMessage(phone, '🚫 Tudo bem, cancelei!\n\n_Envie outra transação quando quiser._')
     return NextResponse.json({ status: 'cancelled' })
   }
 
@@ -147,10 +159,10 @@ async function handleAwaitingType(phone: string, session: any, input: string, pr
   const type = isIncome ? 'income' : 'expense'
   await updateSession(session.id, 'awaiting_payment', { ...session.temp_data, type })
 
-  await sendButtons(phone, '💳 *Como foi o pagamento?*', [
+  await sendButtons(phone, '💳 *E como foi o pagamento?* 👇', [
     { id: 'pm_pix', title: '⚡ Pix' },
     { id: 'pm_debito', title: '💳 Débito' },
-    { id: 'pm_credito', title: '💳 Crédito' },
+    { id: 'pm_credito', title: '🏦 Crédito' },
   ])
   return NextResponse.json({ status: 'awaiting_payment' })
 }
@@ -184,7 +196,7 @@ async function sendCategoryOptions(phone: string, type: string) {
     .in('type', [type, 'both'])
     .limit(10)
 
-  await sendList(phone, '📁 *Categoria:*', 'Escolher', (categories ?? []).map((c, i) => ({
+  await sendList(phone, '📁 *Pra fechar, qual a categoria?*', 'Escolher categoria', (categories ?? []).map((c, i) => ({
     id: `cat_${i}`,
     title: `${c.icon} ${c.name}`.slice(0, 24),
   })))
@@ -206,18 +218,22 @@ async function handleAwaitingCategory(phone: string, session: any, input: string
   await updateSession(session.id, 'awaiting_confirm', data)
 
   const typeEmoji = data.type === 'income' ? '📥' : '📤'
-  const typeLabel = data.type === 'income' ? 'Entrada' : 'Saída'
+  const typeLabel = data.type === 'income' ? 'Receita' : 'Gasto'
   const summary = [
-    `✅ *Confirmar transação:*\n`,
-    `${typeEmoji} ${typeLabel}`,
-    `📝 *${data.description}*`,
-    `💰 *R$ ${data.amount.toFixed(2)}*`,
-    `📁 ${cat?.icon ?? '📦'} ${cat?.name ?? 'Outros'}`,
+    '🧾 *Confira os dados:*',
+    '',
+    `${typeEmoji} *Tipo:* ${typeLabel}`,
+    `📝 *Descrição:* ${data.description}`,
+    `💵 *Valor:* ${formatarBRL(data.amount)}`,
+    `💳 *Pagamento:* ${PAYMENT_LABELS[data.payment_type] ?? '—'}`,
+    `📁 *Categoria:* ${cat?.icon ?? '📦'} ${cat?.name ?? 'Outros'}`,
+    '',
+    'Tudo certo? 👇',
   ].join('\n')
 
   await sendButtons(phone, summary, [
-    { id: 'confirm_yes', title: 'Sim, salvar' },
-    { id: 'confirm_no', title: 'Cancelar' },
+    { id: 'confirm_yes', title: '✅ Sim, salvar' },
+    { id: 'confirm_no', title: '✖️ Cancelar' },
   ])
   return NextResponse.json({ status: 'awaiting_confirm' })
 }
@@ -226,12 +242,12 @@ async function handleAwaitingConfirm(phone: string, session: any, input: string,
   const lower = input.toLowerCase()
   if (lower === 'nao' || lower === 'não' || lower === 'n' || lower === '2' || lower === 'confirm_no') {
     await completeSession(session.id)
-    await sendMessage(phone, '❌ Cancelado.')
+    await sendMessage(phone, '🚫 Tudo bem, cancelei!\n\n_Envie outra transação quando quiser._')
     return NextResponse.json({ status: 'cancelled' })
   }
 
   if (lower !== 'sim' && lower !== 's' && lower !== '1' && lower !== 'ok' && lower !== 'confirm_yes') {
-    await sendMessage(phone, 'Responda *sim* ou *não*')
+    await sendMessage(phone, '🤔 Não entendi...\n\nResponda *sim* para salvar ou *não* para cancelar.')
     return NextResponse.json({ status: 'awaiting_confirm' })
   }
 
@@ -254,7 +270,13 @@ async function handleAwaitingConfirm(phone: string, session: any, input: string,
 
   await completeSession(session.id)
   const emoji = data.type === 'income' ? '📥' : '📤'
-  await sendMessage(phone, `${emoji} *Salvo!* ${data.description} - R$ ${data.amount.toFixed(2)}\n\nEnvie outra transação ou digite *resumo*`)
+  await sendMessage(phone, [
+    '✅ *Salvo com sucesso!*',
+    '',
+    `${emoji} ${data.description} — *${formatarBRL(data.amount)}*`,
+    '',
+    '_Envie outra transação ou digite *resumo* 📊_',
+  ].join('\n'))
   return NextResponse.json({ status: 'saved' })
 }
 
@@ -270,12 +292,19 @@ async function handleResume(phone: string, profile: any) {
   const expenses = (transactions ?? []).filter(t => t.type === 'expense').reduce((s, t) => s + Number(t.amount), 0)
   const balance = income - expenses
 
+  const mes = new Date().toLocaleDateString('pt-BR', { month: 'long' })
+  const mesCapitalizado = mes.charAt(0).toUpperCase() + mes.slice(1)
+  const total = (transactions ?? []).length
+
   const msg = [
-    `📊 *Resumo do mês:*\n`,
-    `📥 Entradas: R$ ${income.toFixed(2)}`,
-    `📤 Saídas: R$ ${expenses.toFixed(2)}`,
-    `${balance >= 0 ? '💚' : '🔴'} Saldo: R$ ${balance.toFixed(2)}`,
-    `📋 ${(transactions ?? []).length} transações`,
+    `📊 *Resumo de ${mesCapitalizado}*`,
+    '━━━━━━━━━━━━━━━',
+    `📥 Entradas: *${formatarBRL(income)}*`,
+    `📤 Saídas: *${formatarBRL(expenses)}*`,
+    '━━━━━━━━━━━━━━━',
+    `${balance >= 0 ? '💚' : '🔴'} Saldo: *${formatarBRL(balance)}*`,
+    '',
+    `🧾 ${total} ${total === 1 ? 'transação registrada' : 'transações registradas'}`,
   ].join('\n')
 
   await sendMessage(phone, msg)
@@ -283,6 +312,17 @@ async function handleResume(phone: string, profile: any) {
 }
 
 // --- Helpers ---
+
+// Formata valor no padrão brasileiro (R$ 1.234,56)
+function formatarBRL(valor: number): string {
+  return valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
+}
+
+const PAYMENT_LABELS: Record<string, string> = {
+  pix: '⚡ Pix',
+  debit: '💳 Débito',
+  credit: '🏦 Crédito',
+}
 
 // Normaliza telefone para uma forma canônica comparável.
 // A Meta pode enviar números BR com ou sem o 9º dígito de celular

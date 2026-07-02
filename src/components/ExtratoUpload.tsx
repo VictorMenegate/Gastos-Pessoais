@@ -31,9 +31,11 @@ type Step = 'upload' | 'analyzing' | 'results'
 interface ExtratoUploadProps {
   onClose: () => void
   onSaved: () => void
+  /** Sem card/header próprio — usado dentro do BottomSheet, que fornece o chrome */
+  bare?: boolean
 }
 
-export default function ExtratoUpload({ onClose, onSaved }: ExtratoUploadProps) {
+export default function ExtratoUpload({ onClose, onSaved, bare = false }: ExtratoUploadProps) {
   const [step, setStep] = useState<Step>('upload')
   const [preview, setPreview] = useState<string | null>(null)
   const [pdfName, setPdfName] = useState<string | null>(null)
@@ -253,17 +255,19 @@ export default function ExtratoUpload({ onClose, onSaved }: ExtratoUploadProps) 
   const selectedCount = result?.transacoes.filter(t => t.selected).length ?? 0
 
   return (
-    <div className="card space-y-4">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <h2 className="text-base font-bold text-fg flex items-center gap-2">
-          <Sparkles size={18} className="text-brand-500" /> IA Extrato
-        </h2>
-        <button onClick={onClose} className="w-8 h-8 flex items-center justify-center border-2 border-[var(--border)] hover:bg-surface-input transition-colors"
-          style={{ borderRadius: '10px' }}>
-          <X size={14} />
-        </button>
-      </div>
+    <div className={bare ? 'space-y-4' : 'card space-y-4'}>
+      {/* Header (o BottomSheet já traz título e X no modo bare) */}
+      {!bare && (
+        <div className="flex items-center justify-between">
+          <h2 className="text-base font-bold text-fg flex items-center gap-2">
+            <Sparkles size={18} className="text-brand-500" /> IA Extrato
+          </h2>
+          <button onClick={onClose} className="w-8 h-8 flex items-center justify-center border-2 border-[var(--border)] hover:bg-surface-input transition-colors"
+            style={{ borderRadius: '10px' }}>
+            <X size={14} />
+          </button>
+        </div>
+      )}
 
       {/* STEP 1: Upload */}
       {step === 'upload' && (
@@ -279,7 +283,7 @@ export default function ExtratoUpload({ onClose, onSaved }: ExtratoUploadProps) 
               </button>
             </div>
           ) : pdfName ? (
-            <div className="relative flex items-center gap-3 p-3 border-2 border-brand-300 bg-blue-50" style={{ borderRadius: '14px' }}>
+            <div className="relative flex items-center gap-3 p-3 border-2 border-brand-300 bg-brand-50" style={{ borderRadius: '14px' }}>
               <FileText size={24} className="text-brand-500 flex-shrink-0" />
               <div className="flex-1 min-w-0 text-left">
                 <p className="text-sm font-semibold text-fg truncate">{pdfName}</p>
@@ -292,7 +296,7 @@ export default function ExtratoUpload({ onClose, onSaved }: ExtratoUploadProps) 
             </div>
           ) : (
             <button onClick={() => fileRef.current?.click()}
-              className="w-full py-10 border-2 border-dashed border-brand-200 bg-blue-50/50 flex flex-col items-center gap-2 hover:bg-blue-50 transition-colors"
+              className="w-full py-10 border-2 border-dashed border-brand-200 bg-brand-50 flex flex-col items-center gap-2 hover:bg-brand-100 transition-colors"
               style={{ borderRadius: '14px' }}>
               <div className="w-11 h-11 rounded-xl bg-brand-500 flex items-center justify-center">
                 <Camera size={20} className="text-white" />
@@ -313,7 +317,7 @@ export default function ExtratoUpload({ onClose, onSaved }: ExtratoUploadProps) 
             onChange={e => e.target.files?.[0] && handleFile(e.target.files[0])} />
 
           {error && (
-            <div className="p-3 border-2 border-red-200 bg-red-50 text-sm text-red-600 font-medium" style={{ borderRadius: '12px' }}>
+            <div className="p-3 severity-danger text-sm font-medium" style={{ borderRadius: '12px' }}>
               {error}
             </div>
           )}
@@ -410,7 +414,7 @@ export default function ExtratoUpload({ onClose, onSaved }: ExtratoUploadProps) 
                       <p className="text-xs text-fg-muted">{tx.data} • {tx.categoria}</p>
                     </div>
                     <span className={`text-sm font-bold flex-shrink-0 ${
-                      tx.valor >= 0 ? 'text-green-600' : 'text-red-500'
+                      tx.valor >= 0 ? 'text-brand-500' : 'text-red-500'
                     }`}>
                       {tx.valor >= 0 ? '+' : '-'}{formatCurrency(Math.abs(tx.valor))}
                     </span>
@@ -432,7 +436,7 @@ export default function ExtratoUpload({ onClose, onSaved }: ExtratoUploadProps) 
           )}
 
           {error && (
-            <div className="p-3 border-2 border-red-200 bg-red-50 text-sm text-red-600 font-medium" style={{ borderRadius: '12px' }}>
+            <div className="p-3 severity-danger text-sm font-medium" style={{ borderRadius: '12px' }}>
               {error}
             </div>
           )}

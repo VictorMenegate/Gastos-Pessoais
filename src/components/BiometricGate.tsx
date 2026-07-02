@@ -57,7 +57,8 @@ export default function BiometricGate({ children }: { children: React.ReactNode 
     <>
       {children}
       {locked && (
-        <div className="fixed inset-0 z-[9999] flex flex-col items-center justify-center gap-6 bg-[#0f172a] text-white px-8">
+        <div className="fixed inset-0 z-[9999] flex flex-col items-center justify-center gap-6 text-white px-8"
+          style={{ background: 'linear-gradient(160deg, var(--accent-dark) 0%, var(--accent) 100%)' }}>
           <div className="w-20 h-20 rounded-3xl bg-white/10 flex items-center justify-center">
             <Fingerprint size={40} className="text-white" />
           </div>
@@ -68,7 +69,7 @@ export default function BiometricGate({ children }: { children: React.ReactNode 
           <button
             onClick={unlock}
             disabled={busy}
-            className="px-6 py-3 rounded-2xl bg-[#16a34a] font-semibold disabled:opacity-60"
+            className="pill-btn px-8 disabled:opacity-60"
           >
             {busy ? 'Verificando...' : 'Desbloquear'}
           </button>

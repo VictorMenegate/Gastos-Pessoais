@@ -13,7 +13,7 @@ export default function PendentePage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center p-6"
-      style={{ background: 'linear-gradient(135deg, var(--accent) 0%, var(--accent-light) 50%, var(--accent) 100%)' }}>
+      style={{ background: 'linear-gradient(160deg, var(--accent-dark) 0%, var(--accent) 40%, var(--accent-light) 100%)' }}>
       <div className="w-full max-w-md text-center">
         <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl mb-5 bg-white/20 backdrop-blur-sm">
           <Clock className="w-10 h-10 text-white" />
@@ -28,8 +28,7 @@ export default function PendentePage() {
           </p>
           <div className="flex gap-3 mt-6">
             <button onClick={() => window.location.reload()} className="btn-primary flex-1">Atualizar</button>
-            <button onClick={sair}
-              className="flex-1 px-4 py-3 rounded-xl font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 transition-colors">
+            <button onClick={sair} className="btn-secondary flex-1">
               Sair
             </button>
           </div>

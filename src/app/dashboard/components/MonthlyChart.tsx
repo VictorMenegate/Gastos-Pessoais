@@ -11,9 +11,15 @@ interface Props {
 }
 
 export default function MonthlyChart({ data }: Props) {
-  // fill do Recharts é atributo SVG e não resolve var(); lê a cor computada do tema
+  // fill do Recharts é atributo SVG e não resolve var(); lê as cores computadas do tema
   const [corEntrada, setCorEntrada] = useState('#567EBB')
-  useEffect(() => { setCorEntrada(corDaVar('--accent-light', '#567EBB')) }, [])
+  const [corSaida, setCorSaida] = useState('#ef4444')
+  const [corGrade, setCorGrade] = useState('#DCE0E6')
+  useEffect(() => {
+    setCorEntrada(corDaVar('--accent-light', '#567EBB'))
+    setCorSaida(corDaVar('--red', '#EF4444'))
+    setCorGrade(corDaVar('--border', '#DCE0E6'))
+  }, [])
 
   if (!data.length) {
     return (
@@ -28,7 +34,7 @@ export default function MonthlyChart({ data }: Props) {
   return (
     <ResponsiveContainer width="100%" height={220}>
       <BarChart data={chartData} barGap={4} barCategoryGap="20%" margin={{ top: 5, right: 5, left: 0, bottom: 0 }}>
-        <CartesianGrid strokeDasharray="3 3" stroke="#DCE0E6" />
+        <CartesianGrid strokeDasharray="3 3" stroke={corGrade} />
         <XAxis dataKey="label" stroke="#9ca3af" fontSize={12} />
         <YAxis stroke="#9ca3af" fontSize={11} width={30} tickFormatter={v => v >= 1000 ? `${(v / 1000).toFixed(1).replace('.0', '')}k` : `${v}`} />
         <Tooltip
@@ -37,7 +43,7 @@ export default function MonthlyChart({ data }: Props) {
           labelStyle={{ color: '#606D80' }}
         />
         <Bar dataKey="income" fill={corEntrada} radius={[4, 4, 0, 0]} maxBarSize={40} />
-        <Bar dataKey="expenses" fill="#ef4444" radius={[4, 4, 0, 0]} maxBarSize={40} />
+        <Bar dataKey="expenses" fill={corSaida} radius={[4, 4, 0, 0]} maxBarSize={40} />
       </BarChart>
     </ResponsiveContainer>
   )

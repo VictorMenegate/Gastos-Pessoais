@@ -1,15 +1,19 @@
 'use client'
 
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { PieChart as PieChartIcon } from 'lucide-react'
 import { formatCurrency } from '@/lib/utils'
+import { corDaVar } from '@/lib/theme'
 import type { CategoryBreakdown } from '@/types'
 
 interface Props {
   data: CategoryBreakdown[]
 }
 
-const COLORS = [
+// Cores distintas de categoria; as duas primeiras seguem o tema do app
+// (resolvidas em runtime — darken() e o sufixo de alpha precisam de hex)
+const CORES_BASE = [
   '#1B9E77',
   '#D95F02',
   '#7570B3',
@@ -147,10 +151,20 @@ function Pie3D({ slices, w = 240, h = 200 }: { slices: Slice[]; w?: number; h?: 
 }
 
 export default function ExpenseChart({ data }: Props) {
+  const [cores, setCores] = useState<string[]>(CORES_BASE)
+
+  useEffect(() => {
+    setCores([
+      corDaVar('--accent', '#2B4C7E'),
+      corDaVar('--accent-light', '#567EBB'),
+      ...CORES_BASE.slice(0, 5),
+    ])
+  }, [])
+
   if (!data.length) {
     return (
       <div className="h-48 flex flex-col items-center justify-center space-y-3">
-        <div className="w-12 h-12 rounded-2xl bg-blue-50 flex items-center justify-center">
+        <div className="w-12 h-12 rounded-2xl bg-brand-50 flex items-center justify-center">
           <PieChartIcon size={22} className="text-brand-500" />
         </div>
         <div className="text-center">
@@ -177,7 +191,7 @@ export default function ExpenseChart({ data }: Props) {
 
   let cur = 210
   const slices: Slice[] = items.map((item, i) => {
-    const s: Slice = { start: cur, end: cur + angles[i], color: COLORS[i % COLORS.length] }
+    const s: Slice = { start: cur, end: cur + angles[i], color: cores[i % cores.length] }
     cur += angles[i]
     return s
   })
@@ -193,15 +207,15 @@ export default function ExpenseChart({ data }: Props) {
           <div key={item.name} className="flex items-center justify-between text-sm">
             <div className="flex items-center gap-2.5">
               <span className="inline-block w-3 h-3 flex-shrink-0"
-                style={{ background: COLORS[i % COLORS.length], borderRadius: '4px' }} />
+                style={{ background: cores[i % cores.length], borderRadius: '4px' }} />
               <span className="text-fg font-medium">{item.icon} {item.name}</span>
             </div>
             <div className="text-right flex items-center gap-2">
               <span className="text-fg font-semibold">{formatCurrency(item.value)}</span>
               <span className="text-[11px] font-bold px-1.5 py-0.5 rounded-md"
                 style={{
-                  background: COLORS[i % COLORS.length] + '18',
-                  color: COLORS[i % COLORS.length],
+                  background: cores[i % cores.length] + '18',
+                  color: cores[i % cores.length],
                 }}>
                 {item.percentage.toFixed(0)}%
               </span>

@@ -89,7 +89,7 @@ export default function Sidebar() {
     <>
       {/* ═══ DESKTOP SIDEBAR ═══ */}
       <aside className="hidden md:flex flex-col w-[240px] min-h-screen fixed left-0 top-0 z-40 py-6 px-4"
-        style={{ background: '#e8ebf0' }}>
+        style={{ background: 'var(--bg-page)' }}>
 
         {/* Logo */}
         <div className="flex items-center gap-3 px-2 mb-8">

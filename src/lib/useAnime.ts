@@ -112,39 +112,49 @@ export function useHeroTimeline(loading: boolean) {
       easing: 'easeOutCubic',
     })
 
-    tl.add({
-      targets: greeting,
-      translateX: [-12, 0],
-      opacity: [0, 1],
-      duration: 300,
-    })
-    .add({
-      targets: title,
-      translateX: [-12, 0],
-      opacity: [0, 1],
-      duration: 300,
-    }, '-=200')
-    .add({
-      targets: balanceLabel,
-      translateY: [8, 0],
-      opacity: [0, 1],
-      duration: 250,
-    }, '-=150')
-    .add({
-      targets: balanceValue,
-      translateY: [20, 0],
-      opacity: [0, 1],
-      scale: [0.95, 1],
-      duration: 400,
-    }, '-=200')
-    .add({
-      targets: Array.from(pills),
-      translateY: [12, 0],
-      opacity: [0, 1],
-      delay: anime.stagger(50),
-      duration: 300,
-    }, '-=250')
-
+    // Guards: heroes fora do dashboard não têm todos os elementos
+    if (greeting) {
+      tl.add({
+        targets: greeting,
+        translateX: [-12, 0],
+        opacity: [0, 1],
+        duration: 300,
+      })
+    }
+    if (title) {
+      tl.add({
+        targets: title,
+        translateX: [-12, 0],
+        opacity: [0, 1],
+        duration: 300,
+      }, greeting ? '-=200' : undefined)
+    }
+    if (balanceLabel) {
+      tl.add({
+        targets: balanceLabel,
+        translateY: [8, 0],
+        opacity: [0, 1],
+        duration: 250,
+      }, '-=150')
+    }
+    if (balanceValue) {
+      tl.add({
+        targets: balanceValue,
+        translateY: [20, 0],
+        opacity: [0, 1],
+        scale: [0.95, 1],
+        duration: 400,
+      }, '-=200')
+    }
+    if (pills.length) {
+      tl.add({
+        targets: Array.from(pills),
+        translateY: [12, 0],
+        opacity: [0, 1],
+        delay: anime.stagger(50),
+        duration: 300,
+      }, '-=250')
+    }
     if (banner) {
       tl.add({
         targets: banner,

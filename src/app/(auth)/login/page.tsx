@@ -118,12 +118,12 @@ export default function LoginPage() {
             )}
 
             {error && (
-              <div className="text-sm font-medium p-3 rounded-xl bg-red-50 text-red-600 border border-red-200">
+              <div className="text-sm font-medium p-3 rounded-xl severity-danger">
                 {error}
               </div>
             )}
             {message && (
-              <div className="text-sm font-medium p-3 rounded-xl bg-blue-50 text-brand-500 border border-blue-200">
+              <div className="text-sm font-medium p-3 rounded-xl severity-info">
                 {message}
               </div>
             )}

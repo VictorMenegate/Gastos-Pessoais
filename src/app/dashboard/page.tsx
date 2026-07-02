@@ -7,7 +7,7 @@ import { getDashboardData, getFinancialGoals } from '@/lib/queries'
 import { formatCurrency, formatPercent } from '@/lib/utils'
 import { useHeroTimeline, useStaggerIn } from '@/lib/useAnime'
 import MonthSelector from '@/components/MonthSelector'
-import Loading from '@/components/Loading'
+import { SkeletonCard, SkeletonList } from '@/components/Skeleton'
 import ExpenseChart from './components/ExpenseChart'
 import MonthlyChart from './components/MonthlyChart'
 import BudgetOverview from './components/BudgetOverview'
@@ -154,7 +154,18 @@ export default function DashboardPage() {
       {/* Mobile: flex + order-* controla a ordem das seções; desktop volta a bloco normal */}
       <div className="px-4 md:px-10 -mt-14 md:mt-0 md:py-8 flex flex-col gap-5 md:block md:space-y-6 max-w-[1400px] mx-auto pb-8 relative z-10">
 
-        {loading ? <Loading /> : (
+        {loading ? (
+          <div className="space-y-5 md:space-y-6">
+            <div className="grid grid-cols-2 min-[1100px]:grid-cols-4 gap-3 md:gap-4">
+              {Array.from({ length: 4 }).map((_, i) => <SkeletonCard key={i} lines={2} />)}
+            </div>
+            <div className="grid lg:grid-cols-2 gap-4 lg:gap-5">
+              <SkeletonCard lines={5} />
+              <SkeletonCard lines={5} />
+            </div>
+            <SkeletonList rows={4} />
+          </div>
+        ) : (
           <>
             {/* ── Mobile: Estatística (donut entradas × saídas) ── */}
             <div className="card md:hidden order-2">

@@ -6,7 +6,8 @@ import { getProfiles, upsertProfile, deleteProfile, getAccount } from '@/lib/que
 import { createClient } from '@/lib/supabase/client'
 import { PROFILE_COLORS } from '@/lib/constants'
 import { TEMAS, TEMA_PADRAO, temaSalvo, salvarTema, type TemaApp } from '@/lib/theme'
-import Sidebar from '@/components/Sidebar'
+import PageShell from '@/components/PageShell'
+import PageHero from '@/components/PageHero'
 import Loading from '@/components/Loading'
 import NativeSettings from '@/components/NativeSettings'
 import type { Profile, SalaryEntry, Account } from '@/types'
@@ -151,12 +152,24 @@ export default function ConfiguracoesPage() {
   const fmt = (v: number) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v)
 
   return (
-    <div className="min-h-screen" style={{ background: '#e8ebf0' }}>
-      <Sidebar />
-      <main className="md:ml-[240px] pb-24 md:pb-6 md:py-3 md:pr-3">
-        <div className="md:bg-white md:min-h-[calc(100vh-24px)] md:overflow-auto" style={{ borderRadius: 'var(--content-radius, 0)' }}>
-        <div className="p-4 md:p-8 lg:p-10 space-y-6 md:space-y-8 max-w-5xl mx-auto">
-          <div className="flex items-center justify-between">
+    <PageShell
+      maxWidth="max-w-5xl"
+      hero={
+        <PageHero
+          title="Configurações"
+          subtitle="Perfis, conta e aparência"
+          actions={tab === 'profiles' ? (
+            <button onClick={handleSaveProfiles} disabled={saving}
+              className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white/10 text-white text-sm font-semibold disabled:opacity-60">
+              <Save size={15} />
+              {saving ? 'Salvando...' : saved ? 'Salvo!' : 'Salvar'}
+            </button>
+          ) : undefined}
+        />
+      }
+    >
+          {/* Header desktop (mobile usa o hero) */}
+          <div className="hidden md:flex items-center justify-between">
             <h1 className="text-xl md:text-2xl font-bold text-fg">Configurações</h1>
             {tab === 'profiles' && (
               <button onClick={handleSaveProfiles} disabled={saving} className="btn-primary flex items-center gap-2">
@@ -362,9 +375,6 @@ export default function ConfiguracoesPage() {
               )}
             </>
           )}
-        </div>
-        </div>
-      </main>
-    </div>
+    </PageShell>
   )
 }

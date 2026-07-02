@@ -10,9 +10,11 @@ interface Props {
   onSubmit: (data: TransactionFormData) => Promise<void>
   onCancel: () => void
   initialData?: Partial<TransactionFormData>
+  /** Sem card/título próprio — usado dentro do BottomSheet, que fornece o chrome */
+  bare?: boolean
 }
 
-export default function TransactionForm({ defaultType = 'expense', onSubmit, onCancel, initialData }: Props) {
+export default function TransactionForm({ defaultType = 'expense', onSubmit, onCancel, initialData, bare = false }: Props) {
   const [categories, setCategories] = useState<Category[]>([])
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([])
   const [profiles, setProfiles] = useState<Profile[]>([])
@@ -63,31 +65,19 @@ export default function TransactionForm({ defaultType = 'expense', onSubmit, onC
     }
   }
 
-  return (
-    <div className="card border-brand-200">
-      <h2 className="text-sm font-semibold text-fg mb-4">
-        {form.type === 'income' ? '📥 Nova entrada' : '📤 Nova saída'}
-      </h2>
+  const formEl = (
       <form onSubmit={handleSubmit} className="grid grid-cols-2 gap-3">
         {/* Tipo */}
         <div className="col-span-2 flex gap-2">
           <button type="button"
             onClick={() => setForm(f => ({ ...f, type: 'expense' }))}
-            className={`flex-1 py-2 rounded-lg text-sm font-medium border transition-colors ${
-              form.type === 'expense'
-                ? 'bg-red-600 border-red-500 text-white'
-                : 'bg-surface-input border border-surface-border text-fg-secondary hover:bg-surface-hover'
-            }`}
+            className={`type-btn ${form.type === 'expense' ? 'type-btn-expense' : ''}`}
           >
             📤 Saída
           </button>
           <button type="button"
             onClick={() => setForm(f => ({ ...f, type: 'income' }))}
-            className={`flex-1 py-2 rounded-lg text-sm font-medium border transition-colors ${
-              form.type === 'income'
-                ? 'bg-brand-500 border-brand-500 text-white'
-                : 'bg-surface-input border border-surface-border text-fg-secondary hover:bg-surface-hover'
-            }`}
+            className={`type-btn ${form.type === 'income' ? 'type-btn-income' : ''}`}
           >
             📥 Entrada
           </button>
@@ -160,14 +150,24 @@ export default function TransactionForm({ defaultType = 'expense', onSubmit, onC
             onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} />
         </div>
 
-        {/* Botões */}
-        <div className="col-span-2 flex gap-2 justify-end pt-1">
+        {/* Botões — empilhados no mobile (sheet), lado a lado no desktop */}
+        <div className="col-span-2 flex flex-col-reverse gap-2 md:flex-row md:justify-end pt-1">
           <button type="button" onClick={onCancel} className="btn-secondary">Cancelar</button>
           <button type="submit" className="btn-primary" disabled={saving}>
             {saving ? 'Salvando...' : 'Salvar'}
           </button>
         </div>
       </form>
+  )
+
+  if (bare) return formEl
+
+  return (
+    <div className="card border-brand-200">
+      <h2 className="text-sm font-semibold text-fg mb-4">
+        {form.type === 'income' ? '📥 Nova entrada' : '📤 Nova saída'}
+      </h2>
+      {formEl}
     </div>
   )
 }

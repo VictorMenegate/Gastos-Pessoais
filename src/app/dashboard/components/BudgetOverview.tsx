@@ -14,7 +14,7 @@ export default function BudgetOverview({ budgets }: Props) {
   if (!budgets.length) {
     return (
       <div className="text-center py-6 space-y-3">
-        <div className="w-12 h-12 rounded-2xl bg-blue-50 flex items-center justify-center mx-auto">
+        <div className="w-12 h-12 rounded-2xl bg-brand-50 flex items-center justify-center mx-auto">
           <PieChart size={22} className="text-brand-500" />
         </div>
         <div>

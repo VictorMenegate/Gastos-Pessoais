@@ -45,7 +45,7 @@ async function callGroqVision(base64: string, mimeType: string, bankName?: strin
     },
     body: JSON.stringify({
       model: 'meta-llama/llama-4-scout-17b-16e-instruct',
-      max_tokens: 3000,
+      max_tokens: 8000,
       temperature: 0.1,
       messages: [{
         role: 'user',
@@ -79,7 +79,7 @@ async function callGroqText(text: string, bankName?: string) {
     },
     body: JSON.stringify({
       model: 'llama-3.3-70b-versatile',
-      max_tokens: 4000,
+      max_tokens: 8000,
       temperature: 0.1,
       messages: [{ role: 'user', content: prompt }],
     }),
@@ -96,9 +96,35 @@ async function callGroqText(text: string, bankName?: string) {
 
 function parseAIResponse(text: string) {
   if (!text) throw new Error('IA não retornou resposta')
-  const match = text.match(/\{[\s\S]*\}/)
+  const match = text.match(/\{[\s\S]*\}?/)
   if (!match) throw new Error('IA não retornou JSON válido')
-  return JSON.parse(match[0])
+  const bruto = match[0]
+
+  try {
+    return JSON.parse(bruto)
+  } catch {
+    const reparado = repararJSONTruncado(bruto)
+    if (reparado) return reparado
+    throw new Error('A IA retornou uma resposta incompleta. Tente novamente ou envie um extrato com menos transações.')
+  }
+}
+
+// Quando a resposta é cortada no meio (limite de tokens), descarta o item
+// incompleto do final e fecha o array/objeto para aproveitar o que veio inteiro.
+function repararJSONTruncado(bruto: string): any | null {
+  for (let fim = bruto.length; fim > 0; fim--) {
+    if (bruto[fim - 1] !== '}') continue
+    const base = bruto.slice(0, fim)
+    for (const sufixo of ['', ']}', '}]}']) {
+      try {
+        const obj = JSON.parse(base + sufixo)
+        if (obj && typeof obj === 'object') return obj
+      } catch {
+        // tenta o próximo fechamento
+      }
+    }
+  }
+  return null
 }
 
 export async function POST(req: NextRequest) {

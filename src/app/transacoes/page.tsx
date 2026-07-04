@@ -183,7 +183,11 @@ function TransacoesContent() {
         <ExtratoUpload
           bare={isMobile}
           onClose={() => setShowExtrato(false)}
-          onSaved={() => load(month)}
+          onSaved={mesRef => {
+            // Navega até o mês do extrato para as transações importadas aparecerem
+            if (mesRef && mesRef !== month) setMonth(mesRef)
+            else load(month)
+          }}
         />
       </BottomSheet>
 

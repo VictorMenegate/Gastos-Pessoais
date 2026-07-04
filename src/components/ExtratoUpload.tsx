@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { Camera, X, Check, Loader2, Sparkles, FileText, Upload } from 'lucide-react'
 import { createTransaction, getProfiles, getCategories } from '@/lib/queries'
-import { formatCurrency, monthRefFromDate } from '@/lib/utils'
+import { formatCurrency, formatMonthYear, monthRefFromDate } from '@/lib/utils'
 import { isNative, takePhoto } from '@/lib/native'
 import type { Profile, Category } from '@/types'
 
@@ -30,9 +30,24 @@ type Step = 'upload' | 'analyzing' | 'results'
 
 interface ExtratoUploadProps {
   onClose: () => void
-  onSaved: () => void
+  /** Recebe o month_ref onde a maioria das transações foi salva (p/ navegar até elas) */
+  onSaved: (mesRef?: string) => void
   /** Sem card/header próprio — usado dentro do BottomSheet, que fornece o chrome */
   bare?: boolean
+}
+
+// Converte "DD/MM" ou "DD/MM/AAAA" do extrato em data ISO. Extratos não trazem
+// lançamentos futuros: se a data cair à frente de hoje (ex.: extrato de dezembro
+// analisado em janeiro), assume o ano anterior.
+function dataDoExtrato(data: string): string {
+  const hoje = new Date()
+  const [d, m, a] = (data || '').split('/').map(p => parseInt(p, 10))
+  if (!d || !m || m < 1 || m > 12 || d < 1 || d > 31) {
+    return hoje.toISOString().slice(0, 10)
+  }
+  let ano = a && a > 1900 ? a : hoje.getFullYear()
+  if (!a && new Date(ano, m - 1, d) > hoje) ano--
+  return `${ano}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`
 }
 
 export default function ExtratoUpload({ onClose, onSaved, bare = false }: ExtratoUploadProps) {
@@ -47,6 +62,7 @@ export default function ExtratoUpload({ onClose, onSaved, bare = false }: Extrat
   const [pdfPassword, setPdfPassword] = useState('')
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
+  const [mesesSalvos, setMesesSalvos] = useState<Record<string, number>>({})
   const [profiles, setProfiles] = useState<Profile[]>([])
   const [categories, setCategories] = useState<Category[]>([])
   const [selectedProfile, setSelectedProfile] = useState('')
@@ -183,30 +199,34 @@ export default function ExtratoUpload({ onClose, onSaved, bare = false }: Extrat
       })
 
       let savedCount = 0
+      let falhas = 0
+      const porMes: Record<string, number> = {}
       for (const tx of selected) {
-        const [d, m] = (tx.data || '').split('/').map(Number)
-        const year = new Date().getFullYear()
-        const date = m && d
-          ? `${year}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`
-          : new Date().toISOString().slice(0, 10)
+        const date = dataDoExtrato(tx.data)
 
         const amount = Math.abs(tx.valor)
         if (!amount || amount <= 0) continue
 
-        await createTransaction({
-          account_id: profile.account_id,
-          profile_id: profile.id,
-          type: tx.valor >= 0 ? 'income' : 'expense',
-          description: [tx.descricao, tx.contraparte].filter(Boolean).join(' - '),
-          amount,
-          date,
-          month_ref: monthRefFromDate(date),
-          category_id: catMap[tx.categoria] || undefined,
-          source: 'bank_sync',
-          notes: 'Extraido via IA',
-          tags: ['ia-extrato'],
-        } as any)
-        savedCount++
+        const mesRef = monthRefFromDate(date)
+        try {
+          await createTransaction({
+            account_id: profile.account_id,
+            profile_id: profile.id,
+            type: tx.valor >= 0 ? 'income' : 'expense',
+            description: [tx.descricao, tx.contraparte].filter(Boolean).join(' - '),
+            amount,
+            date,
+            month_ref: mesRef,
+            category_id: catMap[tx.categoria] || undefined,
+            source: 'bank_sync',
+            notes: 'Extraido via IA',
+            tags: ['ia-extrato'],
+          } as any)
+          savedCount++
+          porMes[mesRef] = (porMes[mesRef] || 0) + 1
+        } catch {
+          falhas++
+        }
       }
 
       if (savedCount === 0) {
@@ -215,8 +235,13 @@ export default function ExtratoUpload({ onClose, onSaved, bare = false }: Extrat
         return
       }
 
+      const meses = Object.keys(porMes).sort()
+      const mesPrincipal = meses.reduce((a, b) => (porMes[b] > porMes[a] ? b : a), meses[0])
+      setMesesSalvos(porMes)
+      if (falhas > 0) setError(`${falhas} transacoes nao puderam ser salvas`)
+
       setSaved(true)
-      onSaved()
+      onSaved(mesPrincipal)
     } catch (err: any) {
       setError('Erro ao salvar: ' + (err.message || 'Tente novamente'))
     }
@@ -241,6 +266,7 @@ export default function ExtratoUpload({ onClose, onSaved, bare = false }: Extrat
     setResult(null)
     setError('')
     setSaved(false)
+    setMesesSalvos({})
   }
 
   function clearFile() {
@@ -460,8 +486,16 @@ export default function ExtratoUpload({ onClose, onSaved, bare = false }: Extrat
           </div>
           <h3 className="text-base font-bold text-fg">Transacoes salvas!</h3>
           <p className="text-sm text-fg-muted">
-            {selectedCount} transacoes foram adicionadas
+            {Object.entries(mesesSalvos)
+              .sort(([a], [b]) => a.localeCompare(b))
+              .map(([mes, qtd]) => `${qtd} em ${formatMonthYear(mes)}`)
+              .join(' • ') || `${selectedCount} transacoes foram adicionadas`}
           </p>
+          {Object.keys(mesesSalvos).length > 0 && (
+            <p className="text-xs text-fg-muted">
+              A lista ja foi levada para o mes do extrato — use as setas para navegar entre os meses.
+            </p>
+          )}
           <div className="flex gap-2 pt-1">
             <button onClick={reset} className="btn-secondary flex-1">Novo extrato</button>
             <button onClick={onClose} className="btn-primary flex-1">Fechar</button>
